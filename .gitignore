@@ -1,0 +1,23 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+
+# Environment / secrets — NEVER commit real Supabase credentials or
+# per-environment dart-define files (see lib/core/config/env.dart)
+env/*.json
+.env
+.env.*
+*.pem
+*.key
+
+# Supabase local dev
+supabase/.branches/
+supabase/.temp/
+
+# OS
+.DS_Store

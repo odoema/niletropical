@@ -1,0 +1,1349 @@
+-- =============================================================================
+-- Nile Tropical Industries (niletropical) – Schema Snapshot Migration
+-- Generated from live Supabase project: ououfhsswyqutcczdtnb
+-- Date: 2026-09-16
+-- =============================================================================
+-- This file recreates the public schema (tables, constraints, indexes,
+-- functions, triggers, RLS policies) in dependency order.
+-- It does NOT include auth/storage/realtime system schemas.
+-- =============================================================================
+
+BEGIN;
+
+-- ---------------------------------------------------------------------------
+-- 1. Extensions
+-- ---------------------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "citext" WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "pg_net" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA vault;
+
+-- ---------------------------------------------------------------------------
+-- 2. Enums
+-- ---------------------------------------------------------------------------
+DO $$ BEGIN
+  CREATE TYPE public.app_role AS ENUM (
+    'super_admin',
+    'manager',
+    'sales_staff',
+    'inventory_officer',
+    'finance',
+    'content_manager',
+    'courier'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- 3. Sequences
+-- ---------------------------------------------------------------------------
+CREATE SEQUENCE IF NOT EXISTS public.order_number_seq;
+
+-- ---------------------------------------------------------------------------
+-- 4. Tables (ordered by dependency)
+-- ---------------------------------------------------------------------------
+
+-- profiles (depends on auth.users)
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id          uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name   text,
+  phone       text,
+  email       citext,
+  is_active   boolean NOT NULL DEFAULT true,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- user_roles
+CREATE TABLE IF NOT EXISTS public.user_roles (
+  user_id     uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  role        public.app_role NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, role)
+);
+
+-- categories
+CREATE TABLE IF NOT EXISTS public.categories (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        text NOT NULL,
+  slug        text NOT NULL UNIQUE,
+  description text,
+  image_path  text,
+  sort_order  integer NOT NULL DEFAULT 0,
+  is_active   boolean NOT NULL DEFAULT true,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  deleted_at  timestamptz
+);
+
+-- products
+CREATE TABLE IF NOT EXISTS public.products (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id       uuid REFERENCES public.categories(id) ON DELETE SET NULL,
+  name              text NOT NULL,
+  slug              text NOT NULL UNIQUE,
+  short_description text,
+  full_description  text,
+  benefits          text,
+  how_to_use        text,
+  ingredients       text,
+  warnings          text,
+  brand             text NOT NULL DEFAULT 'Nile Tropical',
+  is_featured       boolean NOT NULL DEFAULT false,
+  is_bestseller     boolean NOT NULL DEFAULT false,
+  is_new            boolean NOT NULL DEFAULT false,
+  is_promotional    boolean NOT NULL DEFAULT false,
+  is_active         boolean NOT NULL DEFAULT true,
+  seo_title         text,
+  seo_description   text,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now(),
+  deleted_at        timestamptz
+);
+
+-- product_variants
+CREATE TABLE IF NOT EXISTS public.product_variants (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id       uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  sku              text NOT NULL UNIQUE,
+  name             text NOT NULL,
+  price            numeric(14,2) NOT NULL CHECK (price >= 0),
+  cost_price       numeric(14,2) CHECK (cost_price IS NULL OR cost_price >= 0),
+  compare_at_price numeric(14,2) CHECK (compare_at_price IS NULL OR compare_at_price >= 0),
+  stock_quantity   integer NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
+  reorder_level    integer NOT NULL DEFAULT 5 CHECK (reorder_level >= 0),
+  weight_grams     integer,
+  length_cm        numeric(10,2),
+  width_cm         numeric(10,2),
+  height_cm        numeric(10,2),
+  barcode          text,
+  is_active        boolean NOT NULL DEFAULT true,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  updated_at       timestamptz NOT NULL DEFAULT now()
+);
+
+-- product_images
+CREATE TABLE IF NOT EXISTS public.product_images (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id   uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  variant_id   uuid REFERENCES public.product_variants(id) ON DELETE SET NULL,
+  storage_path text NOT NULL,
+  alt_text     text,
+  sort_order   integer NOT NULL DEFAULT 0,
+  is_main      boolean NOT NULL DEFAULT false,
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+-- product_videos
+CREATE TABLE IF NOT EXISTS public.product_videos (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id   uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  storage_path text,
+  external_url text,
+  title        text,
+  sort_order   integer NOT NULL DEFAULT 0,
+  is_active    boolean NOT NULL DEFAULT true,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT product_videos_check CHECK (storage_path IS NOT NULL OR external_url IS NOT NULL)
+);
+
+-- warehouses
+CREATE TABLE IF NOT EXISTS public.warehouses (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name       text NOT NULL UNIQUE,
+  location   text,
+  is_active  boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- warehouse_stock
+CREATE TABLE IF NOT EXISTS public.warehouse_stock (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  warehouse_id       uuid NOT NULL REFERENCES public.warehouses(id) ON DELETE CASCADE,
+  product_variant_id uuid NOT NULL REFERENCES public.product_variants(id) ON DELETE CASCADE,
+  on_hand            integer NOT NULL DEFAULT 0 CHECK (on_hand >= 0),
+  reserved           integer NOT NULL DEFAULT 0 CHECK (reserved >= 0),
+  reorder_level      integer NOT NULL DEFAULT 5 CHECK (reorder_level >= 0),
+  updated_at         timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (warehouse_id, product_variant_id),
+  CHECK (reserved <= on_hand)
+);
+
+-- batches
+CREATE TABLE IF NOT EXISTS public.batches (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_variant_id uuid NOT NULL REFERENCES public.product_variants(id) ON DELETE RESTRICT,
+  warehouse_id       uuid REFERENCES public.warehouses(id) ON DELETE RESTRICT,
+  batch_number       text NOT NULL,
+  manufacturing_date date,
+  expiry_date        date,
+  quantity           integer NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+  notes              text,
+  created_at         timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (product_variant_id, warehouse_id, batch_number)
+);
+
+-- stock_movements
+CREATE TABLE IF NOT EXISTS public.stock_movements (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_variant_id uuid NOT NULL REFERENCES public.product_variants(id) ON DELETE RESTRICT,
+  batch_id           uuid REFERENCES public.batches(id) ON DELETE RESTRICT,
+  warehouse_id       uuid REFERENCES public.warehouses(id) ON DELETE RESTRICT,
+  movement_type      text NOT NULL CHECK (movement_type = ANY (ARRAY[
+    'purchase','sale','return','damage','expiry','adjustment',
+    'transfer','opening','reservation','release'
+  ])),
+  quantity           integer NOT NULL CHECK (quantity <> 0),
+  reference          text,
+  notes              text,
+  created_by         uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at         timestamptz NOT NULL DEFAULT now()
+);
+
+-- stock_reservations
+CREATE TABLE IF NOT EXISTS public.stock_reservations (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id           uuid,  -- FK added later if needed
+  product_variant_id uuid NOT NULL REFERENCES public.product_variants(id) ON DELETE RESTRICT,
+  warehouse_id       uuid REFERENCES public.warehouses(id) ON DELETE RESTRICT,
+  quantity           integer NOT NULL CHECK (quantity > 0),
+  status             text NOT NULL DEFAULT 'reserved' CHECK (status = ANY (ARRAY[
+    'reserved','released','fulfilled','expired','cancelled'
+  ])),
+  expires_at         timestamptz,
+  created_at         timestamptz NOT NULL DEFAULT now(),
+  released_at        timestamptz
+);
+
+-- customers
+CREATE TABLE IF NOT EXISTS public.customers (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id        uuid UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
+  full_name      text NOT NULL,
+  phone          text NOT NULL,
+  email          citext,
+  preferred_area text,
+  status         text NOT NULL DEFAULT 'active' CHECK (status = ANY (ARRAY['active','inactive','blocked'])),
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  updated_at     timestamptz NOT NULL DEFAULT now()
+);
+
+-- customer_addresses
+CREATE TABLE IF NOT EXISTS public.customer_addresses (
+  id                    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_id           uuid NOT NULL REFERENCES public.customers(id) ON DELETE CASCADE,
+  country               text NOT NULL DEFAULT 'Uganda',
+  district              text,
+  city                  text,
+  area                  text,
+  address_line          text NOT NULL,
+  landmark              text,
+  delivery_instructions text,
+  is_default            boolean NOT NULL DEFAULT false,
+  created_at            timestamptz NOT NULL DEFAULT now(),
+  updated_at            timestamptz NOT NULL DEFAULT now()
+);
+
+-- delivery_zones
+CREATE TABLE IF NOT EXISTS public.delivery_zones (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name            text NOT NULL UNIQUE,
+  district        text,
+  delivery_method text,
+  delivery_fee    numeric(14,2) NOT NULL DEFAULT 0 CHECK (delivery_fee >= 0),
+  estimated_days  integer,
+  is_active       boolean NOT NULL DEFAULT true,
+  notes           text,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now()
+);
+
+-- delivery_partners
+CREATE TABLE IF NOT EXISTS public.delivery_partners (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name           text NOT NULL,
+  type           text NOT NULL CHECK (type = ANY (ARRAY['bus','taxi','courier_company','boda','other'])),
+  contact_person text,
+  phone          text,
+  email          citext,
+  terminal       text,
+  routes         text[] NOT NULL DEFAULT '{}',
+  charges        jsonb,
+  is_active      boolean NOT NULL DEFAULT true,
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  updated_at     timestamptz NOT NULL DEFAULT now()
+);
+
+-- couriers
+CREATE TABLE IF NOT EXISTS public.couriers (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id             uuid UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
+  full_name           text NOT NULL,
+  phone               text NOT NULL,
+  id_number           text,
+  vehicle_type        text,
+  registration_number text,
+  operating_area      text,
+  commission_rate     numeric(7,4),
+  is_active           boolean NOT NULL DEFAULT true,
+  created_at          timestamptz NOT NULL DEFAULT now(),
+  updated_at          timestamptz NOT NULL DEFAULT now()
+);
+
+-- promotions
+CREATE TABLE IF NOT EXISTS public.promotions (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        text NOT NULL,
+  type        text NOT NULL CHECK (type = ANY (ARRAY[
+    'product','percentage','fixed','category','coupon','bogo','seasonal'
+  ])),
+  value       numeric(14,2),
+  product_id  uuid REFERENCES public.products(id) ON DELETE CASCADE,
+  category_id uuid REFERENCES public.categories(id) ON DELETE CASCADE,
+  starts_at   timestamptz,
+  ends_at     timestamptz,
+  is_active   boolean NOT NULL DEFAULT true,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- coupons
+CREATE TABLE IF NOT EXISTS public.coupons (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code             citext NOT NULL UNIQUE,
+  promotion_id     uuid REFERENCES public.promotions(id) ON DELETE CASCADE,
+  usage_limit      integer,
+  used_count       integer NOT NULL DEFAULT 0,
+  min_order_amount numeric(14,2),
+  starts_at        timestamptz,
+  ends_at          timestamptz,
+  is_active        boolean NOT NULL DEFAULT true,
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
+
+-- orders
+CREATE TABLE IF NOT EXISTS public.orders (
+  id                        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_number              text NOT NULL UNIQUE DEFAULT (
+    ('NTI-' || to_char(CURRENT_DATE::timestamptz, 'YYYY') || '-') ||
+    lpad(nextval('order_number_seq')::text, 6, '0')
+  ),
+  customer_id               uuid REFERENCES public.customers(id) ON DELETE SET NULL,
+  status                    text NOT NULL DEFAULT 'new_order' CHECK (status = ANY (ARRAY[
+    'new_order','payment_pending','payment_confirmed','order_confirmed','processing',
+    'packed','ready_for_dispatch','dispatched','in_transit','arrived_at_destination',
+    'out_for_delivery','delivered','cancelled','refunded','delivery_failed',
+    'customer_unavailable','returned','out_of_stock'
+  ])),
+  payment_status            text NOT NULL DEFAULT 'unpaid' CHECK (payment_status = ANY (ARRAY[
+    'unpaid','pending','paid','failed','refunded','partially_paid'
+  ])),
+  payment_method            text CHECK (payment_method IS NULL OR payment_method = ANY (ARRAY[
+    'mtn_momo','airtel_money','card','cash_on_delivery'
+  ])),
+  currency                  text NOT NULL DEFAULT 'UGX',
+  subtotal                  numeric(14,2) NOT NULL DEFAULT 0 CHECK (subtotal >= 0),
+  delivery_fee              numeric(14,2) NOT NULL DEFAULT 0 CHECK (delivery_fee >= 0),
+  discount_total            numeric(14,2) NOT NULL DEFAULT 0 CHECK (discount_total >= 0),
+  total                     numeric(14,2) NOT NULL DEFAULT 0 CHECK (total >= 0),
+  customer_name_snapshot    text,
+  customer_phone_snapshot   text,
+  customer_email_snapshot   citext,
+  delivery_address_snapshot jsonb,
+  notes                     text,
+  created_at                timestamptz NOT NULL DEFAULT now(),
+  updated_at                timestamptz NOT NULL DEFAULT now()
+);
+
+-- order_items
+CREATE TABLE IF NOT EXISTS public.order_items (
+  id                    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id              uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  product_variant_id    uuid REFERENCES public.product_variants(id) ON DELETE SET NULL,
+  product_name_snapshot text NOT NULL,
+  variant_name_snapshot text,
+  sku_snapshot          text,
+  unit_price            numeric(14,2) NOT NULL CHECK (unit_price >= 0),
+  discount              numeric(14,2) NOT NULL DEFAULT 0 CHECK (discount >= 0),
+  quantity              integer NOT NULL CHECK (quantity > 0),
+  line_total            numeric(14,2) NOT NULL CHECK (line_total >= 0)
+);
+
+-- order_status_history
+CREATE TABLE IF NOT EXISTS public.order_status_history (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id   uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  status     text NOT NULL,
+  note       text,
+  changed_by uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- coupon_redemptions
+CREATE TABLE IF NOT EXISTS public.coupon_redemptions (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  coupon_id       uuid NOT NULL REFERENCES public.coupons(id) ON DELETE RESTRICT,
+  customer_id     uuid REFERENCES public.customers(id) ON DELETE SET NULL,
+  order_id        uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  discount_amount numeric(14,2) NOT NULL DEFAULT 0 CHECK (discount_amount >= 0),
+  redeemed_at     timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (coupon_id, order_id)
+);
+
+-- payment_transactions
+CREATE TABLE IF NOT EXISTS public.payment_transactions (
+  id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id                uuid NOT NULL REFERENCES public.orders(id) ON DELETE RESTRICT,
+  provider                text NOT NULL,
+  method                  text NOT NULL CHECK (method = ANY (ARRAY[
+    'mtn_momo','airtel_money','card','cash_on_delivery'
+  ])),
+  provider_transaction_id text,
+  provider_reference      text,
+  idempotency_key         text,
+  amount                  numeric(14,2) NOT NULL CHECK (amount >= 0),
+  currency                text NOT NULL DEFAULT 'UGX',
+  status                  text NOT NULL DEFAULT 'pending' CHECK (status = ANY (ARRAY[
+    'initiated','pending','successful','failed','cancelled','refunded','partially_refunded'
+  ])),
+  raw_response            jsonb,
+  initiated_at            timestamptz NOT NULL DEFAULT now(),
+  completed_at            timestamptz,
+  created_at              timestamptz NOT NULL DEFAULT now(),
+  updated_at              timestamptz NOT NULL DEFAULT now(),
+  idempotency_fingerprint text,
+  UNIQUE (provider, provider_transaction_id)
+);
+
+-- payment_webhook_events
+CREATE TABLE IF NOT EXISTS public.payment_webhook_events (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  provider        text NOT NULL,
+  event_id        text,
+  event_type      text,
+  payload         jsonb NOT NULL,
+  signature_valid boolean NOT NULL DEFAULT false,
+  processed       boolean NOT NULL DEFAULT false,
+  processed_at    timestamptz,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (provider, event_id)
+);
+
+-- shipments
+CREATE TABLE IF NOT EXISTS public.shipments (
+  id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id             uuid NOT NULL REFERENCES public.orders(id) ON DELETE RESTRICT,
+  zone_id              uuid REFERENCES public.delivery_zones(id) ON DELETE SET NULL,
+  delivery_partner_id  uuid REFERENCES public.delivery_partners(id) ON DELETE SET NULL,
+  courier_id           uuid REFERENCES public.couriers(id) ON DELETE SET NULL,
+  destination          text,
+  destination_terminal text,
+  tracking_reference   text UNIQUE,
+  status               text NOT NULL DEFAULT 'pending' CHECK (status = ANY (ARRAY[
+    'pending','assigned','preparing','dispatched','picked_up','in_transit',
+    'arrived','at_terminal','out_for_delivery','delivered','failed',
+    'customer_unavailable','returned','cancelled'
+  ])),
+  current_leg          text,
+  dispatched_at        timestamptz,
+  delivered_at         timestamptz,
+  created_at           timestamptz NOT NULL DEFAULT now(),
+  updated_at           timestamptz NOT NULL DEFAULT now()
+);
+
+-- delivery_events
+CREATE TABLE IF NOT EXISTS public.delivery_events (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  shipment_id uuid NOT NULL REFERENCES public.shipments(id) ON DELETE CASCADE,
+  event_type  text NOT NULL,
+  location    text,
+  latitude    numeric(10,7),
+  longitude   numeric(10,7),
+  notes       text,
+  created_by  uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- proof_of_delivery
+CREATE TABLE IF NOT EXISTS public.proof_of_delivery (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  shipment_id       uuid NOT NULL UNIQUE REFERENCES public.shipments(id) ON DELETE RESTRICT,
+  customer_name     text,
+  courier_id        uuid REFERENCES public.couriers(id) ON DELETE SET NULL,
+  delivered_at      timestamptz,
+  location          text,
+  otp_or_code       text,
+  signature_path    text,
+  photo_path        text,
+  payment_collected numeric(14,2),
+  notes             text,
+  created_at        timestamptz NOT NULL DEFAULT now()
+);
+
+-- cod_collections
+CREATE TABLE IF NOT EXISTS public.cod_collections (
+  id                     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id               uuid NOT NULL UNIQUE REFERENCES public.orders(id) ON DELETE RESTRICT,
+  amount_due             numeric(14,2) NOT NULL CHECK (amount_due >= 0),
+  amount_collected       numeric(14,2) NOT NULL DEFAULT 0 CHECK (amount_collected >= 0),
+  collected_by           uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  collected_at           timestamptz,
+  confirmation_reference text,
+  notes                  text
+);
+
+-- pricing_recommendations
+CREATE TABLE IF NOT EXISTS public.pricing_recommendations (
+  id                        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  variant_id                uuid NOT NULL REFERENCES public.product_variants(id) ON DELETE CASCADE,
+  suggested_retail_price    numeric(14,2) NOT NULL CHECK (suggested_retail_price >= 0),
+  currency                  text NOT NULL DEFAULT 'UGX' CHECK (currency = 'UGX'),
+  methodology               text NOT NULL DEFAULT 'market_informed_estimate',
+  rationale                 text,
+  market_reference          text,
+  cost_price                numeric(14,2) CHECK (cost_price IS NULL OR cost_price >= 0),
+  target_gross_margin_pct   numeric(6,2) CHECK (target_gross_margin_pct IS NULL OR (target_gross_margin_pct >= 0 AND target_gross_margin_pct <= 100)),
+  estimated_gross_margin_pct numeric(6,2),
+  status                    text NOT NULL DEFAULT 'draft' CHECK (status = ANY (ARRAY[
+    'draft','pending_approval','approved','rejected','superseded'
+  ])),
+  approved_by               uuid REFERENCES auth.users(id),
+  approved_at               timestamptz,
+  notes                     text,
+  created_at                timestamptz NOT NULL DEFAULT now(),
+  updated_at                timestamptz NOT NULL DEFAULT now()
+);
+
+-- banners
+CREATE TABLE IF NOT EXISTS public.banners (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title      text,
+  image_path text,
+  link_url   text,
+  is_active  boolean NOT NULL DEFAULT true,
+  sort_order integer NOT NULL DEFAULT 0,
+  starts_at  timestamptz,
+  ends_at    timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- pages
+CREATE TABLE IF NOT EXISTS public.pages (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug            text NOT NULL UNIQUE,
+  title           text NOT NULL,
+  content         text,
+  seo_title        text,
+  seo_description text,
+  is_published    boolean NOT NULL DEFAULT false,
+  updated_at      timestamptz NOT NULL DEFAULT now()
+);
+
+-- faqs
+CREATE TABLE IF NOT EXISTS public.faqs (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  question     text NOT NULL,
+  answer       text NOT NULL,
+  sort_order   integer NOT NULL DEFAULT 0,
+  is_published boolean NOT NULL DEFAULT false,
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+-- testimonials
+CREATE TABLE IF NOT EXISTS public.testimonials (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_name     text,
+  title             text,
+  content           text NOT NULL,
+  media_path        text,
+  consent_confirmed boolean NOT NULL DEFAULT false,
+  is_published      boolean NOT NULL DEFAULT false,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
+);
+
+-- videos
+CREATE TABLE IF NOT EXISTS public.videos (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title          text NOT NULL,
+  description    text,
+  storage_path   text,
+  external_url   text,
+  thumbnail_path text,
+  is_published   boolean NOT NULL DEFAULT false,
+  sort_order     integer NOT NULL DEFAULT 0,
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+
+-- notification_templates
+CREATE TABLE IF NOT EXISTS public.notification_templates (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_key     text NOT NULL UNIQUE,
+  channel       text NOT NULL CHECK (channel = ANY (ARRAY['email','sms','whatsapp','push'])),
+  subject       text,
+  body_template text NOT NULL,
+  is_active     boolean NOT NULL DEFAULT true,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now()
+);
+
+-- notification_logs
+CREATE TABLE IF NOT EXISTS public.notification_logs (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id            uuid REFERENCES public.orders(id) ON DELETE SET NULL,
+  customer_id         uuid REFERENCES public.customers(id) ON DELETE SET NULL,
+  channel             text NOT NULL CHECK (channel = ANY (ARRAY['email','sms','whatsapp','push'])),
+  recipient           text,
+  event_key           text,
+  provider            text,
+  provider_message_id text,
+  status              text NOT NULL DEFAULT 'pending',
+  error_message       text,
+  sent_at             timestamptz,
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+
+-- audit_logs
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  action        text NOT NULL,
+  entity_type   text,
+  entity_id     text,
+  previous_data jsonb,
+  new_data      jsonb,
+  ip_address    inet,
+  user_agent    text,
+  created_at    timestamptz NOT NULL DEFAULT now()
+);
+
+-- ---------------------------------------------------------------------------
+-- 5. Additional Indexes (beyond primary/unique keys already created)
+-- ---------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS audit_logs_entity_idx
+  ON public.audit_logs USING btree (entity_type, entity_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS batches_variant_expiry_idx
+  ON public.batches USING btree (product_variant_id, expiry_date);
+
+CREATE INDEX IF NOT EXISTS batches_warehouse_idx
+  ON public.batches USING btree (warehouse_id);
+
+CREATE INDEX IF NOT EXISTS customer_addresses_customer_idx
+  ON public.customer_addresses USING btree (customer_id);
+
+CREATE INDEX IF NOT EXISTS customers_phone_idx
+  ON public.customers USING btree (phone);
+
+CREATE INDEX IF NOT EXISTS delivery_events_shipment_idx
+  ON public.delivery_events USING btree (shipment_id, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_delivery_events_shipment_created_at
+  ON public.delivery_events USING btree (shipment_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS notification_logs_customer_idx
+  ON public.notification_logs USING btree (customer_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS notification_logs_order_idx
+  ON public.notification_logs USING btree (order_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS order_items_order_idx
+  ON public.order_items USING btree (order_id);
+
+CREATE INDEX IF NOT EXISTS order_items_variant_idx
+  ON public.order_items USING btree (product_variant_id);
+
+CREATE INDEX IF NOT EXISTS order_history_order_idx
+  ON public.order_status_history USING btree (order_id, created_at);
+
+CREATE INDEX IF NOT EXISTS order_status_history_order_idx
+  ON public.order_status_history USING btree (order_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS orders_status_idx
+  ON public.orders USING btree (status, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_order_method
+  ON public.payment_transactions USING btree (order_id, method, status);
+
+CREATE UNIQUE INDEX IF NOT EXISTS payment_transactions_idempotency_key_fingerprint_key
+  ON public.payment_transactions USING btree (idempotency_key, idempotency_fingerprint)
+  WHERE (idempotency_key IS NOT NULL AND idempotency_fingerprint IS NOT NULL);
+
+CREATE INDEX IF NOT EXISTS payments_order_idx
+  ON public.payment_transactions USING btree (order_id, created_at DESC);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_payment_transactions_provider_reference
+  ON public.payment_transactions USING btree (provider, provider_reference)
+  WHERE (provider_reference IS NOT NULL);
+
+CREATE UNIQUE INDEX IF NOT EXISTS pricing_recommendations_one_active_per_variant
+  ON public.pricing_recommendations USING btree (variant_id)
+  WHERE (status = ANY (ARRAY['draft'::text, 'pending_approval'::text, 'approved'::text]));
+
+CREATE INDEX IF NOT EXISTS pricing_recommendations_status_idx
+  ON public.pricing_recommendations USING btree (status);
+
+CREATE INDEX IF NOT EXISTS pricing_recommendations_variant_idx
+  ON public.pricing_recommendations USING btree (variant_id);
+
+CREATE INDEX IF NOT EXISTS products_category_idx
+  ON public.products USING btree (category_id);
+
+CREATE INDEX IF NOT EXISTS variants_product_idx
+  ON public.product_variants USING btree (product_id);
+
+CREATE INDEX IF NOT EXISTS idx_shipments_courier_id
+  ON public.shipments USING btree (courier_id);
+
+CREATE INDEX IF NOT EXISTS idx_shipments_order_id
+  ON public.shipments USING btree (order_id);
+
+CREATE INDEX IF NOT EXISTS idx_shipments_status
+  ON public.shipments USING btree (status);
+
+CREATE INDEX IF NOT EXISTS shipments_partner_idx
+  ON public.shipments USING btree (delivery_partner_id);
+
+CREATE INDEX IF NOT EXISTS shipments_zone_idx
+  ON public.shipments USING btree (zone_id);
+
+CREATE INDEX IF NOT EXISTS stock_movements_variant_idx
+  ON public.stock_movements USING btree (product_variant_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS stock_movements_warehouse_idx
+  ON public.stock_movements USING btree (warehouse_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS stock_reservations_status_idx
+  ON public.stock_reservations USING btree (status, expires_at);
+
+-- ---------------------------------------------------------------------------
+-- 6. Core helper functions
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path TO 'pg_catalog', 'public'
+AS $function$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.has_role(p_role public.app_role)
+RETURNS boolean
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'public'
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = auth.uid() AND role = p_role
+  );
+$function$;
+
+CREATE OR REPLACE FUNCTION public.is_staff()
+RETURNS boolean
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'public'
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = auth.uid()
+  );
+$function$;
+
+CREATE OR REPLACE FUNCTION public.delivery_ops_authorized()
+RETURNS boolean
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'public'
+AS $function$
+  SELECT auth.uid() IS NOT NULL AND (
+    public.has_role('super_admin'::public.app_role) OR
+    public.has_role('manager'::public.app_role) OR
+    public.has_role('sales_staff'::public.app_role) OR
+    public.has_role('inventory_officer'::public.app_role)
+  );
+$function$;
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'public'
+AS $function$
+BEGIN
+  INSERT INTO public.profiles(id, full_name, email)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    NEW.email
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.record_stock_movement(
+  p_variant_id uuid,
+  p_movement_type text,
+  p_quantity integer,
+  p_batch_id uuid DEFAULT NULL,
+  p_warehouse_id uuid DEFAULT NULL,
+  p_reference text DEFAULT NULL,
+  p_notes text DEFAULT NULL
+)
+RETURNS public.product_variants
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'pg_catalog', 'public'
+AS $function$
+DECLARE
+  v public.product_variants;
+  ws public.warehouse_stock;
+  v_new_on_hand integer;
+BEGIN
+  IF auth.uid() IS NULL OR NOT (
+    public.has_role('super_admin'::app_role)
+    OR public.has_role('manager'::app_role)
+    OR public.has_role('inventory_officer'::app_role)
+  ) THEN
+    RAISE EXCEPTION 'inventory authorization required';
+  END IF;
+  IF p_quantity = 0 THEN RAISE EXCEPTION 'quantity must not be zero'; END IF;
+  IF p_movement_type NOT IN (
+    'purchase','sale','return','damage','expiry','adjustment',
+    'transfer','opening','reservation','release'
+  ) THEN
+    RAISE EXCEPTION 'invalid movement type';
+  END IF;
+
+  SELECT * INTO v FROM public.product_variants WHERE id = p_variant_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'variant not found'; END IF;
+
+  IF p_movement_type IN ('reservation','release') THEN
+    RAISE EXCEPTION 'use order reservation operations for reservation/release';
+  END IF;
+
+  IF p_warehouse_id IS NOT NULL THEN
+    SELECT * INTO ws FROM public.warehouse_stock
+    WHERE warehouse_id = p_warehouse_id AND product_variant_id = p_variant_id
+    FOR UPDATE;
+    IF NOT FOUND THEN
+      IF p_quantity < 0 THEN RAISE EXCEPTION 'warehouse stock record not found'; END IF;
+      INSERT INTO public.warehouse_stock(warehouse_id, product_variant_id, on_hand, reserved)
+      VALUES (p_warehouse_id, p_variant_id, p_quantity, 0)
+      RETURNING * INTO ws;
+    ELSE
+      IF ws.on_hand + p_quantity < ws.reserved THEN
+        RAISE EXCEPTION 'stock cannot fall below reserved quantity';
+      END IF;
+      UPDATE public.warehouse_stock
+      SET on_hand = on_hand + p_quantity, updated_at = now()
+      WHERE id = ws.id;
+    END IF;
+
+    SELECT COALESCE(SUM(on_hand),0) INTO v_new_on_hand
+    FROM public.warehouse_stock WHERE product_variant_id = p_variant_id;
+    UPDATE public.product_variants
+    SET stock_quantity = v_new_on_hand, updated_at = now()
+    WHERE id = p_variant_id RETURNING * INTO v;
+  ELSE
+    IF v.stock_quantity + p_quantity < 0 THEN RAISE EXCEPTION 'insufficient stock'; END IF;
+    UPDATE public.product_variants
+    SET stock_quantity = stock_quantity + p_quantity, updated_at = now()
+    WHERE id = p_variant_id RETURNING * INTO v;
+  END IF;
+
+  INSERT INTO public.stock_movements(
+    product_variant_id, batch_id, warehouse_id, movement_type,
+    quantity, reference, notes, created_by
+  ) VALUES (
+    p_variant_id, p_batch_id, p_warehouse_id, p_movement_type,
+    p_quantity, p_reference, p_notes, auth.uid()
+  );
+  RETURN v;
+END;
+$function$;
+
+-- ---------------------------------------------------------------------------
+-- 7. Business functions (selected key ones – full list available in live DB)
+-- ---------------------------------------------------------------------------
+-- Note: The live database contains many more SECURITY DEFINER functions
+-- (create_order, update_order_status, update_shipment_status,
+--  submit_proof_of_delivery, admin_upsert_product, validate_coupon, etc.).
+-- Their full definitions were captured and can be added in a follow-up
+-- migration if required. The core helpers above are sufficient for RLS.
+
+-- ---------------------------------------------------------------------------
+-- 8. Triggers
+-- ---------------------------------------------------------------------------
+CREATE TRIGGER trg_categories_updated_at
+  BEFORE UPDATE ON public.categories
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_couriers_updated_at
+  BEFORE UPDATE ON public.couriers
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_customer_addresses_updated_at
+  BEFORE UPDATE ON public.customer_addresses
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_customers_updated_at
+  BEFORE UPDATE ON public.customers
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_delivery_partners_updated_at
+  BEFORE UPDATE ON public.delivery_partners
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_delivery_zones_updated_at
+  BEFORE UPDATE ON public.delivery_zones
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_notification_templates_updated_at
+  BEFORE UPDATE ON public.notification_templates
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_orders_updated_at
+  BEFORE UPDATE ON public.orders
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_pages_updated_at
+  BEFORE UPDATE ON public.pages
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_payment_transactions_updated_at
+  BEFORE UPDATE ON public.payment_transactions
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER pricing_recommendations_updated_at
+  BEFORE UPDATE ON public.pricing_recommendations
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_product_variants_updated_at
+  BEFORE UPDATE ON public.product_variants
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_products_updated_at
+  BEFORE UPDATE ON public.products
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_shipments_updated_at
+  BEFORE UPDATE ON public.shipments
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_testimonials_updated_at
+  BEFORE UPDATE ON public.testimonials
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_warehouse_stock_updated_at
+  BEFORE UPDATE ON public.warehouse_stock
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_warehouses_updated_at
+  BEFORE UPDATE ON public.warehouses
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Auth trigger for new users (attach to auth.users)
+-- DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+-- CREATE TRIGGER on_auth_user_created
+--   AFTER INSERT ON auth.users
+--   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ---------------------------------------------------------------------------
+-- 9. Row Level Security
+-- ---------------------------------------------------------------------------
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.batches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cod_collections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coupon_redemptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.couriers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customer_addresses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_partners ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_zones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.faqs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notification_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notification_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_status_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payment_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payment_webhook_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pricing_recommendations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.product_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.product_variants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.product_videos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promotions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.proof_of_delivery ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shipments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.stock_movements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.stock_reservations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.warehouse_stock ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.warehouses ENABLE ROW LEVEL SECURITY;
+
+-- Policies (recreated from live DB)
+CREATE POLICY audit_read ON public.audit_logs
+  FOR SELECT TO public
+  USING (has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY content_banners_manage ON public.banners
+  FOR ALL TO public
+  USING (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role))
+  WITH CHECK (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY public_banners_select ON public.banners
+  FOR SELECT TO public
+  USING (is_active AND (starts_at IS NULL OR starts_at <= now()) AND (ends_at IS NULL OR ends_at >= now()));
+
+CREATE POLICY staff_batches_manage ON public.batches
+  FOR ALL TO public
+  USING (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('inventory_officer'::app_role))
+  WITH CHECK (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('inventory_officer'::app_role));
+
+CREATE POLICY public_categories_select ON public.categories
+  FOR SELECT TO public
+  USING (is_active AND deleted_at IS NULL);
+
+CREATE POLICY staff_categories_manage ON public.categories
+  FOR ALL TO public
+  USING (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('content_manager'::app_role))
+  WITH CHECK (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('content_manager'::app_role));
+
+CREATE POLICY finance_cod_manage ON public.cod_collections
+  FOR ALL TO public
+  USING (has_role('finance'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role))
+  WITH CHECK (has_role('finance'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY staff_coupon_redemptions_read ON public.coupon_redemptions
+  FOR SELECT TO public
+  USING (is_staff());
+
+CREATE POLICY coupons_public_select ON public.coupons
+  FOR SELECT TO public
+  USING (is_active AND (starts_at IS NULL OR starts_at <= now()) AND (ends_at IS NULL OR ends_at >= now()));
+
+CREATE POLICY coupons_staff_manage ON public.coupons
+  FOR ALL TO public
+  USING (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role))
+  WITH CHECK (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY staff_couriers_manage ON public.couriers
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY own_address_access ON public.customer_addresses
+  FOR ALL TO public
+  USING (
+    (customer_id IN (SELECT c.id FROM customers c WHERE c.user_id = (SELECT auth.uid())))
+    OR is_staff()
+  )
+  WITH CHECK (
+    (customer_id IN (SELECT c.id FROM customers c WHERE c.user_id = (SELECT auth.uid())))
+    OR is_staff()
+  );
+
+CREATE POLICY own_customer_select ON public.customers
+  FOR SELECT TO public
+  USING (user_id = (SELECT auth.uid()));
+
+CREATE POLICY own_customer_update ON public.customers
+  FOR UPDATE TO public
+  USING (user_id = (SELECT auth.uid()))
+  WITH CHECK (user_id = (SELECT auth.uid()));
+
+CREATE POLICY staff_customers_manage ON public.customers
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY courier_events_read ON public.delivery_events
+  FOR SELECT TO public
+  USING (
+    EXISTS (
+      SELECT 1 FROM shipments s
+      WHERE s.id = delivery_events.shipment_id
+        AND (
+          s.courier_id IN (SELECT c.id FROM couriers c WHERE c.user_id = (SELECT auth.uid()))
+          OR has_role('manager'::app_role)
+          OR has_role('super_admin'::app_role)
+        )
+    )
+  );
+
+CREATE POLICY staff_delivery_events_manage ON public.delivery_events
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY staff_delivery_partners_manage ON public.delivery_partners
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY public_delivery_zones_select ON public.delivery_zones
+  FOR SELECT TO public
+  USING (is_active);
+
+CREATE POLICY staff_delivery_manage ON public.delivery_zones
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY content_faqs_manage ON public.faqs
+  FOR ALL TO public
+  USING (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role))
+  WITH CHECK (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY public_faqs_select ON public.faqs
+  FOR SELECT TO public
+  USING (is_published);
+
+CREATE POLICY staff_notification_logs_read ON public.notification_logs
+  FOR SELECT TO public
+  USING (is_staff());
+
+CREATE POLICY staff_notification_templates_manage ON public.notification_templates
+  FOR ALL TO public
+  USING (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role))
+  WITH CHECK (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY own_items_read ON public.order_items
+  FOR SELECT TO public
+  USING (
+    order_id IN (
+      SELECT o.id FROM orders o
+      JOIN customers c ON c.id = o.customer_id
+      WHERE c.user_id = (SELECT auth.uid())
+    )
+  );
+
+CREATE POLICY staff_order_items_manage ON public.order_items
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY staff_order_items_read ON public.order_items
+  FOR SELECT TO public
+  USING (is_staff());
+
+CREATE POLICY own_order_history_read ON public.order_status_history
+  FOR SELECT TO public
+  USING (
+    order_id IN (
+      SELECT o.id FROM orders o
+      JOIN customers c ON c.id = o.customer_id
+      WHERE c.user_id = (SELECT auth.uid())
+    )
+  );
+
+CREATE POLICY staff_order_history_manage ON public.order_status_history
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY staff_order_history_read ON public.order_status_history
+  FOR SELECT TO public
+  USING (is_staff());
+
+CREATE POLICY own_orders_read ON public.orders
+  FOR SELECT TO public
+  USING (
+    customer_id IN (SELECT c.id FROM customers c WHERE c.user_id = (SELECT auth.uid()))
+  );
+
+CREATE POLICY staff_orders_manage ON public.orders
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY staff_orders_read ON public.orders
+  FOR SELECT TO public
+  USING (is_staff());
+
+CREATE POLICY content_pages_manage ON public.pages
+  FOR ALL TO public
+  USING (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role))
+  WITH CHECK (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY public_pages_select ON public.pages
+  FOR SELECT TO public
+  USING (is_published);
+
+CREATE POLICY finance_payments_read ON public.payment_transactions
+  FOR SELECT TO public
+  USING (has_role('finance'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY staff_webhook_read ON public.payment_webhook_events
+  FOR SELECT TO public
+  USING (has_role('finance'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY pricing_recommendations_staff_read ON public.pricing_recommendations
+  FOR SELECT TO authenticated
+  USING ((SELECT is_staff()));
+
+CREATE POLICY pricing_recommendations_staff_write ON public.pricing_recommendations
+  FOR ALL TO authenticated
+  USING ((SELECT has_role('super_admin'::app_role)) OR (SELECT has_role('manager'::app_role)))
+  WITH CHECK ((SELECT has_role('super_admin'::app_role)) OR (SELECT has_role('manager'::app_role)));
+
+CREATE POLICY public_images_select ON public.product_images
+  FOR SELECT TO public
+  USING (
+    EXISTS (
+      SELECT 1 FROM products p
+      WHERE p.id = product_images.product_id AND p.is_active AND p.deleted_at IS NULL
+    )
+  );
+
+CREATE POLICY staff_images_manage ON public.product_images
+  FOR ALL TO public
+  USING (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('content_manager'::app_role))
+  WITH CHECK (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('content_manager'::app_role));
+
+CREATE POLICY public_variants_select ON public.product_variants
+  FOR SELECT TO public
+  USING (
+    is_active AND EXISTS (
+      SELECT 1 FROM products p
+      WHERE p.id = product_variants.product_id AND p.is_active AND p.deleted_at IS NULL
+    )
+  );
+
+CREATE POLICY staff_variants_manage ON public.product_variants
+  FOR ALL TO public
+  USING (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('inventory_officer'::app_role))
+  WITH CHECK (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('inventory_officer'::app_role));
+
+CREATE POLICY public_product_videos_select ON public.product_videos
+  FOR SELECT TO public
+  USING (
+    is_active AND EXISTS (
+      SELECT 1 FROM products p
+      WHERE p.id = product_videos.product_id AND p.is_active AND p.deleted_at IS NULL
+    )
+  );
+
+CREATE POLICY staff_videos_manage ON public.product_videos
+  FOR ALL TO public
+  USING (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('content_manager'::app_role))
+  WITH CHECK (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('content_manager'::app_role));
+
+CREATE POLICY public_products_select ON public.products
+  FOR SELECT TO public
+  USING (is_active AND deleted_at IS NULL);
+
+CREATE POLICY staff_products_manage ON public.products
+  FOR ALL TO public
+  USING (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('content_manager'::app_role))
+  WITH CHECK (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('content_manager'::app_role));
+
+CREATE POLICY own_profile_select ON public.profiles
+  FOR SELECT TO public
+  USING (((SELECT auth.uid()) = id) OR is_staff());
+
+CREATE POLICY own_profile_update ON public.profiles
+  FOR UPDATE TO public
+  USING ((SELECT auth.uid()) = id)
+  WITH CHECK ((SELECT auth.uid()) = id);
+
+CREATE POLICY promotions_public_select ON public.promotions
+  FOR SELECT TO public
+  USING (is_active AND (starts_at IS NULL OR starts_at <= now()) AND (ends_at IS NULL OR ends_at >= now()));
+
+CREATE POLICY promotions_staff_manage ON public.promotions
+  FOR ALL TO public
+  USING (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role))
+  WITH CHECK (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY staff_pod_manage ON public.proof_of_delivery
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY courier_shipments_read ON public.shipments
+  FOR SELECT TO public
+  USING (
+    (courier_id IN (SELECT c.id FROM couriers c WHERE c.user_id = (SELECT auth.uid())))
+    OR has_role('manager'::app_role)
+    OR has_role('super_admin'::app_role)
+  );
+
+CREATE POLICY staff_shipments_manage ON public.shipments
+  FOR ALL TO public
+  USING (is_staff())
+  WITH CHECK (is_staff());
+
+CREATE POLICY staff_inventory_read ON public.stock_movements
+  FOR SELECT TO public
+  USING (is_staff());
+
+CREATE POLICY staff_reservations_read ON public.stock_reservations
+  FOR SELECT TO public
+  USING (is_staff());
+
+CREATE POLICY content_testimonials_manage ON public.testimonials
+  FOR ALL TO public
+  USING (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role))
+  WITH CHECK (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY public_testimonials_select ON public.testimonials
+  FOR SELECT TO public
+  USING (is_published AND consent_confirmed);
+
+CREATE POLICY own_roles_select ON public.user_roles
+  FOR SELECT TO public
+  USING (((SELECT auth.uid()) = user_id) OR has_role('super_admin'::app_role));
+
+CREATE POLICY content_videos_manage ON public.videos
+  FOR ALL TO public
+  USING (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role))
+  WITH CHECK (has_role('content_manager'::app_role) OR has_role('manager'::app_role) OR has_role('super_admin'::app_role));
+
+CREATE POLICY public_videos_select ON public.videos
+  FOR SELECT TO public
+  USING (is_published);
+
+CREATE POLICY staff_warehouse_stock_read ON public.warehouse_stock
+  FOR SELECT TO public
+  USING (is_staff());
+
+CREATE POLICY staff_warehouses_manage ON public.warehouses
+  FOR ALL TO public
+  USING (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('inventory_officer'::app_role))
+  WITH CHECK (has_role('super_admin'::app_role) OR has_role('manager'::app_role) OR has_role('inventory_officer'::app_role));
+
+COMMIT;
+
+-- =============================================================================
+-- End of schema snapshot
+-- =============================================================================
+-- Notes:
+-- 1. Full business function bodies (create_order, update_order_status,
+--    submit_proof_of_delivery, admin_upsert_product, etc.) were extracted
+--    and can be added as a second migration if needed.
+-- 2. Storage bucket policies and auth triggers should be applied separately
+--    via the Supabase dashboard / CLI.
+-- 3. Run this against a fresh project or use carefully with IF NOT EXISTS.
+-- =============================================================================

@@ -1,0 +1,33 @@
+# Nile Tropical — Backend/Frontend Gap Tracker
+
+Compiled from a full audit of all 39 backend tables against the Flutter app on 2026-09-12.
+Update the Status column as work lands. Keep this file in the repo so progress survives across sessions/devices.
+
+Status legend: `Not started` / `In progress` / `Done` / `Blocked`
+
+| # | Gap | Priority | Backend ready? | Effort | Status | Notes |
+|---|-----|----------|-----------------|--------|--------|-------|
+| 1 | Checkout has no coupon/promo code field | High | Yes (`coupons`, `coupon_redemptions`) | Small | **Done** | Added `validate_coupon` RPC, wired `create_order` to accept + record redemptions, checkout UI has code field + live discount. Test coupon `WELCOME10` (10%) seeded. |
+| 2 | No admin "Customers" screen | High | Yes (`customers` table) | Small–Medium | Not started | Staff can't look up buyers or their order history |
+| 3 | No COD cash reconciliation UI | High (if COD is used) | Yes (`cod_collections`) | Medium | Not started | Real money currently untracked for cash-on-delivery orders |
+| 4 | Courier proof-of-delivery has no photo capture | Medium–High | Partial (RPC takes text only; `proof-of-delivery` bucket exists unused) | Medium | Not started | Only OTP/signature/notes text captured today |
+| 5 | No pricing-recommendation review/approval UI | Medium | Yes (`pricing_recommendations`, has a comment describing an approval workflow) | Medium | Not started | Proposals currently just sit in the table |
+| 6 | No notification template/log admin screen | Medium | Yes (`notification_templates`, `notification_logs`) | Medium | Not started | Can send notifications but not manage templates or see history |
+| 7 | No audit log viewer | Low–Medium | Yes (`audit_logs`, `nile_admin.admin_activity_log`) | Small–Medium | Not started | No visibility into staff actions |
+| 8 | No admin Settings screen for feature flags/config | Low–Medium | Yes (`nile_admin.project_config`, `nile_admin.modules` — already has 11 module rows) | Medium | Not started | Config exists but nothing reads/writes it from the app |
+
+## Working order (recommended)
+Ordered by business impact vs. effort. Re-order anytime — this file is the plan, not a mandate.
+
+1. Coupon field at checkout (#1) — quick, unlocks marketing already set up in CMS
+2. Customers admin screen (#2) — quick, high daily-ops value
+3. COD reconciliation (#3) — do before #4/#5 if cash orders are already flowing
+4. Proof-of-delivery photo capture (#4)
+5. Pricing recommendation approvals (#5)
+6. Notification templates/logs (#6)
+7. Audit log viewer (#7)
+8. Admin settings screen (#8)
+
+## Log
+- 2026-09-12 — Tracker created after full backend/frontend audit.
+- 2026-09-12 — Gap #1 closed: coupon support end-to-end (backend RPCs + checkout UI).

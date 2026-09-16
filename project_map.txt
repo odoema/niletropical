@@ -1,0 +1,4546 @@
+﻿Folder PATH listing
+Volume serial number is C8CD-5562
+C:.
+|   .flutter-plugins-dependencies
+|   .gitignore
+|   .metadata
+|   analysis_options.yaml
+|   AUDIT.md
+|   BASELINE_RUN.md
+|   CHANGES_FULL.md
+|   CHANGES_P2.md
+|   flutter_01.png
+|   flutter_02.png
+|   GAPS_TRACKER.md
+|   INTEGRATION_GAPS_ABC.md
+|   MERGE.md
+|   nile_tropical.iml
+|   NILE_TROPICAL_PROJECT_CLEANUP.bat
+|   NILE_TROPICAL_STRATEGY.md
+|   package-lock.json
+|   package.json
+|   project_map.txt
+|   pubspec.lock
+|   pubspec.yaml
+|   README.md
+|   RELEASE_BASELINE.md
+|   STATUS.md
+|   WINDOWS.md
+|   
++---.dart_tool
+|   |   package_config.json
+|   |   package_graph.json
+|   |   version
+|   |   
+|   +---dartpad
+|   |       web_plugin_registrant.dart
+|   |       
+|   \---hooks_runner
+|       +---objective_c
+|       |   \---337ce265dc
+|       |       |   .lock
+|       |       |   dependencies.dependencies_hash_file.json
+|       |       |   hook.dependencies_hash_file.json
+|       |       |   hook.dill
+|       |       |   hook.dill.d
+|       |       |   input.json
+|       |       |   output.json
+|       |       |   stderr.txt
+|       |       |   stdout.txt
+|       |       |   
+|       |       \---out
+|       \---shared
+|           \---objective_c
+|               |   .lock
+|               |   
+|               \---build
+|                   \---337ce265dc
++---.idea
+|   |   modules.xml
+|   |   workspace.xml
+|   |   
+|   +---libraries
+|   |       Dart_SDK.xml
+|   |       KotlinJavaRuntime.xml
+|   |       
+|   \---runConfigurations
+|           main_dart.xml
+|           
++---.project_cleanup_backup_2026_09_12_131637
+|   \---lib
+|           cart_shared.dart
+|           order_service_root.dart
+|           order_service_shared.dart
+|           supabase_service_shared.dart
+|           
++---android
+|   |   .gitignore
+|   |   build.gradle.kts
+|   |   gradle.properties
+|   |   gradlew
+|   |   gradlew.bat
+|   |   local.properties
+|   |   nile_tropical_android.iml
+|   |   settings.gradle.kts
+|   |   
+|   +---.gradle
+|   |   |   file-system.probe
+|   |   |   
+|   |   +---9.3.1
+|   |   |   |   gc.properties
+|   |   |   |   
+|   |   |   +---checksums
+|   |   |   |       checksums.lock
+|   |   |   |       md5-checksums.bin
+|   |   |   |       sha1-checksums.bin
+|   |   |   |       
+|   |   |   +---executionHistory
+|   |   |   |       executionHistory.bin
+|   |   |   |       executionHistory.lock
+|   |   |   |       
+|   |   |   +---expanded
+|   |   |   +---fileChanges
+|   |   |   |       last-build.bin
+|   |   |   |       
+|   |   |   +---fileHashes
+|   |   |   |       fileHashes.bin
+|   |   |   |       fileHashes.lock
+|   |   |   |       resourceHashesCache.bin
+|   |   |   |       
+|   |   |   \---vcsMetadata
+|   |   +---buildOutputCleanup
+|   |   |       buildOutputCleanup.lock
+|   |   |       cache.properties
+|   |   |       outputFiles.bin
+|   |   |       
+|   |   +---noVersion
+|   |   |       buildLogic.lock
+|   |   |       
+|   |   \---vcs-1
+|   |           gc.properties
+|   |           
+|   +---.kotlin
+|   |   \---sessions
+|   +---app
+|   |   |   build.gradle.kts
+|   |   |   
+|   |   \---src
+|   |       +---debug
+|   |       |       AndroidManifest.xml
+|   |       |       
+|   |       +---main
+|   |       |   |   AndroidManifest.xml
+|   |       |   |   
+|   |       |   +---java
+|   |       |   |   \---io
+|   |       |   |       \---flutter
+|   |       |   |           \---plugins
+|   |       |   |                   GeneratedPluginRegistrant.java
+|   |       |   |                   
+|   |       |   +---kotlin
+|   |       |   |   \---com
+|   |       |   |       \---example
+|   |       |   |           \---nile_tropical
+|   |       |   |                   MainActivity.kt
+|   |       |   |                   
+|   |       |   \---res
+|   |       |       +---drawable
+|   |       |       |       launch_background.xml
+|   |       |       |       
+|   |       |       +---drawable-v21
+|   |       |       |       launch_background.xml
+|   |       |       |       
+|   |       |       +---mipmap-hdpi
+|   |       |       |       ic_launcher.png
+|   |       |       |       
+|   |       |       +---mipmap-mdpi
+|   |       |       |       ic_launcher.png
+|   |       |       |       
+|   |       |       +---mipmap-xhdpi
+|   |       |       |       ic_launcher.png
+|   |       |       |       
+|   |       |       +---mipmap-xxhdpi
+|   |       |       |       ic_launcher.png
+|   |       |       |       
+|   |       |       +---mipmap-xxxhdpi
+|   |       |       |       ic_launcher.png
+|   |       |       |       
+|   |       |       +---values
+|   |       |       |       styles.xml
+|   |       |       |       
+|   |       |       \---values-night
+|   |       |               styles.xml
+|   |       |               
+|   |       \---profile
+|   |               AndroidManifest.xml
+|   |               
+|   \---gradle
+|       \---wrapper
+|               gradle-wrapper.jar
+|               gradle-wrapper.properties
+|               
++---assets
+|   +---icons
+|   \---images
+|           logo.png
+|           
++---build
+|   |   1eba4fd5161e6baa76224f8062533b9d.cache.dill.track.dill
+|   |   
+|   +---c2da95d3825a96be6d46da4dd077bcab
+|   |       gen_dart_plugin_registrant.stamp
+|   |       gen_localizations.stamp
+|   |       _composite.stamp
+|   |       
+|   \---flutter_assets
+|       |   AssetManifest.bin
+|       |   AssetManifest.bin.json
+|       |   FontManifest.json
+|       |   NOTICES
+|       |   
+|       +---assets
+|       |   \---images
+|       |           logo.png
+|       |           
+|       +---fonts
+|       |       MaterialIcons-Regular.otf
+|       |       
+|       \---shaders
+|               ink_sparkle.frag
+|               stretch_effect.frag
+|               
++---env
+|       dev.json
+|       
++---ios
+|   |   .gitignore
+|   |   
+|   +---Flutter
+|   |   |   AppFrameworkInfo.plist
+|   |   |   Debug.xcconfig
+|   |   |   flutter_export_environment.sh
+|   |   |   Generated.xcconfig
+|   |   |   Release.xcconfig
+|   |   |   
+|   |   \---ephemeral
+|   |       |   .swift_pm.lock
+|   |       |   flutter_lldbinit
+|   |       |   flutter_lldb_helper.py
+|   |       |   flutter_native_integration.env
+|   |       |   
+|   |       \---Packages
+|   |           +---.packages
+|   |           \---FlutterGeneratedPluginSwiftPackage
+|   |               |   Package.swift
+|   |               |   
+|   |               \---Sources
+|   |                   \---FlutterGeneratedPluginSwiftPackage
+|   |                           FlutterGeneratedPluginSwiftPackage.swift
+|   |                           
+|   +---Runner
+|   |   |   AppDelegate.swift
+|   |   |   GeneratedPluginRegistrant.h
+|   |   |   GeneratedPluginRegistrant.m
+|   |   |   Info.plist
+|   |   |   Runner-Bridging-Header.h
+|   |   |   SceneDelegate.swift
+|   |   |   
+|   |   +---Assets.xcassets
+|   |   |   +---AppIcon.appiconset
+|   |   |   |       Contents.json
+|   |   |   |       Icon-App-1024x1024@1x.png
+|   |   |   |       Icon-App-20x20@1x.png
+|   |   |   |       Icon-App-20x20@2x.png
+|   |   |   |       Icon-App-20x20@3x.png
+|   |   |   |       Icon-App-29x29@1x.png
+|   |   |   |       Icon-App-29x29@2x.png
+|   |   |   |       Icon-App-29x29@3x.png
+|   |   |   |       Icon-App-40x40@1x.png
+|   |   |   |       Icon-App-40x40@2x.png
+|   |   |   |       Icon-App-40x40@3x.png
+|   |   |   |       Icon-App-60x60@2x.png
+|   |   |   |       Icon-App-60x60@3x.png
+|   |   |   |       Icon-App-76x76@1x.png
+|   |   |   |       Icon-App-76x76@2x.png
+|   |   |   |       Icon-App-83.5x83.5@2x.png
+|   |   |   |       
+|   |   |   \---LaunchImage.imageset
+|   |   |           Contents.json
+|   |   |           LaunchImage.png
+|   |   |           LaunchImage@2x.png
+|   |   |           LaunchImage@3x.png
+|   |   |           README.md
+|   |   |           
+|   |   \---Base.lproj
+|   |           LaunchScreen.storyboard
+|   |           Main.storyboard
+|   |           
+|   +---Runner.xcodeproj
+|   |   |   project.pbxproj
+|   |   |   
+|   |   +---project.xcworkspace
+|   |   |   |   contents.xcworkspacedata
+|   |   |   |   
+|   |   |   \---xcshareddata
+|   |   |           IDEWorkspaceChecks.plist
+|   |   |           WorkspaceSettings.xcsettings
+|   |   |           
+|   |   \---xcshareddata
+|   |       \---xcschemes
+|   |               Runner.xcscheme
+|   |               
+|   +---Runner.xcworkspace
+|   |   |   contents.xcworkspacedata
+|   |   |   
+|   |   \---xcshareddata
+|   |           IDEWorkspaceChecks.plist
+|   |           WorkspaceSettings.xcsettings
+|   |           
+|   \---RunnerTests
+|           RunnerTests.swift
+|           
++---lib
+|   |   main.dart
+|   |   
+|   +---admin
+|   |   |   admin_home_screen.dart
+|   |   |   
+|   |   +---auth
+|   |   |       admin_login_screen.dart
+|   |   |       
+|   |   +---cms
+|   |   |       cms_collection_screen.dart
+|   |   |       cms_dashboard_screen.dart
+|   |   |       
+|   |   +---customers
+|   |   |       customers_screen.dart
+|   |   |       customer_detail_screen.dart
+|   |   |       
+|   |   +---delivery
+|   |   |       delivery_dashboard_screen.dart
+|   |   |       proof_of_delivery_screen.dart
+|   |   |       
+|   |   +---finance
+|   |   |       cod_reconciliation_screen.dart
+|   |   |       
+|   |   +---inventory
+|   |   |       inventory_dashboard_screen.dart
+|   |   |       stock_adjustment_screen.dart
+|   |   |       
+|   |   +---orders
+|   |   |       order_detail_screen.dart
+|   |   |       order_list_screen.dart
+|   |   |       proof_of_delivery_screen.dart
+|   |   |       
+|   |   +---products
+|   |   |       product_form_screen.dart
+|   |   |       product_list_screen.dart
+|   |   |       
+|   |   \---reports
+|   |           reports_screen.dart
+|   |           
+|   +---core
+|   |   +---config
+|   |   |       env.dart
+|   |   |       
+|   |   +---constants
+|   |   |       app_constants.dart
+|   |   |       payment_methods.dart
+|   |   |       
+|   |   +---router
+|   |   |       app_router.dart
+|   |   |       
+|   |   +---supabase
+|   |   |       supabase_client.dart
+|   |   |       
+|   |   +---theme
+|   |   |       app_theme.dart
+|   |   |       nile_colors.dart
+|   |   |       nile_radius.dart
+|   |   |       nile_spacing.dart
+|   |   |       nile_typography.dart
+|   |   |       
+|   |   +---utils
+|   |   \---widgets
+|   |           nile_app_bar.dart
+|   |           nile_badge.dart
+|   |           nile_bottom_navigation.dart
+|   |           nile_button.dart
+|   |           nile_card.dart
+|   |           nile_confirm_dialog.dart
+|   |           nile_data_table.dart
+|   |           nile_dialog.dart
+|   |           nile_dropdown.dart
+|   |           nile_empty_state.dart
+|   |           nile_error_state.dart
+|   |           nile_loading_state.dart
+|   |           nile_outlined_button.dart
+|   |           nile_price.dart
+|   |           nile_search_field.dart
+|   |           nile_section_header.dart
+|   |           nile_side_navigation.dart
+|   |           nile_status_chip.dart
+|   |           nile_text_field.dart
+|   |           nile_widgets.dart
+|   |           
+|   +---data
+|   |   \---repositories
+|   +---features
+|   |   +---account
+|   |   |       account_screen.dart
+|   |   |       addresses_screen.dart
+|   |   |       orders_screen.dart
+|   |   |       
+|   |   +---cart
+|   |   |       cart_screen.dart
+|   |   |       
+|   |   +---checkout
+|   |   |       checkout_screen.dart
+|   |   |       order_confirmation_screen.dart
+|   |   |       
+|   |   +---content
+|   |   |       cms_page_screen.dart
+|   |   |       faq_screen.dart
+|   |   |       
+|   |   +---courier
+|   |   |       courier_dashboard_screen.dart
+|   |   |       shipment_detail_screen.dart
+|   |   |       
+|   |   +---design_system
+|   |   |       design_system_showcase.dart
+|   |   |       
+|   |   +---home
+|   |   |       home_screen.dart
+|   |   |       
+|   |   +---payments
+|   |   |       payment_page.dart
+|   |   |       
+|   |   +---product
+|   |   |       product_detail_screen.dart
+|   |   |       
+|   |   +---shell
+|   |   |       admin_shell.dart
+|   |   |       courier_shell.dart
+|   |   |       customer_shell.dart
+|   |   |       responsive_scaffold.dart
+|   |   |       
+|   |   +---shop
+|   |   |       category_screen.dart
+|   |   |       shop_screen.dart
+|   |   |       
+|   |   \---tracking
+|   |           tracking_screen.dart
+|   |           
+|   +---services
+|   \---shared
+|       +---models
+|       |       cart.dart
+|       |       delivery.dart
+|       |       inventory.dart
+|       |       order.dart
+|       |       product.dart
+|       |       
+|       +---providers
+|       |       cart_provider.dart
+|       |       product_provider.dart
+|       |       
+|       +---services
+|       |       auth_service.dart
+|       |       cls
+|       |       cod_service.dart
+|       |       customer_admin_service.dart
+|       |       delivery_service.dart
+|       |       inventory_service.dart
+|       |       media_upload.dart
+|       |       notification_service.dart
+|       |       order_service.dart
+|       |       payment_service.dart
+|       |       pod_upload_service.dart
+|       |       storage_service.dart
+|       |       supabase_service.dart
+|       |       
+|       \---widgets
+|               product_card.dart
+|               
++---linux
+|   |   .gitignore
+|   |   CMakeLists.txt
+|   |   
+|   +---flutter
+|   |   |   CMakeLists.txt
+|   |   |   generated_plugins.cmake
+|   |   |   generated_plugin_registrant.cc
+|   |   |   generated_plugin_registrant.h
+|   |   |   
+|   |   \---ephemeral
+|   |       \---.plugin_symlinks
+|   |           +---app_links_linux
+|   |           |   |   analysis_options.yaml
+|   |           |   |   CHANGELOG.md
+|   |           |   |   LICENSE
+|   |           |   |   pubspec.yaml
+|   |           |   |   README.md
+|   |           |   |   
+|   |           |   \---lib
+|   |           |           app_links_linux.dart
+|   |           |           
+|   |           +---file_selector_linux
+|   |           |   |   AUTHORS
+|   |           |   |   CHANGELOG.md
+|   |           |   |   LICENSE
+|   |           |   |   pubspec.yaml
+|   |           |   |   README.md
+|   |           |   |   
+|   |           |   +---example
+|   |           |   |   |   pubspec.yaml
+|   |           |   |   |   README.md
+|   |           |   |   |   
+|   |           |   |   +---lib
+|   |           |   |   |       get_directory_page.dart
+|   |           |   |   |       get_multiple_directories_page.dart
+|   |           |   |   |       home_page.dart
+|   |           |   |   |       main.dart
+|   |           |   |   |       open_image_page.dart
+|   |           |   |   |       open_multiple_images_page.dart
+|   |           |   |   |       open_text_page.dart
+|   |           |   |   |       save_text_page.dart
+|   |           |   |   |       
+|   |           |   |   \---linux
+|   |           |   |       |   CMakeLists.txt
+|   |           |   |       |   main.cc
+|   |           |   |       |   my_application.cc
+|   |           |   |       |   my_application.h
+|   |           |   |       |   
+|   |           |   |       \---flutter
+|   |           |   |               CMakeLists.txt
+|   |           |   |               
+|   |           |   +---lib
+|   |           |   |   |   file_selector_linux.dart
+|   |           |   |   |   
+|   |           |   |   \---src
+|   |           |   |           messages.g.dart
+|   |           |   |           
+|   |           |   +---linux
+|   |           |   |   |   CMakeLists.txt
+|   |           |   |   |   file_selector_plugin.cc
+|   |           |   |   |   file_selector_plugin_private.h
+|   |           |   |   |   messages.g.cc
+|   |           |   |   |   messages.g.h
+|   |           |   |   |   
+|   |           |   |   +---include
+|   |           |   |   |   \---file_selector_linux
+|   |           |   |   |           file_selector_plugin.h
+|   |           |   |   |           
+|   |           |   |   \---test
+|   |           |   |           file_selector_plugin_test.cc
+|   |           |   |           test_main.cc
+|   |           |   |           
+|   |           |   +---pigeons
+|   |           |   |       copyright.txt
+|   |           |   |       messages.dart
+|   |           |   |       
+|   |           |   \---test
+|   |           |           file_selector_linux_test.dart
+|   |           |           
+|   |           +---gtk
+|   |           |   |   CHANGELOG.md
+|   |           |   |   codecov.yaml
+|   |           |   |   ffigen.yaml
+|   |           |   |   LICENSE
+|   |           |   |   pubspec.yaml
+|   |           |   |   README.md
+|   |           |   |   renovate.json
+|   |           |   |   
+|   |           |   +---example
+|   |           |   |   |   analysis_options.yaml
+|   |           |   |   |   pubspec.yaml
+|   |           |   |   |   pubspec_overrides.yaml
+|   |           |   |   |   README.md
+|   |           |   |   |   screenshot.png
+|   |           |   |   |   
+|   |           |   |   +---lib
+|   |           |   |   |       main.dart
+|   |           |   |   |       
+|   |           |   |   +---linux
+|   |           |   |   |   |   CMakeLists.txt
+|   |           |   |   |   |   main.cc
+|   |           |   |   |   |   my_application.cc
+|   |           |   |   |   |   my_application.h
+|   |           |   |   |   |   
+|   |           |   |   |   \---flutter
+|   |           |   |   |           CMakeLists.txt
+|   |           |   |   |           
+|   |           |   |   \---web
+|   |           |   |       |   favicon.png
+|   |           |   |       |   index.html
+|   |           |   |       |   manifest.json
+|   |           |   |       |   
+|   |           |   |       \---icons
+|   |           |   |               Icon-192.png
+|   |           |   |               Icon-512.png
+|   |           |   |               Icon-maskable-192.png
+|   |           |   |               Icon-maskable-512.png
+|   |           |   |               
+|   |           |   +---lib
+|   |           |   |   |   gtk.dart
+|   |           |   |   |   
+|   |           |   |   \---src
+|   |           |   |           constants.dart
+|   |           |   |           gtk_application.dart
+|   |           |   |           gtk_application_notifier.dart
+|   |           |   |           gtk_icon.dart
+|   |           |   |           gtk_icon_real.dart
+|   |           |   |           gtk_icon_stub.dart
+|   |           |   |           gtk_settings.dart
+|   |           |   |           gtk_settings_real.dart
+|   |           |   |           gtk_settings_stub.dart
+|   |           |   |           libgtk.dart
+|   |           |   |           libgtk.g.dart
+|   |           |   |           
+|   |           |   +---linux
+|   |           |   |   |   CMakeLists.txt
+|   |           |   |   |   gtk_plugin.cc
+|   |           |   |   |   
+|   |           |   |   \---include
+|   |           |   |       \---gtk
+|   |           |   |               gtk_plugin.h
+|   |           |   |               
+|   |           |   \---test
+|   |           |           gtk_application_notifier_test.dart
+|   |           |           gtk_application_test.dart
+|   |           |           gtk_icon_test.dart
+|   |           |           gtk_settings_test.dart
+|   |           |           test_utils.dart
+|   |           |           test_utils.mocks.dart
+|   |           |           
+|   |           +---image_picker_linux
+|   |           |   |   AUTHORS
+|   |           |   |   CHANGELOG.md
+|   |           |   |   LICENSE
+|   |           |   |   pubspec.yaml
+|   |           |   |   README.md
+|   |           |   |   
+|   |           |   +---example
+|   |           |   |   |   pubspec.yaml
+|   |           |   |   |   README.md
+|   |           |   |   |   
+|   |           |   |   +---lib
+|   |           |   |   |       main.dart
+|   |           |   |   |       
+|   |           |   |   \---linux
+|   |           |   |       |   CMakeLists.txt
+|   |           |   |       |   main.cc
+|   |           |   |       |   my_application.cc
+|   |           |   |       |   my_application.h
+|   |           |   |       |   
+|   |           |   |       \---flutter
+|   |           |   |               CMakeLists.txt
+|   |           |   |               generated_plugins.cmake
+|   |           |   |               
+|   |           |   +---lib
+|   |           |   |       image_picker_linux.dart
+|   |           |   |       
+|   |           |   \---test
+|   |           |           image_picker_linux_test.dart
+|   |           |           image_picker_linux_test.mocks.dart
+|   |           |           
+|   |           +---jni
+|   |           |   |   analysis_options.yaml
+|   |           |   |   CHANGELOG.md
+|   |           |   |   dart_test.yaml
+|   |           |   |   ffigen.yaml
+|   |           |   |   ffigen_exts.yaml
+|   |           |   |   LICENSE
+|   |           |   |   pubspec.yaml
+|   |           |   |   README.md
+|   |           |   |   
+|   |           |   +---android
+|   |           |   |   |   build.gradle
+|   |           |   |   |   consumer-rules.pro
+|   |           |   |   |   README.md
+|   |           |   |   |   settings.gradle
+|   |           |   |   |   
+|   |           |   |   +---.cxx
+|   |           |   |   |   +---RelWithDebInfo
+|   |           |   |   |   |   \---6tc4q394
+|   |           |   |   |   |       |   hash_key.txt
+|   |           |   |   |   |       |   
+|   |           |   |   |   |       +---arm64-v8a
+|   |           |   |   |   |       |   |   .ninja_deps
+|   |           |   |   |   |       |   |   .ninja_log
+|   |           |   |   |   |       |   |   additional_project_files.txt
+|   |           |   |   |   |       |   |   android_gradle_build.json
+|   |           |   |   |   |       |   |   android_gradle_build_mini.json
+|   |           |   |   |   |       |   |   build.ninja
+|   |           |   |   |   |       |   |   build_file_index.txt
+|   |           |   |   |   |       |   |   CMakeCache.txt
+|   |           |   |   |   |       |   |   cmake_install.cmake
+|   |           |   |   |   |       |   |   compile_commands.json
+|   |           |   |   |   |       |   |   compile_commands.json.bin
+|   |           |   |   |   |       |   |   configure_fingerprint.bin
+|   |           |   |   |   |       |   |   metadata_generation_command.txt
+|   |           |   |   |   |       |   |   prefab_config.json
+|   |           |   |   |   |       |   |   symbol_folder_index.txt
+|   |           |   |   |   |       |   |   
+|   |           |   |   |   |       |   +---.cmake
+|   |           |   |   |   |       |   |   \---api
+|   |           |   |   |   |       |   |       \---v1
+|   |           |   |   |   |       |   |           +---query
+|   |           |   |   |   |       |   |           |   \---client-agp
+|   |           |   |   |   |       |   |           |           cache-v2
+|   |           |   |   |   |       |   |           |           cmakeFiles-v1
+|   |           |   |   |   |       |   |           |           codemodel-v2
+|   |           |   |   |   |       |   |           |           
+|   |           |   |   |   |       |   |           \---reply
+|   |           |   |   |   |       |   |                   cache-v2-90fb50e8ea6cabbd6ad4.json
+|   |           |   |   |   |       |   |                   cmakeFiles-v1-37511b5c9013c9321237.json
+|   |           |   |   |   |       |   |                   codemodel-v2-b8fb940304c688b34e3b.json
+|   |           |   |   |   |       |   |                   directory-.-RelWithDebInfo-d0094a50bb2071803777.json
+|   |           |   |   |   |       |   |                   index-2026-09-12T11-12-28-0080.json
+|   |           |   |   |   |       |   |                   target-jni-RelWithDebInfo-d45f70817fae33ed43e8.json
+|   |           |   |   |   |       |   |                   
+|   |           |   |   |   |       |   \---CMakeFiles
+|   |           |   |   |   |       |       |   cmake.check_cache
+|   |           |   |   |   |       |       |   CMakeOutput.log
+|   |           |   |   |   |       |       |   rules.ninja
+|   |           |   |   |   |       |       |   TargetDirectories.txt
+|   |           |   |   |   |       |       |   
+|   |           |   |   |   |       |       +---3.22.1-g37088a8-dirty
+|   |           |   |   |   |       |       |   |   CMakeCCompiler.cmake
+|   |           |   |   |   |       |       |   |   CMakeDetermineCompilerABI_C.bin
+|   |           |   |   |   |       |       |   |   CMakeSystem.cmake
+|   |           |   |   |   |       |       |   |   
+|   |           |   |   |   |       |       |   \---CompilerIdC
+|   |           |   |   |   |       |       |       |   CMakeCCompilerId.c
+|   |           |   |   |   |       |       |       |   CMakeCCompilerId.o
+|   |           |   |   |   |       |       |       |   
+|   |           |   |   |   |       |       |       \---tmp
+|   |           |   |   |   |       |       +---CMakeTmp
+|   |           |   |   |   |       |       \---jni.dir
+|   |           |   |   |   |       |           |   dartjni.c.o
+|   |           |   |   |   |       |           |   
+|   |           |   |   |   |       |           +---include
+|   |           |   |   |   |       |           |       dart_api_dl.c.o
+|   |           |   |   |   |       |           |       
+|   |           |   |   |   |       |           \---third_party
+|   |           |   |   |   |       |                   global_jni_env.c.o
+|   |           |   |   |   |       |                   
+|   |           |   |   |   |       +---armeabi-v7a
+|   |           |   |   |   |       |   |   .ninja_deps
+|   |           |   |   |   |       |   |   .ninja_log
+|   |           |   |   |   |       |   |   additional_project_files.txt
+|   |           |   |   |   |       |   |   android_gradle_build.json
+|   |           |   |   |   |       |   |   android_gradle_build_mini.json
+|   |           |   |   |   |       |   |   build.ninja
+|   |           |   |   |   |       |   |   build_file_index.txt
+|   |           |   |   |   |       |   |   CMakeCache.txt
+|   |           |   |   |   |       |   |   cmake_install.cmake
+|   |           |   |   |   |       |   |   compile_commands.json
+|   |           |   |   |   |       |   |   compile_commands.json.bin
+|   |           |   |   |   |       |   |   configure_fingerprint.bin
+|   |           |   |   |   |       |   |   metadata_generation_command.txt
+|   |           |   |   |   |       |   |   prefab_config.json
+|   |           |   |   |   |       |   |   symbol_folder_index.txt
+|   |           |   |   |   |       |   |   
+|   |           |   |   |   |       |   +---.cmake
+|   |           |   |   |   |       |   |   \---api
+|   |           |   |   |   |       |   |       \---v1
+|   |           |   |   |   |       |   |           +---query
+|   |           |   |   |   |       |   |           |   \---client-agp
+|   |           |   |   |   |       |   |           |           cache-v2
+|   |           |   |   |   |       |   |           |           cmakeFiles-v1
+|   |           |   |   |   |       |   |           |           codemodel-v2
+|   |           |   |   |   |       |   |           |           
+|   |           |   |   |   |       |   |           \---reply
+|   |           |   |   |   |       |   |                   cache-v2-e1957db12ea144c0bcf2.json
+|   |           |   |   |   |       |   |                   cmakeFiles-v1-8f7b65655ccec1f544e9.json
+|   |           |   |   |   |       |   |                   codemodel-v2-83d717dd6f86f2d82285.json
+|   |           |   |   |   |       |   |                   directory-.-RelWithDebInfo-d0094a50bb2071803777.json
+|   |           |   |   |   |       |   |                   index-2026-09-12T11-12-32-0305.json
+|   |           |   |   |   |       |   |                   target-jni-RelWithDebInfo-6b700e39787dfce00a31.json
+|   |           |   |   |   |       |   |                   
+|   |           |   |   |   |       |   \---CMakeFiles
+|   |           |   |   |   |       |       |   cmake.check_cache
+|   |           |   |   |   |       |       |   CMakeOutput.log
+|   |           |   |   |   |       |       |   rules.ninja
+|   |           |   |   |   |       |       |   TargetDirectories.txt
+|   |           |   |   |   |       |       |   
+|   |           |   |   |   |       |       +---3.22.1-g37088a8-dirty
+|   |           |   |   |   |       |       |   |   CMakeCCompiler.cmake
+|   |           |   |   |   |       |       |   |   CMakeDetermineCompilerABI_C.bin
+|   |           |   |   |   |       |       |   |   CMakeSystem.cmake
+|   |           |   |   |   |       |       |   |   
+|   |           |   |   |   |       |       |   \---CompilerIdC
+|   |           |   |   |   |       |       |       |   CMakeCCompilerId.c
+|   |           |   |   |   |       |       |       |   CMakeCCompilerId.o
+|   |           |   |   |   |       |       |       |   
+|   |           |   |   |   |       |       |       \---tmp
+|   |           |   |   |   |       |       +---CMakeTmp
+|   |           |   |   |   |       |       \---jni.dir
+|   |           |   |   |   |       |           |   dartjni.c.o
+|   |           |   |   |   |       |           |   
+|   |           |   |   |   |       |           +---include
+|   |           |   |   |   |       |           |       dart_api_dl.c.o
+|   |           |   |   |   |       |           |       
+|   |           |   |   |   |       |           \---third_party
+|   |           |   |   |   |       |                   global_jni_env.c.o
+|   |           |   |   |   |       |                   
+|   |           |   |   |   |       +---x86
+|   |           |   |   |   |       |   |   .ninja_deps
+|   |           |   |   |   |       |   |   .ninja_log
+|   |           |   |   |   |       |   |   additional_project_files.txt
+|   |           |   |   |   |       |   |   android_gradle_build.json
+|   |           |   |   |   |       |   |   android_gradle_build_mini.json
+|   |           |   |   |   |       |   |   build.ninja
+|   |           |   |   |   |       |   |   build_file_index.txt
+|   |           |   |   |   |       |   |   CMakeCache.txt
+|   |           |   |   |   |       |   |   cmake_install.cmake
+|   |           |   |   |   |       |   |   compile_commands.json
+|   |           |   |   |   |       |   |   compile_commands.json.bin
+|   |           |   |   |   |       |   |   configure_fingerprint.bin
+|   |           |   |   |   |       |   |   metadata_generation_command.txt
+|   |           |   |   |   |       |   |   prefab_config.json
+|   |           |   |   |   |       |   |   symbol_folder_index.txt
+|   |           |   |   |   |       |   |   
+|   |           |   |   |   |       |   +---.cmake
+|   |           |   |   |   |       |   |   \---api
+|   |           |   |   |   |       |   |       \---v1
+|   |           |   |   |   |       |   |           +---query
+|   |           |   |   |   |       |   |           |   \---client-agp
+|   |           |   |   |   |       |   |           |           cache-v2
+|   |           |   |   |   |       |   |           |           cmakeFiles-v1
+|   |           |   |   |   |       |   |           |           codemodel-v2
+|   |           |   |   |   |       |   |           |           
+|   |           |   |   |   |       |   |           \---reply
+|   |           |   |   |   |       |   |                   cache-v2-6a354bb5f1415fd71807.json
+|   |           |   |   |   |       |   |                   cmakeFiles-v1-6a81818f9a05973744c1.json
+|   |           |   |   |   |       |   |                   codemodel-v2-ed696912bfe71d83323e.json
+|   |           |   |   |   |       |   |                   directory-.-RelWithDebInfo-d0094a50bb2071803777.json
+|   |           |   |   |   |       |   |                   index-2026-09-12T11-12-35-0195.json
+|   |           |   |   |   |       |   |                   target-jni-RelWithDebInfo-1a6444b87d897bbbff49.json
+|   |           |   |   |   |       |   |                   
+|   |           |   |   |   |       |   \---CMakeFiles
+|   |           |   |   |   |       |       |   cmake.check_cache
+|   |           |   |   |   |       |       |   CMakeOutput.log
+|   |           |   |   |   |       |       |   rules.ninja
+|   |           |   |   |   |       |       |   TargetDirectories.txt
+|   |           |   |   |   |       |       |   
+|   |           |   |   |   |       |       +---3.22.1-g37088a8-dirty
+|   |           |   |   |   |       |       |   |   CMakeCCompiler.cmake
+|   |           |   |   |   |       |       |   |   CMakeDetermineCompilerABI_C.bin
+|   |           |   |   |   |       |       |   |   CMakeSystem.cmake
+|   |           |   |   |   |       |       |   |   
+|   |           |   |   |   |       |       |   \---CompilerIdC
+|   |           |   |   |   |       |       |       |   CMakeCCompilerId.c
+|   |           |   |   |   |       |       |       |   CMakeCCompilerId.o
+|   |           |   |   |   |       |       |       |   
+|   |           |   |   |   |       |       |       \---tmp
+|   |           |   |   |   |       |       +---CMakeTmp
+|   |           |   |   |   |       |       \---jni.dir
+|   |           |   |   |   |       |           |   dartjni.c.o
+|   |           |   |   |   |       |           |   
+|   |           |   |   |   |       |           +---include
+|   |           |   |   |   |       |           |       dart_api_dl.c.o
+|   |           |   |   |   |       |           |       
+|   |           |   |   |   |       |           \---third_party
+|   |           |   |   |   |       |                   global_jni_env.c.o
+|   |           |   |   |   |       |                   
+|   |           |   |   |   |       \---x86_64
+|   |           |   |   |   |           |   .ninja_deps
+|   |           |   |   |   |           |   .ninja_log
+|   |           |   |   |   |           |   additional_project_files.txt
+|   |           |   |   |   |           |   android_gradle_build.json
+|   |           |   |   |   |           |   android_gradle_build_mini.json
+|   |           |   |   |   |           |   build.ninja
+|   |           |   |   |   |           |   build_file_index.txt
+|   |           |   |   |   |           |   CMakeCache.txt
+|   |           |   |   |   |           |   cmake_install.cmake
+|   |           |   |   |   |           |   compile_commands.json
+|   |           |   |   |   |           |   compile_commands.json.bin
+|   |           |   |   |   |           |   configure_fingerprint.bin
+|   |           |   |   |   |           |   metadata_generation_command.txt
+|   |           |   |   |   |           |   prefab_config.json
+|   |           |   |   |   |           |   symbol_folder_index.txt
+|   |           |   |   |   |           |   
+|   |           |   |   |   |           +---.cmake
+|   |           |   |   |   |           |   \---api
+|   |           |   |   |   |           |       \---v1
+|   |           |   |   |   |           |           +---query
+|   |           |   |   |   |           |           |   \---client-agp
+|   |           |   |   |   |           |           |           cache-v2
+|   |           |   |   |   |           |           |           cmakeFiles-v1
+|   |           |   |   |   |           |           |           codemodel-v2
+|   |           |   |   |   |           |           |           
+|   |           |   |   |   |           |           \---reply
+|   |           |   |   |   |           |                   cache-v2-a76374c80706304590bc.json
+|   |           |   |   |   |           |                   cmakeFiles-v1-a48aeaf79de5ce58c9d3.json
+|   |           |   |   |   |           |                   codemodel-v2-e3a1a9e63df287e67ce4.json
+|   |           |   |   |   |           |                   directory-.-RelWithDebInfo-d0094a50bb2071803777.json
+|   |           |   |   |   |           |                   index-2026-09-12T11-12-37-0895.json
+|   |           |   |   |   |           |                   target-jni-RelWithDebInfo-ce06e9f256660c8bc0f3.json
+|   |           |   |   |   |           |                   
+|   |           |   |   |   |           \---CMakeFiles
+|   |           |   |   |   |               |   cmake.check_cache
+|   |           |   |   |   |               |   CMakeOutput.log
+|   |           |   |   |   |               |   rules.ninja
+|   |           |   |   |   |               |   TargetDirectories.txt
+|   |           |   |   |   |               |   
+|   |           |   |   |   |               +---3.22.1-g37088a8-dirty
+|   |           |   |   |   |               |   |   CMakeCCompiler.cmake
+|   |           |   |   |   |               |   |   CMakeDetermineCompilerABI_C.bin
+|   |           |   |   |   |               |   |   CMakeSystem.cmake
+|   |           |   |   |   |               |   |   
+|   |           |   |   |   |               |   \---CompilerIdC
+|   |           |   |   |   |               |       |   CMakeCCompilerId.c
+|   |           |   |   |   |               |       |   CMakeCCompilerId.o
+|   |           |   |   |   |               |       |   
+|   |           |   |   |   |               |       \---tmp
+|   |           |   |   |   |               +---CMakeTmp
+|   |           |   |   |   |               \---jni.dir
+|   |           |   |   |   |                   |   dartjni.c.o
+|   |           |   |   |   |                   |   
+|   |           |   |   |   |                   +---include
+|   |           |   |   |   |                   |       dart_api_dl.c.o
+|   |           |   |   |   |                   |       
+|   |           |   |   |   |                   \---third_party
+|   |           |   |   |   |                           global_jni_env.c.o
+|   |           |   |   |   |                           
+|   |           |   |   |   \---tools
+|   |           |   |   |       \---release
+|   |           |   |   |           +---arm64-v8a
+|   |           |   |   |           |       compile_commands.json
+|   |           |   |   |           |       
+|   |           |   |   |           +---armeabi-v7a
+|   |           |   |   |           |       compile_commands.json
+|   |           |   |   |           |       
+|   |           |   |   |           +---x86
+|   |           |   |   |           |       compile_commands.json
+|   |           |   |   |           |       
+|   |           |   |   |           \---x86_64
+|   |           |   |   |                   compile_commands.json
+|   |           |   |   |                   
+|   |           |   |   \---src
+|   |           |   |       \---main
+|   |           |   |           |   AndroidManifest.xml
+|   |           |   |           |   
+|   |           |   |           \---java
+|   |           |   |               \---com
+|   |           |   |                   \---github
+|   |           |   |                       \---dart_lang
+|   |           |   |                           \---jni
+|   |           |   |                                   JniPlugin.java
+|   |           |   |                                   
+|   |           |   +---bin
+|   |           |   |       setup.dart
+|   |           |   |       
+|   |           |   +---example
+|   |           |   |   |   analysis_options.yaml
+|   |           |   |   |   pubspec.yaml
+|   |           |   |   |   README.md
+|   |           |   |   |   
+|   |           |   |   +---android
+|   |           |   |   |   |   build.gradle
+|   |           |   |   |   |   gradle.properties
+|   |           |   |   |   |   settings.gradle
+|   |           |   |   |   |   
+|   |           |   |   |   +---app
+|   |           |   |   |   |   |   build.gradle
+|   |           |   |   |   |   |   
+|   |           |   |   |   |   \---src
+|   |           |   |   |   |       +---debug
+|   |           |   |   |   |       |       AndroidManifest.xml
+|   |           |   |   |   |       |       
+|   |           |   |   |   |       +---main
+|   |           |   |   |   |       |   |   AndroidManifest.xml
+|   |           |   |   |   |       |   |   
+|   |           |   |   |   |       |   +---java
+|   |           |   |   |   |       |   |   +---com
+|   |           |   |   |   |       |   |   |   \---github
+|   |           |   |   |   |       |   |   |       \---dart_lang
+|   |           |   |   |   |       |   |   |           \---jni_example
+|   |           |   |   |   |       |   |   |                   Toaster.java
+|   |           |   |   |   |       |   |   |                   
+|   |           |   |   |   |       |   |   \---io
+|   |           |   |   |   |       |   |       \---flutter
+|   |           |   |   |   |       |   |           \---plugins
+|   |           |   |   |   |       |   +---kotlin
+|   |           |   |   |   |       |   |   \---dev
+|   |           |   |   |   |       |   |       \---dart
+|   |           |   |   |   |       |   |           \---jni_example
+|   |           |   |   |   |       |   |                   MainActivity.kt
+|   |           |   |   |   |       |   |                   
+|   |           |   |   |   |       |   \---res
+|   |           |   |   |   |       |       +---drawable
+|   |           |   |   |   |       |       |       launch_background.xml
+|   |           |   |   |   |       |       |       
+|   |           |   |   |   |       |       +---drawable-v21
+|   |           |   |   |   |       |       |       launch_background.xml
+|   |           |   |   |   |       |       |       
+|   |           |   |   |   |       |       +---mipmap-hdpi
+|   |           |   |   |   |       |       |       ic_launcher.png
+|   |           |   |   |   |       |       |       
+|   |           |   |   |   |       |       +---mipmap-mdpi
+|   |           |   |   |   |       |       |       ic_launcher.png
+|   |           |   |   |   |       |       |       
+|   |           |   |   |   |       |       +---mipmap-xhdpi
+|   |           |   |   |   |       |       |       ic_launcher.png
+|   |           |   |   |   |       |       |       
+|   |           |   |   |   |       |       +---mipmap-xxhdpi
+|   |           |   |   |   |       |       |       ic_launcher.png
+|   |           |   |   |   |       |       |       
+|   |           |   |   |   |       |       +---mipmap-xxxhdpi
+|   |           |   |   |   |       |       |       ic_launcher.png
+|   |           |   |   |   |       |       |       
+|   |           |   |   |   |       |       +---values
+|   |           |   |   |   |       |       |       styles.xml
+|   |           |   |   |   |       |       |       
+|   |           |   |   |   |       |       \---values-night
+|   |           |   |   |   |       |               styles.xml
+|   |           |   |   |   |       |               
+|   |           |   |   |   |       \---profile
+|   |           |   |   |   |               AndroidManifest.xml
+|   |           |   |   |   |               
+|   |           |   |   |   \---gradle
+|   |           |   |   |       \---wrapper
+|   |           |   |   |               gradle-wrapper.properties
+|   |           |   |   |               
+|   |           |   |   +---integration_test
+|   |           |   |   |       on_device_jni_test.dart
+|   |           |   |   |       
+|   |           |   |   +---lib
+|   |           |   |   |       main.dart
+|   |           |   |   |       
+|   |           |   |   +---linux
+|   |           |   |   |   |   CMakeLists.txt
+|   |           |   |   |   |   main.cc
+|   |           |   |   |   |   my_application.cc
+|   |           |   |   |   |   my_application.h
+|   |           |   |   |   |   
+|   |           |   |   |   \---flutter
+|   |           |   |   |           CMakeLists.txt
+|   |           |   |   |           
+|   |           |   |   +---macos
+|   |           |   |   |   |   Podfile
+|   |           |   |   |   |   
+|   |           |   |   |   +---Flutter
+|   |           |   |   |   |       Flutter-Debug.xcconfig
+|   |           |   |   |   |       Flutter-Release.xcconfig
+|   |           |   |   |   |       
+|   |           |   |   |   +---Runner
+|   |           |   |   |   |   |   AppDelegate.swift
+|   |           |   |   |   |   |   DebugProfile.entitlements
+|   |           |   |   |   |   |   Info.plist
+|   |           |   |   |   |   |   MainFlutterWindow.swift
+|   |           |   |   |   |   |   Release.entitlements
+|   |           |   |   |   |   |   
+|   |           |   |   |   |   +---Assets.xcassets
+|   |           |   |   |   |   |   \---AppIcon.appiconset
+|   |           |   |   |   |   |           app_icon_1024.png
+|   |           |   |   |   |   |           app_icon_128.png
+|   |           |   |   |   |   |           app_icon_16.png
+|   |           |   |   |   |   |           app_icon_256.png
+|   |           |   |   |   |   |           app_icon_32.png
+|   |           |   |   |   |   |           app_icon_512.png
+|   |           |   |   |   |   |           app_icon_64.png
+|   |           |   |   |   |   |           Contents.json
+|   |           |   |   |   |   |           
+|   |           |   |   |   |   +---Base.lproj
+|   |           |   |   |   |   |       MainMenu.xib
+|   |           |   |   |   |   |       
+|   |           |   |   |   |   \---Configs
+|   |           |   |   |   |           AppInfo.xcconfig
+|   |           |   |   |   |           Debug.xcconfig
+|   |           |   |   |   |           Release.xcconfig
+|   |           |   |   |   |           Warnings.xcconfig
+|   |           |   |   |   |           
+|   |           |   |   |   +---Runner.xcodeproj
+|   |           |   |   |   |   |   project.pbxproj
+|   |           |   |   |   |   |   
+|   |           |   |   |   |   +---project.xcworkspace
+|   |           |   |   |   |   |   \---xcshareddata
+|   |           |   |   |   |   |       |   IDEWorkspaceChecks.plist
+|   |           |   |   |   |   |       |   
+|   |           |   |   |   |   |       \---swiftpm
+|   |           |   |   |   |   |           \---configuration
+|   |           |   |   |   |   \---xcshareddata
+|   |           |   |   |   |       \---xcschemes
+|   |           |   |   |   |               Runner.xcscheme
+|   |           |   |   |   |               
+|   |           |   |   |   \---Runner.xcworkspace
+|   |           |   |   |       |   contents.xcworkspacedata
+|   |           |   |   |       |   
+|   |           |   |   |       \---xcshareddata
+|   |           |   |   |               IDEWorkspaceChecks.plist
+|   |           |   |   |               
+|   |           |   |   \---windows
+|   |           |   |       |   CMakeLists.txt
+|   |           |   |       |   
+|   |           |   |       +---flutter
+|   |           |   |       |       CMakeLists.txt
+|   |           |   |       |       
+|   |           |   |       \---runner
+|   |           |   |           |   CMakeLists.txt
+|   |           |   |           |   flutter_window.cpp
+|   |           |   |           |   flutter_window.h
+|   |           |   |           |   main.cpp
+|   |           |   |           |   resource.h
+|   |           |   |           |   runner.exe.manifest
+|   |           |   |           |   Runner.rc
+|   |           |   |           |   utils.cpp
+|   |           |   |           |   utils.h
+|   |           |   |           |   win32_window.cpp
+|   |           |   |           |   win32_window.h
+|   |           |   |           |   
+|   |           |   |           \---resources
+|   |           |   |                   app_icon.ico
+|   |           |   |                   
+|   |           |   +---java
+|   |           |   |   |   build.gradle.kts
+|   |           |   |   |   gradlew
+|   |           |   |   |   gradlew.bat
+|   |           |   |   |   README.md
+|   |           |   |   |   settings.gradle.kts
+|   |           |   |   |   
+|   |           |   |   +---gradle
+|   |           |   |   |   |   libs.versions.toml
+|   |           |   |   |   |   
+|   |           |   |   |   \---wrapper
+|   |           |   |   |           gradle-wrapper.jar
+|   |           |   |   |           gradle-wrapper.properties
+|   |           |   |   |           
+|   |           |   |   \---src
+|   |           |   |       \---main
+|   |           |   |           \---java
+|   |           |   |               \---com
+|   |           |   |                   \---github
+|   |           |   |                       \---dart_lang
+|   |           |   |                           \---jni
+|   |           |   |                                   JniUtils.java
+|   |           |   |                                   PortCleaner.java
+|   |           |   |                                   PortContinuation.java
+|   |           |   |                                   PortProxyBuilder.java
+|   |           |   |                                   
+|   |           |   +---lib
+|   |           |   |   |   jni.dart
+|   |           |   |   |   jni_symbols.yaml
+|   |           |   |   |   _internal.dart
+|   |           |   |   |   
+|   |           |   |   \---src
+|   |           |   |       |   accessors.dart
+|   |           |   |       |   core_bindings.dart
+|   |           |   |       |   errors.dart
+|   |           |   |       |   jarray.dart
+|   |           |   |       |   jclass.dart
+|   |           |   |       |   jimplementer.dart
+|   |           |   |       |   jni.dart
+|   |           |   |       |   jobject.dart
+|   |           |   |       |   jprimitives.dart
+|   |           |   |       |   jreference.dart
+|   |           |   |       |   jvalues.dart
+|   |           |   |       |   kotlin.dart
+|   |           |   |       |   method_invocation.dart
+|   |           |   |       |   primitive_jarrays.dart
+|   |           |   |       |   types.dart
+|   |           |   |       |   version_check.dart
+|   |           |   |       |   
+|   |           |   |       +---build_util
+|   |           |   |       |       build_util.dart
+|   |           |   |       |       
+|   |           |   |       +---lang
+|   |           |   |       |       jboolean.dart
+|   |           |   |       |       jbyte.dart
+|   |           |   |       |       jcharacter.dart
+|   |           |   |       |       jdouble.dart
+|   |           |   |       |       jfloat.dart
+|   |           |   |       |       jinteger.dart
+|   |           |   |       |       jlong.dart
+|   |           |   |       |       jnumber.dart
+|   |           |   |       |       jshort.dart
+|   |           |   |       |       jstring.dart
+|   |           |   |       |       lang.dart
+|   |           |   |       |       
+|   |           |   |       +---nio
+|   |           |   |       |       jbuffer.dart
+|   |           |   |       |       jbyte_buffer.dart
+|   |           |   |       |       nio.dart
+|   |           |   |       |       
+|   |           |   |       +---third_party
+|   |           |   |       |       generated_bindings.dart
+|   |           |   |       |       global_env_extensions.dart
+|   |           |   |       |       jni_bindings_generated.dart
+|   |           |   |       |       
+|   |           |   |       \---util
+|   |           |   |               jiterator.dart
+|   |           |   |               jlist.dart
+|   |           |   |               jmap.dart
+|   |           |   |               jset.dart
+|   |           |   |               util.dart
+|   |           |   |               
+|   |           |   +---linux
+|   |           |   |       CMakeLists.txt
+|   |           |   |       
+|   |           |   +---src
+|   |           |   |   |   CMakeLists.txt
+|   |           |   |   |   dartjni.c
+|   |           |   |   |   dartjni.h
+|   |           |   |   |   jni_constants.h
+|   |           |   |   |   README.md
+|   |           |   |   |   
+|   |           |   |   +---include
+|   |           |   |   |   |   analyze_snapshot_api.h
+|   |           |   |   |   |   BUILD.gn
+|   |           |   |   |   |   dart_api.h
+|   |           |   |   |   |   dart_api_dl.c
+|   |           |   |   |   |   dart_api_dl.h
+|   |           |   |   |   |   dart_embedder_api.h
+|   |           |   |   |   |   dart_native_api.h
+|   |           |   |   |   |   dart_tools_api.h
+|   |           |   |   |   |   dart_version.h
+|   |           |   |   |   |   
+|   |           |   |   |   +---bin
+|   |           |   |   |   |       dart_io_api.h
+|   |           |   |   |   |       native_assets_api.h
+|   |           |   |   |   |       
+|   |           |   |   |   \---internal
+|   |           |   |   |           dart_api_dl_impl.h
+|   |           |   |   |           
+|   |           |   |   \---third_party
+|   |           |   |           global_jni_env.c
+|   |           |   |           global_jni_env.h
+|   |           |   |           
+|   |           |   +---test
+|   |           |   |   |   boxed_test.dart
+|   |           |   |   |   debug_release_test.dart
+|   |           |   |   |   exception_test.dart
+|   |           |   |   |   global_env_test.dart
+|   |           |   |   |   isolate_test.dart
+|   |           |   |   |   jarray_test.dart
+|   |           |   |   |   jbyte_buffer_test.dart
+|   |           |   |   |   jlist_test.dart
+|   |           |   |   |   jmap_test.dart
+|   |           |   |   |   jobject_test.dart
+|   |           |   |   |   jset_test.dart
+|   |           |   |   |   jstring_test.dart
+|   |           |   |   |   load_test.dart
+|   |           |   |   |   no_such_method_test.dart
+|   |           |   |   |   version_check_test.dart
+|   |           |   |   |   
+|   |           |   |   +---test_util
+|   |           |   |   |       test_util.dart
+|   |           |   |   |       
+|   |           |   |   \---version_check
+|   |           |   |           fail_major.dart
+|   |           |   |           fail_minor.dart
+|   |           |   |           pass.dart
+|   |           |   |           
+|   |           |   +---third_party
+|   |           |   |       jni.h
+|   |           |   |       
+|   |           |   +---tool
+|   |           |   |   |   generate_ffi_bindings.dart
+|   |           |   |   |   generate_ide_files.dart
+|   |           |   |   |   generate_jni_bindings.dart
+|   |           |   |   |   generate_primitive_arrays.dart
+|   |           |   |   |   
+|   |           |   |   \---wrapper_generators
+|   |           |   |           ffigen_util.dart
+|   |           |   |           generate_c_extensions.dart
+|   |           |   |           generate_dart_extensions.dart
+|   |           |   |           generate_helper_functions.dart
+|   |           |   |           logging.dart
+|   |           |   |           
+|   |           |   \---windows
+|   |           |           CMakeLists.txt
+|   |           |           
+|   |           +---path_provider_linux
+|   |           |   |   AUTHORS
+|   |           |   |   CHANGELOG.md
+|   |           |   |   LICENSE
+|   |           |   |   pubspec.yaml
+|   |           |   |   README.md
+|   |           |   |   
+|   |           |   +---example
+|   |           |   |   |   pubspec.yaml
+|   |           |   |   |   README.md
+|   |           |   |   |   
+|   |           |   |   +---integration_test
+|   |           |   |   |       path_provider_test.dart
+|   |           |   |   |       
+|   |           |   |   +---lib
+|   |           |   |   |       main.dart
+|   |           |   |   |       
+|   |           |   |   +---linux
+|   |           |   |   |   |   CMakeLists.txt
+|   |           |   |   |   |   main.cc
+|   |           |   |   |   |   my_application.cc
+|   |           |   |   |   |   my_application.h
+|   |           |   |   |   |   
+|   |           |   |   |   \---flutter
+|   |           |   |   |           CMakeLists.txt
+|   |           |   |   |           
+|   |           |   |   \---test_driver
+|   |           |   |           integration_test.dart
+|   |           |   |           
+|   |           |   +---lib
+|   |           |   |   |   path_provider_linux.dart
+|   |           |   |   |   
+|   |           |   |   \---src
+|   |           |   |           get_application_id.dart
+|   |           |   |           get_application_id_real.dart
+|   |           |   |           get_application_id_stub.dart
+|   |           |   |           path_provider_linux.dart
+|   |           |   |           
+|   |           |   \---test
+|   |           |           get_application_id_test.dart
+|   |           |           path_provider_linux_test.dart
+|   |           |           
+|   |           +---shared_preferences_linux
+|   |           |   |   AUTHORS
+|   |           |   |   CHANGELOG.md
+|   |           |   |   LICENSE
+|   |           |   |   pubspec.yaml
+|   |           |   |   README.md
+|   |           |   |   
+|   |           |   +---example
+|   |           |   |   |   pubspec.yaml
+|   |           |   |   |   README.md
+|   |           |   |   |   
+|   |           |   |   +---integration_test
+|   |           |   |   |       shared_preferences_test.dart
+|   |           |   |   |       
+|   |           |   |   +---lib
+|   |           |   |   |       main.dart
+|   |           |   |   |       
+|   |           |   |   +---linux
+|   |           |   |   |   |   CMakeLists.txt
+|   |           |   |   |   |   main.cc
+|   |           |   |   |   |   my_application.cc
+|   |           |   |   |   |   my_application.h
+|   |           |   |   |   |   
+|   |           |   |   |   \---flutter
+|   |           |   |   |           CMakeLists.txt
+|   |           |   |   |           generated_plugins.cmake
+|   |           |   |   |           
+|   |           |   |   \---test_driver
+|   |           |   |           integration_test.dart
+|   |           |   |           
+|   |           |   +---lib
+|   |           |   |       shared_preferences_linux.dart
+|   |           |   |       
+|   |           |   \---test
+|   |           |           fake_path_provider_linux.dart
+|   |           |           legacy_shared_preferences_linux_test.dart
+|   |           |           shared_preferences_linux_async_test.dart
+|   |           |           
+|   |           \---url_launcher_linux
+|   |               |   AUTHORS
+|   |               |   CHANGELOG.md
+|   |               |   LICENSE
+|   |               |   pubspec.yaml
+|   |               |   README.md
+|   |               |   
+|   |               +---example
+|   |               |   |   pubspec.yaml
+|   |               |   |   README.md
+|   |               |   |   
+|   |               |   +---integration_test
+|   |               |   |       url_launcher_test.dart
+|   |               |   |       
+|   |               |   +---lib
+|   |               |   |       main.dart
+|   |               |   |       
+|   |               |   +---linux
+|   |               |   |   |   CMakeLists.txt
+|   |               |   |   |   main.cc
+|   |               |   |   |   my_application.cc
+|   |               |   |   |   my_application.h
+|   |               |   |   |   
+|   |               |   |   \---flutter
+|   |               |   |           CMakeLists.txt
+|   |               |   |           
+|   |               |   \---test_driver
+|   |               |           integration_test.dart
+|   |               |           
+|   |               +---lib
+|   |               |   |   url_launcher_linux.dart
+|   |               |   |   
+|   |               |   \---src
+|   |               |           messages.g.dart
+|   |               |           
+|   |               +---linux
+|   |               |   |   CMakeLists.txt
+|   |               |   |   messages.g.cc
+|   |               |   |   messages.g.h
+|   |               |   |   url_launcher_plugin.cc
+|   |               |   |   url_launcher_plugin_private.h
+|   |               |   |   
+|   |               |   +---include
+|   |               |   |   \---url_launcher_linux
+|   |               |   |           url_launcher_plugin.h
+|   |               |   |           
+|   |               |   \---test
+|   |               |           url_launcher_linux_test.cc
+|   |               |           
+|   |               +---pigeons
+|   |               |       copyright.txt
+|   |               |       messages.dart
+|   |               |       
+|   |               \---test
+|   |                       url_launcher_linux_test.dart
+|   |                       
+|   \---runner
+|           CMakeLists.txt
+|           main.cc
+|           my_application.cc
+|           my_application.h
+|           
++---macos
+|   |   .gitignore
+|   |   
+|   +---Flutter
+|   |   |   Flutter-Debug.xcconfig
+|   |   |   Flutter-Release.xcconfig
+|   |   |   GeneratedPluginRegistrant.swift
+|   |   |   
+|   |   \---ephemeral
+|   |       |   .swift_pm.lock
+|   |       |   Flutter-Generated.xcconfig
+|   |       |   flutter_export_environment.sh
+|   |       |   flutter_native_integration.env
+|   |       |   
+|   |       \---Packages
+|   |           +---.packages
+|   |           \---FlutterGeneratedPluginSwiftPackage
+|   |               |   Package.swift
+|   |               |   
+|   |               \---Sources
+|   |                   \---FlutterGeneratedPluginSwiftPackage
+|   |                           FlutterGeneratedPluginSwiftPackage.swift
+|   |                           
+|   +---Runner
+|   |   |   AppDelegate.swift
+|   |   |   DebugProfile.entitlements
+|   |   |   Info.plist
+|   |   |   MainFlutterWindow.swift
+|   |   |   Release.entitlements
+|   |   |   
+|   |   +---Assets.xcassets
+|   |   |   \---AppIcon.appiconset
+|   |   |           app_icon_1024.png
+|   |   |           app_icon_128.png
+|   |   |           app_icon_16.png
+|   |   |           app_icon_256.png
+|   |   |           app_icon_32.png
+|   |   |           app_icon_512.png
+|   |   |           app_icon_64.png
+|   |   |           Contents.json
+|   |   |           
+|   |   +---Base.lproj
+|   |   |       MainMenu.xib
+|   |   |       
+|   |   \---Configs
+|   |           AppInfo.xcconfig
+|   |           Debug.xcconfig
+|   |           Release.xcconfig
+|   |           Warnings.xcconfig
+|   |           
+|   +---Runner.xcodeproj
+|   |   |   project.pbxproj
+|   |   |   
+|   |   +---project.xcworkspace
+|   |   |   \---xcshareddata
+|   |   |           IDEWorkspaceChecks.plist
+|   |   |           
+|   |   \---xcshareddata
+|   |       \---xcschemes
+|   |               Runner.xcscheme
+|   |               
+|   +---Runner.xcworkspace
+|   |   |   contents.xcworkspacedata
+|   |   |   
+|   |   \---xcshareddata
+|   |           IDEWorkspaceChecks.plist
+|   |           
+|   \---RunnerTests
+|           RunnerTests.swift
+|           
++---node_modules
+|   |   .package-lock.json
+|   |   
+|   +---.bin
+|   |       supabase
+|   |       supabase.cmd
+|   |       supabase.ps1
+|   |       
+|   +---@ecies
+|   |   \---ciphers
+|   |       |   LICENSE
+|   |       |   package.json
+|   |       |   README.md
+|   |       |   
+|   |       \---dist
+|   |           |   index.d.ts
+|   |           |   index.js
+|   |           |   
+|   |           +---aes
+|   |           |       noble.d.ts
+|   |           |       noble.js
+|   |           |       node.d.ts
+|   |           |       node.js
+|   |           |       
+|   |           +---chacha
+|   |           |       noble.d.ts
+|   |           |       noble.js
+|   |           |       node.d.ts
+|   |           |       node.js
+|   |           |       
+|   |           \---_node
+|   |                   compat.d.ts
+|   |                   compat.js
+|   |                   hchacha.d.ts
+|   |                   hchacha.js
+|   |                   
+|   +---@noble
+|   |   +---ciphers
+|   |   |   |   aes.d.ts
+|   |   |   |   aes.d.ts.map
+|   |   |   |   aes.js
+|   |   |   |   aes.js.map
+|   |   |   |   chacha.d.ts
+|   |   |   |   chacha.d.ts.map
+|   |   |   |   chacha.js
+|   |   |   |   chacha.js.map
+|   |   |   |   crypto.d.ts
+|   |   |   |   crypto.d.ts.map
+|   |   |   |   crypto.js
+|   |   |   |   crypto.js.map
+|   |   |   |   cryptoNode.d.ts
+|   |   |   |   cryptoNode.d.ts.map
+|   |   |   |   cryptoNode.js
+|   |   |   |   cryptoNode.js.map
+|   |   |   |   ff1.d.ts
+|   |   |   |   ff1.d.ts.map
+|   |   |   |   ff1.js
+|   |   |   |   ff1.js.map
+|   |   |   |   index.d.ts
+|   |   |   |   index.d.ts.map
+|   |   |   |   index.js
+|   |   |   |   index.js.map
+|   |   |   |   LICENSE
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   salsa.d.ts
+|   |   |   |   salsa.d.ts.map
+|   |   |   |   salsa.js
+|   |   |   |   salsa.js.map
+|   |   |   |   utils.d.ts
+|   |   |   |   utils.d.ts.map
+|   |   |   |   utils.js
+|   |   |   |   utils.js.map
+|   |   |   |   webcrypto.d.ts
+|   |   |   |   webcrypto.d.ts.map
+|   |   |   |   webcrypto.js
+|   |   |   |   webcrypto.js.map
+|   |   |   |   _arx.d.ts
+|   |   |   |   _arx.d.ts.map
+|   |   |   |   _arx.js
+|   |   |   |   _arx.js.map
+|   |   |   |   _assert.d.ts
+|   |   |   |   _assert.d.ts.map
+|   |   |   |   _assert.js
+|   |   |   |   _assert.js.map
+|   |   |   |   _micro.d.ts
+|   |   |   |   _micro.d.ts.map
+|   |   |   |   _micro.js
+|   |   |   |   _micro.js.map
+|   |   |   |   _poly1305.d.ts
+|   |   |   |   _poly1305.d.ts.map
+|   |   |   |   _poly1305.js
+|   |   |   |   _poly1305.js.map
+|   |   |   |   _polyval.d.ts
+|   |   |   |   _polyval.d.ts.map
+|   |   |   |   _polyval.js
+|   |   |   |   _polyval.js.map
+|   |   |   |   
+|   |   |   +---esm
+|   |   |   |       aes.d.ts
+|   |   |   |       aes.d.ts.map
+|   |   |   |       aes.js
+|   |   |   |       aes.js.map
+|   |   |   |       chacha.d.ts
+|   |   |   |       chacha.d.ts.map
+|   |   |   |       chacha.js
+|   |   |   |       chacha.js.map
+|   |   |   |       crypto.d.ts
+|   |   |   |       crypto.d.ts.map
+|   |   |   |       crypto.js
+|   |   |   |       crypto.js.map
+|   |   |   |       cryptoNode.d.ts
+|   |   |   |       cryptoNode.d.ts.map
+|   |   |   |       cryptoNode.js
+|   |   |   |       cryptoNode.js.map
+|   |   |   |       ff1.d.ts
+|   |   |   |       ff1.d.ts.map
+|   |   |   |       ff1.js
+|   |   |   |       ff1.js.map
+|   |   |   |       index.d.ts
+|   |   |   |       index.d.ts.map
+|   |   |   |       index.js
+|   |   |   |       index.js.map
+|   |   |   |       package.json
+|   |   |   |       salsa.d.ts
+|   |   |   |       salsa.d.ts.map
+|   |   |   |       salsa.js
+|   |   |   |       salsa.js.map
+|   |   |   |       utils.d.ts
+|   |   |   |       utils.d.ts.map
+|   |   |   |       utils.js
+|   |   |   |       utils.js.map
+|   |   |   |       webcrypto.d.ts
+|   |   |   |       webcrypto.d.ts.map
+|   |   |   |       webcrypto.js
+|   |   |   |       webcrypto.js.map
+|   |   |   |       _arx.d.ts
+|   |   |   |       _arx.d.ts.map
+|   |   |   |       _arx.js
+|   |   |   |       _arx.js.map
+|   |   |   |       _assert.d.ts
+|   |   |   |       _assert.d.ts.map
+|   |   |   |       _assert.js
+|   |   |   |       _assert.js.map
+|   |   |   |       _micro.d.ts
+|   |   |   |       _micro.d.ts.map
+|   |   |   |       _micro.js
+|   |   |   |       _micro.js.map
+|   |   |   |       _poly1305.d.ts
+|   |   |   |       _poly1305.d.ts.map
+|   |   |   |       _poly1305.js
+|   |   |   |       _poly1305.js.map
+|   |   |   |       _polyval.d.ts
+|   |   |   |       _polyval.d.ts.map
+|   |   |   |       _polyval.js
+|   |   |   |       _polyval.js.map
+|   |   |   |       
+|   |   |   \---src
+|   |   |           aes.ts
+|   |   |           chacha.ts
+|   |   |           crypto.ts
+|   |   |           cryptoNode.ts
+|   |   |           ff1.ts
+|   |   |           index.ts
+|   |   |           package.json
+|   |   |           salsa.ts
+|   |   |           utils.ts
+|   |   |           webcrypto.ts
+|   |   |           _arx.ts
+|   |   |           _assert.ts
+|   |   |           _micro.ts
+|   |   |           _poly1305.ts
+|   |   |           _polyval.ts
+|   |   |           
+|   |   +---curves
+|   |   |   |   bls12-381.d.ts
+|   |   |   |   bls12-381.d.ts.map
+|   |   |   |   bls12-381.js
+|   |   |   |   bls12-381.js.map
+|   |   |   |   bn254.d.ts
+|   |   |   |   bn254.d.ts.map
+|   |   |   |   bn254.js
+|   |   |   |   bn254.js.map
+|   |   |   |   ed25519.d.ts
+|   |   |   |   ed25519.d.ts.map
+|   |   |   |   ed25519.js
+|   |   |   |   ed25519.js.map
+|   |   |   |   ed448.d.ts
+|   |   |   |   ed448.d.ts.map
+|   |   |   |   ed448.js
+|   |   |   |   ed448.js.map
+|   |   |   |   index.d.ts
+|   |   |   |   index.d.ts.map
+|   |   |   |   index.js
+|   |   |   |   index.js.map
+|   |   |   |   jubjub.d.ts
+|   |   |   |   jubjub.d.ts.map
+|   |   |   |   jubjub.js
+|   |   |   |   jubjub.js.map
+|   |   |   |   LICENSE
+|   |   |   |   misc.d.ts
+|   |   |   |   misc.d.ts.map
+|   |   |   |   misc.js
+|   |   |   |   misc.js.map
+|   |   |   |   nist.d.ts
+|   |   |   |   nist.d.ts.map
+|   |   |   |   nist.js
+|   |   |   |   nist.js.map
+|   |   |   |   p256.d.ts
+|   |   |   |   p256.d.ts.map
+|   |   |   |   p256.js
+|   |   |   |   p256.js.map
+|   |   |   |   p384.d.ts
+|   |   |   |   p384.d.ts.map
+|   |   |   |   p384.js
+|   |   |   |   p384.js.map
+|   |   |   |   p521.d.ts
+|   |   |   |   p521.d.ts.map
+|   |   |   |   p521.js
+|   |   |   |   p521.js.map
+|   |   |   |   package.json
+|   |   |   |   pasta.d.ts
+|   |   |   |   pasta.d.ts.map
+|   |   |   |   pasta.js
+|   |   |   |   pasta.js.map
+|   |   |   |   README.md
+|   |   |   |   secp256k1.d.ts
+|   |   |   |   secp256k1.d.ts.map
+|   |   |   |   secp256k1.js
+|   |   |   |   secp256k1.js.map
+|   |   |   |   utils.d.ts
+|   |   |   |   utils.d.ts.map
+|   |   |   |   utils.js
+|   |   |   |   utils.js.map
+|   |   |   |   _shortw_utils.d.ts
+|   |   |   |   _shortw_utils.d.ts.map
+|   |   |   |   _shortw_utils.js
+|   |   |   |   _shortw_utils.js.map
+|   |   |   |   
+|   |   |   +---abstract
+|   |   |   |       bls.d.ts
+|   |   |   |       bls.d.ts.map
+|   |   |   |       bls.js
+|   |   |   |       bls.js.map
+|   |   |   |       curve.d.ts
+|   |   |   |       curve.d.ts.map
+|   |   |   |       curve.js
+|   |   |   |       curve.js.map
+|   |   |   |       edwards.d.ts
+|   |   |   |       edwards.d.ts.map
+|   |   |   |       edwards.js
+|   |   |   |       edwards.js.map
+|   |   |   |       fft.d.ts
+|   |   |   |       fft.d.ts.map
+|   |   |   |       fft.js
+|   |   |   |       fft.js.map
+|   |   |   |       hash-to-curve.d.ts
+|   |   |   |       hash-to-curve.d.ts.map
+|   |   |   |       hash-to-curve.js
+|   |   |   |       hash-to-curve.js.map
+|   |   |   |       modular.d.ts
+|   |   |   |       modular.d.ts.map
+|   |   |   |       modular.js
+|   |   |   |       modular.js.map
+|   |   |   |       montgomery.d.ts
+|   |   |   |       montgomery.d.ts.map
+|   |   |   |       montgomery.js
+|   |   |   |       montgomery.js.map
+|   |   |   |       poseidon.d.ts
+|   |   |   |       poseidon.d.ts.map
+|   |   |   |       poseidon.js
+|   |   |   |       poseidon.js.map
+|   |   |   |       tower.d.ts
+|   |   |   |       tower.d.ts.map
+|   |   |   |       tower.js
+|   |   |   |       tower.js.map
+|   |   |   |       utils.d.ts
+|   |   |   |       utils.d.ts.map
+|   |   |   |       utils.js
+|   |   |   |       utils.js.map
+|   |   |   |       weierstrass.d.ts
+|   |   |   |       weierstrass.d.ts.map
+|   |   |   |       weierstrass.js
+|   |   |   |       weierstrass.js.map
+|   |   |   |       
+|   |   |   +---esm
+|   |   |   |   |   bls12-381.d.ts
+|   |   |   |   |   bls12-381.d.ts.map
+|   |   |   |   |   bls12-381.js
+|   |   |   |   |   bls12-381.js.map
+|   |   |   |   |   bn254.d.ts
+|   |   |   |   |   bn254.d.ts.map
+|   |   |   |   |   bn254.js
+|   |   |   |   |   bn254.js.map
+|   |   |   |   |   ed25519.d.ts
+|   |   |   |   |   ed25519.d.ts.map
+|   |   |   |   |   ed25519.js
+|   |   |   |   |   ed25519.js.map
+|   |   |   |   |   ed448.d.ts
+|   |   |   |   |   ed448.d.ts.map
+|   |   |   |   |   ed448.js
+|   |   |   |   |   ed448.js.map
+|   |   |   |   |   index.d.ts
+|   |   |   |   |   index.d.ts.map
+|   |   |   |   |   index.js
+|   |   |   |   |   index.js.map
+|   |   |   |   |   jubjub.d.ts
+|   |   |   |   |   jubjub.d.ts.map
+|   |   |   |   |   jubjub.js
+|   |   |   |   |   jubjub.js.map
+|   |   |   |   |   misc.d.ts
+|   |   |   |   |   misc.d.ts.map
+|   |   |   |   |   misc.js
+|   |   |   |   |   misc.js.map
+|   |   |   |   |   nist.d.ts
+|   |   |   |   |   nist.d.ts.map
+|   |   |   |   |   nist.js
+|   |   |   |   |   nist.js.map
+|   |   |   |   |   p256.d.ts
+|   |   |   |   |   p256.d.ts.map
+|   |   |   |   |   p256.js
+|   |   |   |   |   p256.js.map
+|   |   |   |   |   p384.d.ts
+|   |   |   |   |   p384.d.ts.map
+|   |   |   |   |   p384.js
+|   |   |   |   |   p384.js.map
+|   |   |   |   |   p521.d.ts
+|   |   |   |   |   p521.d.ts.map
+|   |   |   |   |   p521.js
+|   |   |   |   |   p521.js.map
+|   |   |   |   |   package.json
+|   |   |   |   |   pasta.d.ts
+|   |   |   |   |   pasta.d.ts.map
+|   |   |   |   |   pasta.js
+|   |   |   |   |   pasta.js.map
+|   |   |   |   |   secp256k1.d.ts
+|   |   |   |   |   secp256k1.d.ts.map
+|   |   |   |   |   secp256k1.js
+|   |   |   |   |   secp256k1.js.map
+|   |   |   |   |   utils.d.ts
+|   |   |   |   |   utils.d.ts.map
+|   |   |   |   |   utils.js
+|   |   |   |   |   utils.js.map
+|   |   |   |   |   _shortw_utils.d.ts
+|   |   |   |   |   _shortw_utils.d.ts.map
+|   |   |   |   |   _shortw_utils.js
+|   |   |   |   |   _shortw_utils.js.map
+|   |   |   |   |   
+|   |   |   |   \---abstract
+|   |   |   |           bls.d.ts
+|   |   |   |           bls.d.ts.map
+|   |   |   |           bls.js
+|   |   |   |           bls.js.map
+|   |   |   |           curve.d.ts
+|   |   |   |           curve.d.ts.map
+|   |   |   |           curve.js
+|   |   |   |           curve.js.map
+|   |   |   |           edwards.d.ts
+|   |   |   |           edwards.d.ts.map
+|   |   |   |           edwards.js
+|   |   |   |           edwards.js.map
+|   |   |   |           fft.d.ts
+|   |   |   |           fft.d.ts.map
+|   |   |   |           fft.js
+|   |   |   |           fft.js.map
+|   |   |   |           hash-to-curve.d.ts
+|   |   |   |           hash-to-curve.d.ts.map
+|   |   |   |           hash-to-curve.js
+|   |   |   |           hash-to-curve.js.map
+|   |   |   |           modular.d.ts
+|   |   |   |           modular.d.ts.map
+|   |   |   |           modular.js
+|   |   |   |           modular.js.map
+|   |   |   |           montgomery.d.ts
+|   |   |   |           montgomery.d.ts.map
+|   |   |   |           montgomery.js
+|   |   |   |           montgomery.js.map
+|   |   |   |           poseidon.d.ts
+|   |   |   |           poseidon.d.ts.map
+|   |   |   |           poseidon.js
+|   |   |   |           poseidon.js.map
+|   |   |   |           tower.d.ts
+|   |   |   |           tower.d.ts.map
+|   |   |   |           tower.js
+|   |   |   |           tower.js.map
+|   |   |   |           utils.d.ts
+|   |   |   |           utils.d.ts.map
+|   |   |   |           utils.js
+|   |   |   |           utils.js.map
+|   |   |   |           weierstrass.d.ts
+|   |   |   |           weierstrass.d.ts.map
+|   |   |   |           weierstrass.js
+|   |   |   |           weierstrass.js.map
+|   |   |   |           
+|   |   |   \---src
+|   |   |       |   bls12-381.ts
+|   |   |       |   bn254.ts
+|   |   |       |   ed25519.ts
+|   |   |       |   ed448.ts
+|   |   |       |   index.ts
+|   |   |       |   jubjub.ts
+|   |   |       |   misc.ts
+|   |   |       |   nist.ts
+|   |   |       |   p256.ts
+|   |   |       |   p384.ts
+|   |   |       |   p521.ts
+|   |   |       |   package.json
+|   |   |       |   pasta.ts
+|   |   |       |   secp256k1.ts
+|   |   |       |   utils.ts
+|   |   |       |   _shortw_utils.ts
+|   |   |       |   
+|   |   |       \---abstract
+|   |   |               bls.ts
+|   |   |               curve.ts
+|   |   |               edwards.ts
+|   |   |               fft.ts
+|   |   |               hash-to-curve.ts
+|   |   |               modular.ts
+|   |   |               montgomery.ts
+|   |   |               poseidon.ts
+|   |   |               tower.ts
+|   |   |               utils.ts
+|   |   |               weierstrass.ts
+|   |   |               
+|   |   \---hashes
+|   |       |   argon2.d.ts
+|   |       |   argon2.d.ts.map
+|   |       |   argon2.js
+|   |       |   argon2.js.map
+|   |       |   blake1.d.ts
+|   |       |   blake1.d.ts.map
+|   |       |   blake1.js
+|   |       |   blake1.js.map
+|   |       |   blake2.d.ts
+|   |       |   blake2.d.ts.map
+|   |       |   blake2.js
+|   |       |   blake2.js.map
+|   |       |   blake2b.d.ts
+|   |       |   blake2b.d.ts.map
+|   |       |   blake2b.js
+|   |       |   blake2b.js.map
+|   |       |   blake2s.d.ts
+|   |       |   blake2s.d.ts.map
+|   |       |   blake2s.js
+|   |       |   blake2s.js.map
+|   |       |   blake3.d.ts
+|   |       |   blake3.d.ts.map
+|   |       |   blake3.js
+|   |       |   blake3.js.map
+|   |       |   crypto.d.ts
+|   |       |   crypto.d.ts.map
+|   |       |   crypto.js
+|   |       |   crypto.js.map
+|   |       |   cryptoNode.d.ts
+|   |       |   cryptoNode.d.ts.map
+|   |       |   cryptoNode.js
+|   |       |   cryptoNode.js.map
+|   |       |   eskdf.d.ts
+|   |       |   eskdf.d.ts.map
+|   |       |   eskdf.js
+|   |       |   eskdf.js.map
+|   |       |   hkdf.d.ts
+|   |       |   hkdf.d.ts.map
+|   |       |   hkdf.js
+|   |       |   hkdf.js.map
+|   |       |   hmac.d.ts
+|   |       |   hmac.d.ts.map
+|   |       |   hmac.js
+|   |       |   hmac.js.map
+|   |       |   index.d.ts
+|   |       |   index.d.ts.map
+|   |       |   index.js
+|   |       |   index.js.map
+|   |       |   legacy.d.ts
+|   |       |   legacy.d.ts.map
+|   |       |   legacy.js
+|   |       |   legacy.js.map
+|   |       |   LICENSE
+|   |       |   package.json
+|   |       |   pbkdf2.d.ts
+|   |       |   pbkdf2.d.ts.map
+|   |       |   pbkdf2.js
+|   |       |   pbkdf2.js.map
+|   |       |   README.md
+|   |       |   ripemd160.d.ts
+|   |       |   ripemd160.d.ts.map
+|   |       |   ripemd160.js
+|   |       |   ripemd160.js.map
+|   |       |   scrypt.d.ts
+|   |       |   scrypt.d.ts.map
+|   |       |   scrypt.js
+|   |       |   scrypt.js.map
+|   |       |   sha1.d.ts
+|   |       |   sha1.d.ts.map
+|   |       |   sha1.js
+|   |       |   sha1.js.map
+|   |       |   sha2.d.ts
+|   |       |   sha2.d.ts.map
+|   |       |   sha2.js
+|   |       |   sha2.js.map
+|   |       |   sha256.d.ts
+|   |       |   sha256.d.ts.map
+|   |       |   sha256.js
+|   |       |   sha256.js.map
+|   |       |   sha3-addons.d.ts
+|   |       |   sha3-addons.d.ts.map
+|   |       |   sha3-addons.js
+|   |       |   sha3-addons.js.map
+|   |       |   sha3.d.ts
+|   |       |   sha3.d.ts.map
+|   |       |   sha3.js
+|   |       |   sha3.js.map
+|   |       |   sha512.d.ts
+|   |       |   sha512.d.ts.map
+|   |       |   sha512.js
+|   |       |   sha512.js.map
+|   |       |   utils.d.ts
+|   |       |   utils.d.ts.map
+|   |       |   utils.js
+|   |       |   utils.js.map
+|   |       |   _assert.d.ts
+|   |       |   _assert.d.ts.map
+|   |       |   _assert.js
+|   |       |   _assert.js.map
+|   |       |   _blake.d.ts
+|   |       |   _blake.d.ts.map
+|   |       |   _blake.js
+|   |       |   _blake.js.map
+|   |       |   _md.d.ts
+|   |       |   _md.d.ts.map
+|   |       |   _md.js
+|   |       |   _md.js.map
+|   |       |   _u64.d.ts
+|   |       |   _u64.d.ts.map
+|   |       |   _u64.js
+|   |       |   _u64.js.map
+|   |       |   
+|   |       +---esm
+|   |       |       argon2.d.ts
+|   |       |       argon2.d.ts.map
+|   |       |       argon2.js
+|   |       |       argon2.js.map
+|   |       |       blake1.d.ts
+|   |       |       blake1.d.ts.map
+|   |       |       blake1.js
+|   |       |       blake1.js.map
+|   |       |       blake2.d.ts
+|   |       |       blake2.d.ts.map
+|   |       |       blake2.js
+|   |       |       blake2.js.map
+|   |       |       blake2b.d.ts
+|   |       |       blake2b.d.ts.map
+|   |       |       blake2b.js
+|   |       |       blake2b.js.map
+|   |       |       blake2s.d.ts
+|   |       |       blake2s.d.ts.map
+|   |       |       blake2s.js
+|   |       |       blake2s.js.map
+|   |       |       blake3.d.ts
+|   |       |       blake3.d.ts.map
+|   |       |       blake3.js
+|   |       |       blake3.js.map
+|   |       |       crypto.d.ts
+|   |       |       crypto.d.ts.map
+|   |       |       crypto.js
+|   |       |       crypto.js.map
+|   |       |       cryptoNode.d.ts
+|   |       |       cryptoNode.d.ts.map
+|   |       |       cryptoNode.js
+|   |       |       cryptoNode.js.map
+|   |       |       eskdf.d.ts
+|   |       |       eskdf.d.ts.map
+|   |       |       eskdf.js
+|   |       |       eskdf.js.map
+|   |       |       hkdf.d.ts
+|   |       |       hkdf.d.ts.map
+|   |       |       hkdf.js
+|   |       |       hkdf.js.map
+|   |       |       hmac.d.ts
+|   |       |       hmac.d.ts.map
+|   |       |       hmac.js
+|   |       |       hmac.js.map
+|   |       |       index.d.ts
+|   |       |       index.d.ts.map
+|   |       |       index.js
+|   |       |       index.js.map
+|   |       |       legacy.d.ts
+|   |       |       legacy.d.ts.map
+|   |       |       legacy.js
+|   |       |       legacy.js.map
+|   |       |       package.json
+|   |       |       pbkdf2.d.ts
+|   |       |       pbkdf2.d.ts.map
+|   |       |       pbkdf2.js
+|   |       |       pbkdf2.js.map
+|   |       |       ripemd160.d.ts
+|   |       |       ripemd160.d.ts.map
+|   |       |       ripemd160.js
+|   |       |       ripemd160.js.map
+|   |       |       scrypt.d.ts
+|   |       |       scrypt.d.ts.map
+|   |       |       scrypt.js
+|   |       |       scrypt.js.map
+|   |       |       sha1.d.ts
+|   |       |       sha1.d.ts.map
+|   |       |       sha1.js
+|   |       |       sha1.js.map
+|   |       |       sha2.d.ts
+|   |       |       sha2.d.ts.map
+|   |       |       sha2.js
+|   |       |       sha2.js.map
+|   |       |       sha256.d.ts
+|   |       |       sha256.d.ts.map
+|   |       |       sha256.js
+|   |       |       sha256.js.map
+|   |       |       sha3-addons.d.ts
+|   |       |       sha3-addons.d.ts.map
+|   |       |       sha3-addons.js
+|   |       |       sha3-addons.js.map
+|   |       |       sha3.d.ts
+|   |       |       sha3.d.ts.map
+|   |       |       sha3.js
+|   |       |       sha3.js.map
+|   |       |       sha512.d.ts
+|   |       |       sha512.d.ts.map
+|   |       |       sha512.js
+|   |       |       sha512.js.map
+|   |       |       utils.d.ts
+|   |       |       utils.d.ts.map
+|   |       |       utils.js
+|   |       |       utils.js.map
+|   |       |       _assert.d.ts
+|   |       |       _assert.d.ts.map
+|   |       |       _assert.js
+|   |       |       _assert.js.map
+|   |       |       _blake.d.ts
+|   |       |       _blake.d.ts.map
+|   |       |       _blake.js
+|   |       |       _blake.js.map
+|   |       |       _md.d.ts
+|   |       |       _md.d.ts.map
+|   |       |       _md.js
+|   |       |       _md.js.map
+|   |       |       _u64.d.ts
+|   |       |       _u64.d.ts.map
+|   |       |       _u64.js
+|   |       |       _u64.js.map
+|   |       |       
+|   |       \---src
+|   |               argon2.ts
+|   |               blake1.ts
+|   |               blake2.ts
+|   |               blake2b.ts
+|   |               blake2s.ts
+|   |               blake3.ts
+|   |               crypto.ts
+|   |               cryptoNode.ts
+|   |               eskdf.ts
+|   |               hkdf.ts
+|   |               hmac.ts
+|   |               index.ts
+|   |               legacy.ts
+|   |               pbkdf2.ts
+|   |               ripemd160.ts
+|   |               scrypt.ts
+|   |               sha1.ts
+|   |               sha2.ts
+|   |               sha256.ts
+|   |               sha3-addons.ts
+|   |               sha3.ts
+|   |               sha512.ts
+|   |               utils.ts
+|   |               _assert.ts
+|   |               _blake.ts
+|   |               _md.ts
+|   |               _u64.ts
+|   |               
+|   +---@supabase
+|   |   +---auth-js
+|   |   |   |   AGENTS.md
+|   |   |   |   LICENSE
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |   |   tsconfig.module.tsbuildinfo
+|   |   |   |   |   tsconfig.tsbuildinfo
+|   |   |   |   |   
+|   |   |   |   +---main
+|   |   |   |   |   |   AuthAdminApi.d.ts
+|   |   |   |   |   |   AuthAdminApi.d.ts.map
+|   |   |   |   |   |   AuthAdminApi.js
+|   |   |   |   |   |   AuthAdminApi.js.map
+|   |   |   |   |   |   AuthClient.d.ts
+|   |   |   |   |   |   AuthClient.d.ts.map
+|   |   |   |   |   |   AuthClient.js
+|   |   |   |   |   |   AuthClient.js.map
+|   |   |   |   |   |   GoTrueAdminApi.d.ts
+|   |   |   |   |   |   GoTrueAdminApi.d.ts.map
+|   |   |   |   |   |   GoTrueAdminApi.js
+|   |   |   |   |   |   GoTrueAdminApi.js.map
+|   |   |   |   |   |   GoTrueClient.d.ts
+|   |   |   |   |   |   GoTrueClient.d.ts.map
+|   |   |   |   |   |   GoTrueClient.js
+|   |   |   |   |   |   GoTrueClient.js.map
+|   |   |   |   |   |   index.d.ts
+|   |   |   |   |   |   index.d.ts.map
+|   |   |   |   |   |   index.js
+|   |   |   |   |   |   index.js.map
+|   |   |   |   |   |   
+|   |   |   |   |   \---lib
+|   |   |   |   |       |   base64url.d.ts
+|   |   |   |   |       |   base64url.d.ts.map
+|   |   |   |   |       |   base64url.js
+|   |   |   |   |       |   base64url.js.map
+|   |   |   |   |       |   constants.d.ts
+|   |   |   |   |       |   constants.d.ts.map
+|   |   |   |   |       |   constants.js
+|   |   |   |   |       |   constants.js.map
+|   |   |   |   |       |   error-codes.d.ts
+|   |   |   |   |       |   error-codes.d.ts.map
+|   |   |   |   |       |   error-codes.js
+|   |   |   |   |       |   error-codes.js.map
+|   |   |   |   |       |   errors.d.ts
+|   |   |   |   |       |   errors.d.ts.map
+|   |   |   |   |       |   errors.js
+|   |   |   |   |       |   errors.js.map
+|   |   |   |   |       |   fetch.d.ts
+|   |   |   |   |       |   fetch.d.ts.map
+|   |   |   |   |       |   fetch.js
+|   |   |   |   |       |   fetch.js.map
+|   |   |   |   |       |   helpers.d.ts
+|   |   |   |   |       |   helpers.d.ts.map
+|   |   |   |   |       |   helpers.js
+|   |   |   |   |       |   helpers.js.map
+|   |   |   |   |       |   local-storage.d.ts
+|   |   |   |   |       |   local-storage.d.ts.map
+|   |   |   |   |       |   local-storage.js
+|   |   |   |   |       |   local-storage.js.map
+|   |   |   |   |       |   locks.d.ts
+|   |   |   |   |       |   locks.d.ts.map
+|   |   |   |   |       |   locks.js
+|   |   |   |   |       |   locks.js.map
+|   |   |   |   |       |   polyfills.d.ts
+|   |   |   |   |       |   polyfills.d.ts.map
+|   |   |   |   |       |   polyfills.js
+|   |   |   |   |       |   polyfills.js.map
+|   |   |   |   |       |   types.d.ts
+|   |   |   |   |       |   types.d.ts.map
+|   |   |   |   |       |   types.js
+|   |   |   |   |       |   types.js.map
+|   |   |   |   |       |   version.d.ts
+|   |   |   |   |       |   version.d.ts.map
+|   |   |   |   |       |   version.js
+|   |   |   |   |       |   version.js.map
+|   |   |   |   |       |   webauthn.d.ts
+|   |   |   |   |       |   webauthn.d.ts.map
+|   |   |   |   |       |   webauthn.dom.d.ts
+|   |   |   |   |       |   webauthn.dom.d.ts.map
+|   |   |   |   |       |   webauthn.dom.js
+|   |   |   |   |       |   webauthn.dom.js.map
+|   |   |   |   |       |   webauthn.errors.d.ts
+|   |   |   |   |       |   webauthn.errors.d.ts.map
+|   |   |   |   |       |   webauthn.errors.js
+|   |   |   |   |       |   webauthn.errors.js.map
+|   |   |   |   |       |   webauthn.js
+|   |   |   |   |       |   webauthn.js.map
+|   |   |   |   |       |   
+|   |   |   |   |       \---web3
+|   |   |   |   |               ethereum.d.ts
+|   |   |   |   |               ethereum.d.ts.map
+|   |   |   |   |               ethereum.js
+|   |   |   |   |               ethereum.js.map
+|   |   |   |   |               solana.d.ts
+|   |   |   |   |               solana.d.ts.map
+|   |   |   |   |               solana.js
+|   |   |   |   |               solana.js.map
+|   |   |   |   |               
+|   |   |   |   \---module
+|   |   |   |       |   AuthAdminApi.d.ts
+|   |   |   |       |   AuthAdminApi.d.ts.map
+|   |   |   |       |   AuthAdminApi.js
+|   |   |   |       |   AuthAdminApi.js.map
+|   |   |   |       |   AuthClient.d.ts
+|   |   |   |       |   AuthClient.d.ts.map
+|   |   |   |       |   AuthClient.js
+|   |   |   |       |   AuthClient.js.map
+|   |   |   |       |   GoTrueAdminApi.d.ts
+|   |   |   |       |   GoTrueAdminApi.d.ts.map
+|   |   |   |       |   GoTrueAdminApi.js
+|   |   |   |       |   GoTrueAdminApi.js.map
+|   |   |   |       |   GoTrueClient.d.ts
+|   |   |   |       |   GoTrueClient.d.ts.map
+|   |   |   |       |   GoTrueClient.js
+|   |   |   |       |   GoTrueClient.js.map
+|   |   |   |       |   index.d.ts
+|   |   |   |       |   index.d.ts.map
+|   |   |   |       |   index.js
+|   |   |   |       |   index.js.map
+|   |   |   |       |   
+|   |   |   |       \---lib
+|   |   |   |           |   base64url.d.ts
+|   |   |   |           |   base64url.d.ts.map
+|   |   |   |           |   base64url.js
+|   |   |   |           |   base64url.js.map
+|   |   |   |           |   constants.d.ts
+|   |   |   |           |   constants.d.ts.map
+|   |   |   |           |   constants.js
+|   |   |   |           |   constants.js.map
+|   |   |   |           |   error-codes.d.ts
+|   |   |   |           |   error-codes.d.ts.map
+|   |   |   |           |   error-codes.js
+|   |   |   |           |   error-codes.js.map
+|   |   |   |           |   errors.d.ts
+|   |   |   |           |   errors.d.ts.map
+|   |   |   |           |   errors.js
+|   |   |   |           |   errors.js.map
+|   |   |   |           |   fetch.d.ts
+|   |   |   |           |   fetch.d.ts.map
+|   |   |   |           |   fetch.js
+|   |   |   |           |   fetch.js.map
+|   |   |   |           |   helpers.d.ts
+|   |   |   |           |   helpers.d.ts.map
+|   |   |   |           |   helpers.js
+|   |   |   |           |   helpers.js.map
+|   |   |   |           |   local-storage.d.ts
+|   |   |   |           |   local-storage.d.ts.map
+|   |   |   |           |   local-storage.js
+|   |   |   |           |   local-storage.js.map
+|   |   |   |           |   locks.d.ts
+|   |   |   |           |   locks.d.ts.map
+|   |   |   |           |   locks.js
+|   |   |   |           |   locks.js.map
+|   |   |   |           |   polyfills.d.ts
+|   |   |   |           |   polyfills.d.ts.map
+|   |   |   |           |   polyfills.js
+|   |   |   |           |   polyfills.js.map
+|   |   |   |           |   types.d.ts
+|   |   |   |           |   types.d.ts.map
+|   |   |   |           |   types.js
+|   |   |   |           |   types.js.map
+|   |   |   |           |   version.d.ts
+|   |   |   |           |   version.d.ts.map
+|   |   |   |           |   version.js
+|   |   |   |           |   version.js.map
+|   |   |   |           |   webauthn.d.ts
+|   |   |   |           |   webauthn.d.ts.map
+|   |   |   |           |   webauthn.dom.d.ts
+|   |   |   |           |   webauthn.dom.d.ts.map
+|   |   |   |           |   webauthn.dom.js
+|   |   |   |           |   webauthn.dom.js.map
+|   |   |   |           |   webauthn.errors.d.ts
+|   |   |   |           |   webauthn.errors.d.ts.map
+|   |   |   |           |   webauthn.errors.js
+|   |   |   |           |   webauthn.errors.js.map
+|   |   |   |           |   webauthn.js
+|   |   |   |           |   webauthn.js.map
+|   |   |   |           |   
+|   |   |   |           \---web3
+|   |   |   |                   ethereum.d.ts
+|   |   |   |                   ethereum.d.ts.map
+|   |   |   |                   ethereum.js
+|   |   |   |                   ethereum.js.map
+|   |   |   |                   solana.d.ts
+|   |   |   |                   solana.d.ts.map
+|   |   |   |                   solana.js
+|   |   |   |                   solana.js.map
+|   |   |   |                   
+|   |   |   +---migrations
+|   |   |   |       lockless-coordination.md
+|   |   |   |       README.md
+|   |   |   |       
+|   |   |   \---src
+|   |   |       |   AuthAdminApi.ts
+|   |   |       |   AuthClient.ts
+|   |   |       |   GoTrueAdminApi.ts
+|   |   |       |   GoTrueClient.ts
+|   |   |       |   index.ts
+|   |   |       |   
+|   |   |       \---lib
+|   |   |           |   base64url.ts
+|   |   |           |   constants.ts
+|   |   |           |   error-codes.ts
+|   |   |           |   errors.ts
+|   |   |           |   fetch.ts
+|   |   |           |   helpers.ts
+|   |   |           |   local-storage.ts
+|   |   |           |   locks.ts
+|   |   |           |   polyfills.ts
+|   |   |           |   types.ts
+|   |   |           |   version.ts
+|   |   |           |   webauthn.dom.ts
+|   |   |           |   webauthn.errors.ts
+|   |   |           |   webauthn.ts
+|   |   |           |   
+|   |   |           \---web3
+|   |   |                   ethereum.ts
+|   |   |                   solana.ts
+|   |   |                   
+|   |   +---cli-windows-x64
+|   |   |   |   package.json
+|   |   |   |   
+|   |   |   \---bin
+|   |   |           supabase-go.exe
+|   |   |           supabase.exe
+|   |   |           
+|   |   +---functions-js
+|   |   |   |   AGENTS.md
+|   |   |   |   LICENSE
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |   |   tsconfig.module.tsbuildinfo
+|   |   |   |   |   tsconfig.tsbuildinfo
+|   |   |   |   |   
+|   |   |   |   +---main
+|   |   |   |   |       FunctionsClient.d.ts
+|   |   |   |   |       FunctionsClient.d.ts.map
+|   |   |   |   |       FunctionsClient.js
+|   |   |   |   |       FunctionsClient.js.map
+|   |   |   |   |       helper.d.ts
+|   |   |   |   |       helper.d.ts.map
+|   |   |   |   |       helper.js
+|   |   |   |   |       helper.js.map
+|   |   |   |   |       index.d.ts
+|   |   |   |   |       index.d.ts.map
+|   |   |   |   |       index.js
+|   |   |   |   |       index.js.map
+|   |   |   |   |       types.d.ts
+|   |   |   |   |       types.d.ts.map
+|   |   |   |   |       types.js
+|   |   |   |   |       types.js.map
+|   |   |   |   |       version.d.ts
+|   |   |   |   |       version.d.ts.map
+|   |   |   |   |       version.js
+|   |   |   |   |       version.js.map
+|   |   |   |   |       
+|   |   |   |   \---module
+|   |   |   |           FunctionsClient.d.ts
+|   |   |   |           FunctionsClient.d.ts.map
+|   |   |   |           FunctionsClient.js
+|   |   |   |           FunctionsClient.js.map
+|   |   |   |           helper.d.ts
+|   |   |   |           helper.d.ts.map
+|   |   |   |           helper.js
+|   |   |   |           helper.js.map
+|   |   |   |           index.d.ts
+|   |   |   |           index.d.ts.map
+|   |   |   |           index.js
+|   |   |   |           index.js.map
+|   |   |   |           types.d.ts
+|   |   |   |           types.d.ts.map
+|   |   |   |           types.js
+|   |   |   |           types.js.map
+|   |   |   |           version.d.ts
+|   |   |   |           version.d.ts.map
+|   |   |   |           version.js
+|   |   |   |           version.js.map
+|   |   |   |           
+|   |   |   +---migrations
+|   |   |   |       README.md
+|   |   |   |       
+|   |   |   \---src
+|   |   |           edge-runtime.d.ts
+|   |   |           FunctionsClient.ts
+|   |   |           helper.ts
+|   |   |           index.ts
+|   |   |           types.ts
+|   |   |           version.ts
+|   |   |           
+|   |   +---phoenix
+|   |   |   |   LICENSE.md
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   tsconfig.json
+|   |   |   |   
+|   |   |   +---assets
+|   |   |   |   \---js
+|   |   |   |       \---phoenix
+|   |   |   |               ajax.js
+|   |   |   |               channel.js
+|   |   |   |               constants.js
+|   |   |   |               index.js
+|   |   |   |               longpoll.js
+|   |   |   |               presence.js
+|   |   |   |               push.js
+|   |   |   |               serializer.js
+|   |   |   |               socket.js
+|   |   |   |               timer.js
+|   |   |   |               types.js
+|   |   |   |               utils.js
+|   |   |   |               
+|   |   |   \---priv
+|   |   |       \---static
+|   |   |           |   favicon.ico
+|   |   |           |   phoenix-orange.png
+|   |   |           |   phoenix.cjs.js
+|   |   |           |   phoenix.cjs.js.map
+|   |   |           |   phoenix.js
+|   |   |           |   phoenix.min.js
+|   |   |           |   phoenix.mjs
+|   |   |           |   phoenix.mjs.map
+|   |   |           |   phoenix.png
+|   |   |           |   
+|   |   |           \---types
+|   |   |                   ajax.d.ts
+|   |   |                   ajax.d.ts.map
+|   |   |                   channel.d.ts
+|   |   |                   channel.d.ts.map
+|   |   |                   constants.d.ts
+|   |   |                   constants.d.ts.map
+|   |   |                   index.d.ts
+|   |   |                   index.d.ts.map
+|   |   |                   longpoll.d.ts
+|   |   |                   longpoll.d.ts.map
+|   |   |                   presence.d.ts
+|   |   |                   presence.d.ts.map
+|   |   |                   push.d.ts
+|   |   |                   push.d.ts.map
+|   |   |                   serializer.d.ts
+|   |   |                   serializer.d.ts.map
+|   |   |                   socket.d.ts
+|   |   |                   socket.d.ts.map
+|   |   |                   timer.d.ts
+|   |   |                   timer.d.ts.map
+|   |   |                   types.d.ts
+|   |   |                   types.d.ts.map
+|   |   |                   utils.d.ts
+|   |   |                   utils.d.ts.map
+|   |   |                   
+|   |   +---postgrest-js
+|   |   |   |   AGENTS.md
+|   |   |   |   LICENSE
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |       index.cjs
+|   |   |   |       index.cjs.map
+|   |   |   |       index.d.cts
+|   |   |   |       index.d.cts.map
+|   |   |   |       index.d.mts
+|   |   |   |       index.d.mts.map
+|   |   |   |       index.mjs
+|   |   |   |       index.mjs.map
+|   |   |   |       
+|   |   |   +---migrations
+|   |   |   |       README.md
+|   |   |   |       
+|   |   |   \---src
+|   |   |       |   constants.ts
+|   |   |       |   fetchWithRetry.ts
+|   |   |       |   index.ts
+|   |   |       |   PostgrestBuilder.ts
+|   |   |       |   PostgrestClient.ts
+|   |   |       |   PostgrestError.ts
+|   |   |       |   PostgrestFilterBuilder.ts
+|   |   |       |   PostgrestQueryBuilder.ts
+|   |   |       |   PostgrestTransformBuilder.ts
+|   |   |       |   version.ts
+|   |   |       |   
+|   |   |       +---select-query-parser
+|   |   |       |       parser.ts
+|   |   |       |       result.ts
+|   |   |       |       types.ts
+|   |   |       |       utils.ts
+|   |   |       |       
+|   |   |       \---types
+|   |   |           |   feature-flags.ts
+|   |   |           |   types.ts
+|   |   |           |   
+|   |   |           \---common
+|   |   |                   common.ts
+|   |   |                   rpc.ts
+|   |   |                   
+|   |   +---realtime-js
+|   |   |   |   AGENTS.md
+|   |   |   |   LICENSE
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |   |   tsconfig.module.tsbuildinfo
+|   |   |   |   |   tsconfig.tsbuildinfo
+|   |   |   |   |   
+|   |   |   |   +---main
+|   |   |   |   |   |   index.d.ts
+|   |   |   |   |   |   index.d.ts.map
+|   |   |   |   |   |   index.js
+|   |   |   |   |   |   index.js.map
+|   |   |   |   |   |   RealtimeChannel.d.ts
+|   |   |   |   |   |   RealtimeChannel.d.ts.map
+|   |   |   |   |   |   RealtimeChannel.js
+|   |   |   |   |   |   RealtimeChannel.js.map
+|   |   |   |   |   |   RealtimeClient.d.ts
+|   |   |   |   |   |   RealtimeClient.d.ts.map
+|   |   |   |   |   |   RealtimeClient.js
+|   |   |   |   |   |   RealtimeClient.js.map
+|   |   |   |   |   |   RealtimePostgresFilterBuilder.d.ts
+|   |   |   |   |   |   RealtimePostgresFilterBuilder.d.ts.map
+|   |   |   |   |   |   RealtimePostgresFilterBuilder.js
+|   |   |   |   |   |   RealtimePostgresFilterBuilder.js.map
+|   |   |   |   |   |   RealtimePresence.d.ts
+|   |   |   |   |   |   RealtimePresence.d.ts.map
+|   |   |   |   |   |   RealtimePresence.js
+|   |   |   |   |   |   RealtimePresence.js.map
+|   |   |   |   |   |   
+|   |   |   |   |   +---lib
+|   |   |   |   |   |       constants.d.ts
+|   |   |   |   |   |       constants.d.ts.map
+|   |   |   |   |   |       constants.js
+|   |   |   |   |   |       constants.js.map
+|   |   |   |   |   |       normalizeChannelError.d.ts
+|   |   |   |   |   |       normalizeChannelError.d.ts.map
+|   |   |   |   |   |       normalizeChannelError.js
+|   |   |   |   |   |       normalizeChannelError.js.map
+|   |   |   |   |   |       serializer.d.ts
+|   |   |   |   |   |       serializer.d.ts.map
+|   |   |   |   |   |       serializer.js
+|   |   |   |   |   |       serializer.js.map
+|   |   |   |   |   |       transformers.d.ts
+|   |   |   |   |   |       transformers.d.ts.map
+|   |   |   |   |   |       transformers.js
+|   |   |   |   |   |       transformers.js.map
+|   |   |   |   |   |       version.d.ts
+|   |   |   |   |   |       version.d.ts.map
+|   |   |   |   |   |       version.js
+|   |   |   |   |   |       version.js.map
+|   |   |   |   |   |       websocket-factory.d.ts
+|   |   |   |   |   |       websocket-factory.d.ts.map
+|   |   |   |   |   |       websocket-factory.js
+|   |   |   |   |   |       websocket-factory.js.map
+|   |   |   |   |   |       
+|   |   |   |   |   \---phoenix
+|   |   |   |   |           channelAdapter.d.ts
+|   |   |   |   |           channelAdapter.d.ts.map
+|   |   |   |   |           channelAdapter.js
+|   |   |   |   |           channelAdapter.js.map
+|   |   |   |   |           presenceAdapter.d.ts
+|   |   |   |   |           presenceAdapter.d.ts.map
+|   |   |   |   |           presenceAdapter.js
+|   |   |   |   |           presenceAdapter.js.map
+|   |   |   |   |           socketAdapter.d.ts
+|   |   |   |   |           socketAdapter.d.ts.map
+|   |   |   |   |           socketAdapter.js
+|   |   |   |   |           socketAdapter.js.map
+|   |   |   |   |           types.d.ts
+|   |   |   |   |           types.d.ts.map
+|   |   |   |   |           types.js
+|   |   |   |   |           types.js.map
+|   |   |   |   |           
+|   |   |   |   \---module
+|   |   |   |       |   index.d.ts
+|   |   |   |       |   index.d.ts.map
+|   |   |   |       |   index.js
+|   |   |   |       |   index.js.map
+|   |   |   |       |   RealtimeChannel.d.ts
+|   |   |   |       |   RealtimeChannel.d.ts.map
+|   |   |   |       |   RealtimeChannel.js
+|   |   |   |       |   RealtimeChannel.js.map
+|   |   |   |       |   RealtimeClient.d.ts
+|   |   |   |       |   RealtimeClient.d.ts.map
+|   |   |   |       |   RealtimeClient.js
+|   |   |   |       |   RealtimeClient.js.map
+|   |   |   |       |   RealtimePostgresFilterBuilder.d.ts
+|   |   |   |       |   RealtimePostgresFilterBuilder.d.ts.map
+|   |   |   |       |   RealtimePostgresFilterBuilder.js
+|   |   |   |       |   RealtimePostgresFilterBuilder.js.map
+|   |   |   |       |   RealtimePresence.d.ts
+|   |   |   |       |   RealtimePresence.d.ts.map
+|   |   |   |       |   RealtimePresence.js
+|   |   |   |       |   RealtimePresence.js.map
+|   |   |   |       |   
+|   |   |   |       +---lib
+|   |   |   |       |       constants.d.ts
+|   |   |   |       |       constants.d.ts.map
+|   |   |   |       |       constants.js
+|   |   |   |       |       constants.js.map
+|   |   |   |       |       normalizeChannelError.d.ts
+|   |   |   |       |       normalizeChannelError.d.ts.map
+|   |   |   |       |       normalizeChannelError.js
+|   |   |   |       |       normalizeChannelError.js.map
+|   |   |   |       |       serializer.d.ts
+|   |   |   |       |       serializer.d.ts.map
+|   |   |   |       |       serializer.js
+|   |   |   |       |       serializer.js.map
+|   |   |   |       |       transformers.d.ts
+|   |   |   |       |       transformers.d.ts.map
+|   |   |   |       |       transformers.js
+|   |   |   |       |       transformers.js.map
+|   |   |   |       |       version.d.ts
+|   |   |   |       |       version.d.ts.map
+|   |   |   |       |       version.js
+|   |   |   |       |       version.js.map
+|   |   |   |       |       websocket-factory.d.ts
+|   |   |   |       |       websocket-factory.d.ts.map
+|   |   |   |       |       websocket-factory.js
+|   |   |   |       |       websocket-factory.js.map
+|   |   |   |       |       
+|   |   |   |       \---phoenix
+|   |   |   |               channelAdapter.d.ts
+|   |   |   |               channelAdapter.d.ts.map
+|   |   |   |               channelAdapter.js
+|   |   |   |               channelAdapter.js.map
+|   |   |   |               presenceAdapter.d.ts
+|   |   |   |               presenceAdapter.d.ts.map
+|   |   |   |               presenceAdapter.js
+|   |   |   |               presenceAdapter.js.map
+|   |   |   |               socketAdapter.d.ts
+|   |   |   |               socketAdapter.d.ts.map
+|   |   |   |               socketAdapter.js
+|   |   |   |               socketAdapter.js.map
+|   |   |   |               types.d.ts
+|   |   |   |               types.d.ts.map
+|   |   |   |               types.js
+|   |   |   |               types.js.map
+|   |   |   |               
+|   |   |   +---migrations
+|   |   |   |       httpsend-server-version.md
+|   |   |   |       README.md
+|   |   |   |       
+|   |   |   \---src
+|   |   |       |   index.ts
+|   |   |       |   RealtimeChannel.ts
+|   |   |       |   RealtimeClient.ts
+|   |   |       |   RealtimePostgresFilterBuilder.ts
+|   |   |       |   RealtimePresence.ts
+|   |   |       |   
+|   |   |       +---lib
+|   |   |       |       constants.ts
+|   |   |       |       normalizeChannelError.ts
+|   |   |       |       serializer.ts
+|   |   |       |       transformers.ts
+|   |   |       |       version.ts
+|   |   |       |       websocket-factory.ts
+|   |   |       |       
+|   |   |       \---phoenix
+|   |   |               channelAdapter.ts
+|   |   |               presenceAdapter.ts
+|   |   |               socketAdapter.ts
+|   |   |               types.ts
+|   |   |               
+|   |   +---ssr
+|   |   |   |   CHANGELOG.md
+|   |   |   |   LICENSE
+|   |   |   |   package.json
+|   |   |   |   pnpm-workspace.yaml
+|   |   |   |   README.md
+|   |   |   |   release-please-config.json
+|   |   |   |   tsconfig.json
+|   |   |   |   tsconfig.main.json
+|   |   |   |   typedoc.json
+|   |   |   |   vitest.config.ts
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |   +---main
+|   |   |   |   |   |   clearAuthCookiesAtScopes.d.ts
+|   |   |   |   |   |   clearAuthCookiesAtScopes.js
+|   |   |   |   |   |   clearAuthCookiesAtScopes.js.map
+|   |   |   |   |   |   clearAuthCookiesAtScopes.spec.d.ts
+|   |   |   |   |   |   cookies.d.ts
+|   |   |   |   |   |   cookies.js
+|   |   |   |   |   |   cookies.js.map
+|   |   |   |   |   |   cookies.spec.d.ts
+|   |   |   |   |   |   createBrowserClient.d.ts
+|   |   |   |   |   |   createBrowserClient.js
+|   |   |   |   |   |   createBrowserClient.js.map
+|   |   |   |   |   |   createBrowserClient.spec.d.ts
+|   |   |   |   |   |   createServerClient.d.ts
+|   |   |   |   |   |   createServerClient.js
+|   |   |   |   |   |   createServerClient.js.map
+|   |   |   |   |   |   createServerClient.spec.d.ts
+|   |   |   |   |   |   index.d.ts
+|   |   |   |   |   |   index.js
+|   |   |   |   |   |   index.js.map
+|   |   |   |   |   |   types.d.ts
+|   |   |   |   |   |   types.js
+|   |   |   |   |   |   types.js.map
+|   |   |   |   |   |   version.d.ts
+|   |   |   |   |   |   version.js
+|   |   |   |   |   |   version.js.map
+|   |   |   |   |   |   warnDeprecatedPackage.d.ts
+|   |   |   |   |   |   warnDeprecatedPackage.js
+|   |   |   |   |   |   warnDeprecatedPackage.js.map
+|   |   |   |   |   |   warnOnce.d.ts
+|   |   |   |   |   |   warnOnce.js
+|   |   |   |   |   |   warnOnce.js.map
+|   |   |   |   |   |   
+|   |   |   |   |   \---utils
+|   |   |   |   |           base64url.d.ts
+|   |   |   |   |           base64url.js
+|   |   |   |   |           base64url.js.map
+|   |   |   |   |           base64url.test.d.ts
+|   |   |   |   |           base64url.test.js
+|   |   |   |   |           base64url.test.js.map
+|   |   |   |   |           chunker.d.ts
+|   |   |   |   |           chunker.js
+|   |   |   |   |           chunker.js.map
+|   |   |   |   |           chunker.spec.d.ts
+|   |   |   |   |           constants.d.ts
+|   |   |   |   |           constants.js
+|   |   |   |   |           constants.js.map
+|   |   |   |   |           helpers.d.ts
+|   |   |   |   |           helpers.js
+|   |   |   |   |           helpers.js.map
+|   |   |   |   |           helpers.spec.d.ts
+|   |   |   |   |           index.d.ts
+|   |   |   |   |           index.js
+|   |   |   |   |           index.js.map
+|   |   |   |   |           
+|   |   |   |   \---module
+|   |   |   |       |   clearAuthCookiesAtScopes.d.ts
+|   |   |   |       |   clearAuthCookiesAtScopes.js
+|   |   |   |       |   clearAuthCookiesAtScopes.js.map
+|   |   |   |       |   clearAuthCookiesAtScopes.spec.d.ts
+|   |   |   |       |   cookies.d.ts
+|   |   |   |       |   cookies.js
+|   |   |   |       |   cookies.js.map
+|   |   |   |       |   cookies.spec.d.ts
+|   |   |   |       |   createBrowserClient.d.ts
+|   |   |   |       |   createBrowserClient.js
+|   |   |   |       |   createBrowserClient.js.map
+|   |   |   |       |   createBrowserClient.spec.d.ts
+|   |   |   |       |   createServerClient.d.ts
+|   |   |   |       |   createServerClient.js
+|   |   |   |       |   createServerClient.js.map
+|   |   |   |       |   createServerClient.spec.d.ts
+|   |   |   |       |   index.d.ts
+|   |   |   |       |   index.js
+|   |   |   |       |   index.js.map
+|   |   |   |       |   types.d.ts
+|   |   |   |       |   types.js
+|   |   |   |       |   types.js.map
+|   |   |   |       |   version.d.ts
+|   |   |   |       |   version.js
+|   |   |   |       |   version.js.map
+|   |   |   |       |   warnDeprecatedPackage.d.ts
+|   |   |   |       |   warnDeprecatedPackage.js
+|   |   |   |       |   warnDeprecatedPackage.js.map
+|   |   |   |       |   warnOnce.d.ts
+|   |   |   |       |   warnOnce.js
+|   |   |   |       |   warnOnce.js.map
+|   |   |   |       |   
+|   |   |   |       \---utils
+|   |   |   |               base64url.d.ts
+|   |   |   |               base64url.js
+|   |   |   |               base64url.js.map
+|   |   |   |               base64url.test.d.ts
+|   |   |   |               base64url.test.js
+|   |   |   |               base64url.test.js.map
+|   |   |   |               chunker.d.ts
+|   |   |   |               chunker.js
+|   |   |   |               chunker.js.map
+|   |   |   |               chunker.spec.d.ts
+|   |   |   |               constants.d.ts
+|   |   |   |               constants.js
+|   |   |   |               constants.js.map
+|   |   |   |               helpers.d.ts
+|   |   |   |               helpers.js
+|   |   |   |               helpers.js.map
+|   |   |   |               helpers.spec.d.ts
+|   |   |   |               index.d.ts
+|   |   |   |               index.js
+|   |   |   |               index.js.map
+|   |   |   |               
+|   |   |   +---docs
+|   |   |   |       design.md
+|   |   |   |       
+|   |   |   \---src
+|   |   |       |   clearAuthCookiesAtScopes.ts
+|   |   |       |   cookies.ts
+|   |   |       |   createBrowserClient.ts
+|   |   |       |   createServerClient.ts
+|   |   |       |   index.ts
+|   |   |       |   types.ts
+|   |   |       |   version.ts
+|   |   |       |   warnDeprecatedPackage.ts
+|   |   |       |   warnOnce.ts
+|   |   |       |   
+|   |   |       \---utils
+|   |   |               base64url.test.ts
+|   |   |               base64url.ts
+|   |   |               chunker.ts
+|   |   |               constants.ts
+|   |   |               helpers.ts
+|   |   |               index.ts
+|   |   |               
+|   |   +---storage-js
+|   |   |   |   AGENTS.md
+|   |   |   |   LICENSE
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |   |   index.cjs
+|   |   |   |   |   index.cjs.map
+|   |   |   |   |   index.d.cts
+|   |   |   |   |   index.d.cts.map
+|   |   |   |   |   index.d.mts
+|   |   |   |   |   index.d.mts.map
+|   |   |   |   |   index.mjs
+|   |   |   |   |   index.mjs.map
+|   |   |   |   |   
+|   |   |   |   \---umd
+|   |   |   |           supabase.js
+|   |   |   |           
+|   |   |   +---migrations
+|   |   |   |       README.md
+|   |   |   |       
+|   |   |   \---src
+|   |   |       |   index.ts
+|   |   |       |   StorageClient.ts
+|   |   |       |   
+|   |   |       +---lib
+|   |   |       |   |   constants.ts
+|   |   |       |   |   types.ts
+|   |   |       |   |   version.ts
+|   |   |       |   |   
+|   |   |       |   \---common
+|   |   |       |           BaseApiClient.ts
+|   |   |       |           errors.ts
+|   |   |       |           fetch.ts
+|   |   |       |           headers.ts
+|   |   |       |           helpers.ts
+|   |   |       |           
+|   |   |       \---packages
+|   |   |               BlobDownloadBuilder.ts
+|   |   |               StorageAnalyticsClient.ts
+|   |   |               StorageBucketApi.ts
+|   |   |               StorageFileApi.ts
+|   |   |               StorageVectorsClient.ts
+|   |   |               StreamDownloadBuilder.ts
+|   |   |               VectorBucketApi.ts
+|   |   |               VectorDataApi.ts
+|   |   |               VectorIndexApi.ts
+|   |   |               
+|   |   \---supabase-js
+|   |       |   AGENTS.md
+|   |       |   LICENSE
+|   |       |   package.json
+|   |       |   README.md
+|   |       |   
+|   |       +---dist
+|   |       |   |   cors.cjs
+|   |       |   |   cors.cjs.map
+|   |       |   |   cors.d.cts
+|   |       |   |   cors.d.cts.map
+|   |       |   |   cors.d.mts
+|   |       |   |   cors.d.mts.map
+|   |       |   |   cors.mjs
+|   |       |   |   cors.mjs.map
+|   |       |   |   index.cjs
+|   |       |   |   index.cjs.map
+|   |       |   |   index.d.cts
+|   |       |   |   index.d.cts.map
+|   |       |   |   index.d.mts
+|   |       |   |   index.d.mts.map
+|   |       |   |   index.mjs
+|   |       |   |   index.mjs.map
+|   |       |   |   tracing.cjs
+|   |       |   |   tracing.cjs.map
+|   |       |   |   tracing.d.cts
+|   |       |   |   tracing.d.mts
+|   |       |   |   tracing.mjs
+|   |       |   |   tracing.mjs.map
+|   |       |   |   tracingRegistry.cjs
+|   |       |   |   tracingRegistry.cjs.map
+|   |       |   |   tracingRegistry.mjs
+|   |       |   |   tracingRegistry.mjs.map
+|   |       |   |   
+|   |       |   \---umd
+|   |       |           supabase.js
+|   |       |           
+|   |       +---migrations
+|   |       |       README.md
+|   |       |       
+|   |       \---src
+|   |           |   cors.ts
+|   |           |   index.ts
+|   |           |   SupabaseClient.ts
+|   |           |   tracing.ts
+|   |           |   
+|   |           \---lib
+|   |               |   constants.ts
+|   |               |   fetch.ts
+|   |               |   helpers.ts
+|   |               |   SupabaseAuthClient.ts
+|   |               |   tracingRegistry.ts
+|   |               |   types.ts
+|   |               |   version.ts
+|   |               |   
+|   |               \---rest
+|   |                   \---types
+|   |                       \---common
+|   |                               common.ts
+|   |                               rpc.ts
+|   |                               
+|   +---cookie
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---dist
+|   |           index.d.ts
+|   |           index.js
+|   |           index.js.map
+|   |           
+|   +---eciesjs
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---dist
+|   |       |   config.d.ts
+|   |       |   config.js
+|   |       |   consts.d.ts
+|   |       |   consts.js
+|   |       |   index.d.ts
+|   |       |   index.js
+|   |       |   
+|   |       +---keys
+|   |       |       index.d.ts
+|   |       |       index.js
+|   |       |       PrivateKey.d.ts
+|   |       |       PrivateKey.js
+|   |       |       PublicKey.d.ts
+|   |       |       PublicKey.js
+|   |       |       
+|   |       \---utils
+|   |               elliptic.d.ts
+|   |               elliptic.js
+|   |               hash.d.ts
+|   |               hash.js
+|   |               hex.d.ts
+|   |               hex.js
+|   |               index.d.ts
+|   |               index.js
+|   |               symmetric.d.ts
+|   |               symmetric.js
+|   |               
+|   +---iceberg-js
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---dist
+|   |           index.cjs
+|   |           index.cjs.map
+|   |           index.d.cts
+|   |           index.d.ts
+|   |           index.mjs
+|   |           index.mjs.map
+|   |           
+|   +---jose
+|   |   |   LICENSE.md
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---dist
+|   |       +---types
+|   |       |   |   index.d.ts
+|   |       |   |   types.d.ts
+|   |       |   |   
+|   |       |   +---jwe
+|   |       |   |   +---compact
+|   |       |   |   |       decrypt.d.ts
+|   |       |   |   |       encrypt.d.ts
+|   |       |   |   |       
+|   |       |   |   +---flattened
+|   |       |   |   |       decrypt.d.ts
+|   |       |   |   |       encrypt.d.ts
+|   |       |   |   |       
+|   |       |   |   \---general
+|   |       |   |           decrypt.d.ts
+|   |       |   |           encrypt.d.ts
+|   |       |   |           
+|   |       |   +---jwk
+|   |       |   |       embedded.d.ts
+|   |       |   |       thumbprint.d.ts
+|   |       |   |       
+|   |       |   +---jwks
+|   |       |   |       local.d.ts
+|   |       |   |       remote.d.ts
+|   |       |   |       
+|   |       |   +---jws
+|   |       |   |   +---compact
+|   |       |   |   |       sign.d.ts
+|   |       |   |   |       verify.d.ts
+|   |       |   |   |       
+|   |       |   |   +---flattened
+|   |       |   |   |       sign.d.ts
+|   |       |   |   |       verify.d.ts
+|   |       |   |   |       
+|   |       |   |   \---general
+|   |       |   |           sign.d.ts
+|   |       |   |           verify.d.ts
+|   |       |   |           
+|   |       |   +---jwt
+|   |       |   |       decrypt.d.ts
+|   |       |   |       encrypt.d.ts
+|   |       |   |       sign.d.ts
+|   |       |   |       unsecured.d.ts
+|   |       |   |       verify.d.ts
+|   |       |   |       
+|   |       |   +---key
+|   |       |   |       export.d.ts
+|   |       |   |       generate_key_pair.d.ts
+|   |       |   |       generate_secret.d.ts
+|   |       |   |       import.d.ts
+|   |       |   |       
+|   |       |   \---util
+|   |       |           base64url.d.ts
+|   |       |           decode_jwt.d.ts
+|   |       |           decode_protected_header.d.ts
+|   |       |           errors.d.ts
+|   |       |           
+|   |       \---webapi
+|   |           |   index.js
+|   |           |   
+|   |           +---jwe
+|   |           |   +---compact
+|   |           |   |       decrypt.js
+|   |           |   |       encrypt.js
+|   |           |   |       
+|   |           |   +---flattened
+|   |           |   |       decrypt.js
+|   |           |   |       encrypt.js
+|   |           |   |       
+|   |           |   \---general
+|   |           |           decrypt.js
+|   |           |           encrypt.js
+|   |           |           
+|   |           +---jwk
+|   |           |       embedded.js
+|   |           |       thumbprint.js
+|   |           |       
+|   |           +---jwks
+|   |           |       local.js
+|   |           |       remote.js
+|   |           |       
+|   |           +---jws
+|   |           |   +---compact
+|   |           |   |       sign.js
+|   |           |   |       verify.js
+|   |           |   |       
+|   |           |   +---flattened
+|   |           |   |       sign.js
+|   |           |   |       verify.js
+|   |           |   |       
+|   |           |   \---general
+|   |           |           sign.js
+|   |           |           verify.js
+|   |           |           
+|   |           +---jwt
+|   |           |       decrypt.js
+|   |           |       encrypt.js
+|   |           |       sign.js
+|   |           |       unsecured.js
+|   |           |       verify.js
+|   |           |       
+|   |           +---key
+|   |           |       export.js
+|   |           |       generate_key_pair.js
+|   |           |       generate_secret.js
+|   |           |       import.js
+|   |           |       
+|   |           +---lib
+|   |           |       asn1.js
+|   |           |       buffer_utils.js
+|   |           |       content_encryption.js
+|   |           |       deflate.js
+|   |           |       jwe_algorithms.js
+|   |           |       jwe_decrypt.js
+|   |           |       jwe_encrypt.js
+|   |           |       jws_algorithms.js
+|   |           |       jws_sign.js
+|   |           |       jws_verify.js
+|   |           |       jwt_claims_set.js
+|   |           |       key.js
+|   |           |       key_algorithm.js
+|   |           |       key_descriptor.js
+|   |           |       key_management.js
+|   |           |       validate.js
+|   |           |       
+|   |           \---util
+|   |                   base64url.js
+|   |                   decode_jwt.js
+|   |                   decode_protected_header.js
+|   |                   errors.js
+|   |                   
+|   +---supabase
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---dist
+|   |           supabase.js
+|   |           
+|   \---tslib
+|       |   CopyrightNotice.txt
+|       |   LICENSE.txt
+|       |   package.json
+|       |   README.md
+|       |   SECURITY.md
+|       |   tslib.d.ts
+|       |   tslib.es6.html
+|       |   tslib.es6.js
+|       |   tslib.es6.mjs
+|       |   tslib.html
+|       |   tslib.js
+|       |   
+|       \---modules
+|               index.d.ts
+|               index.js
+|               package.json
+|               
++---project_audit
+|       analysis_options.yaml
+|       file_inventory.txt
+|       flutter_version.txt
+|       lib_core_router_app_router.dart
+|       lib_features_shell_admin_shell.dart
+|       pubspec.yaml
+|       README.md
+|       
++---supabase
+|   |   cls
+|   |   STORAGE.md
+|   |   
+|   +---.temp
+|   |       cli-latest
+|   |       gotrue-version
+|   |       linked-project.json
+|   |       pooler-url
+|   |       postgres-version
+|   |       project-ref
+|   |       rest-version
+|   |       storage-migration
+|   |       storage-version
+|   |       
+|   +---functions
+|   |   +---payment-initiate
+|   |   |       index.ts
+|   |   |       
+|   |   +---payment-status
+|   |   |       index.ts
+|   |   |       
+|   |   \---_DO_NOT_DEPLOY
+|   |           README.md
+|   |           
+|   +---migrations
+|   |   |   016_create_order_v2.sql
+|   |   |   017_stock_v2.sql
+|   |   |   018_track_order.sql
+|   |   |   019_admin_rpcs.sql
+|   |   |   020_shipment_rpcs.sql
+|   |   |   021_payment_providers.sql
+|   |   |   022_roles.sql
+|   |   |   023_payments_reference.sql
+|   |   |   024_set_order_status.sql
+|   |   |   20260916083116_remote_schema.sql
+|   |   |   
+|   |   \---_archive_pre_sync
+|   |           001_extensions.sql
+|   |           002_profiles_roles.sql
+|   |           003_catalog.sql
+|   |           004_inventory.sql
+|   |           005_customers.sql
+|   |           006_orders.sql
+|   |           007_payments.sql
+|   |           008_delivery.sql
+|   |           009_content.sql
+|   |           010_promotions.sql
+|   |           011_notifications.sql
+|   |           012_audit.sql
+|   |           013_functions.sql
+|   |           014_rls.sql
+|   |           015_warehouses.sql
+|   |           016_create_order_v2.sql
+|   |           017_stock_v2.sql
+|   |           018_track_order.sql
+|   |           019_admin_rpcs.sql
+|   |           020_shipment_rpcs.sql
+|   |           021_payment_providers.sql
+|   |           022_roles.sql
+|   |           023_payments_reference.sql
+|   |           024_set_order_status.sql
+|   |           025_storage.sql
+|   |           
+|   \---seed
+|           dev_seed.sql
+|           
++---test
+|   |   flutter_test_config.dart
+|   |   widget_test.dart
+|   |   
+|   +---integration
+|   \---unit
+|           cart_test.dart
+|           payment_methods_test.dart
+|           theme_test.dart
+|           
++---web
+|   |   favicon.png
+|   |   index.html
+|   |   manifest.json
+|   |   
+|   \---icons
+|           Icon-192.png
+|           Icon-512.png
+|           Icon-maskable-192.png
+|           Icon-maskable-512.png
+|           
+\---windows
+    |   .gitignore
+    |   CMakeLists.txt
+    |   
+    +---flutter
+    |   |   CMakeLists.txt
+    |   |   generated_plugins.cmake
+    |   |   generated_plugin_registrant.cc
+    |   |   generated_plugin_registrant.h
+    |   |   
+    |   \---ephemeral
+    |       \---.plugin_symlinks
+    |           +---app_links
+    |           |   |   analysis_options.yaml
+    |           |   |   CHANGELOG.md
+    |           |   |   LICENSE
+    |           |   |   pubspec.yaml
+    |           |   |   README.md
+    |           |   |   
+    |           |   +---android
+    |           |   |   |   build.gradle.kts
+    |           |   |   |   settings.gradle.kts
+    |           |   |   |   
+    |           |   |   \---src
+    |           |   |       \---main
+    |           |   |           |   AndroidManifest.xml
+    |           |   |           |   
+    |           |   |           \---java
+    |           |   |               \---com
+    |           |   |                   \---llfbandit
+    |           |   |                       \---app_links
+    |           |   |                               AppLinksHelper.java
+    |           |   |                               AppLinksPlugin.java
+    |           |   |                               
+    |           |   +---example
+    |           |   |   |   analysis_options.yaml
+    |           |   |   |   pubspec.yaml
+    |           |   |   |   README.md
+    |           |   |   |   
+    |           |   |   +---android
+    |           |   |   |   |   build.gradle.kts
+    |           |   |   |   |   gradle.properties
+    |           |   |   |   |   gradlew
+    |           |   |   |   |   gradlew.bat
+    |           |   |   |   |   settings.gradle.kts
+    |           |   |   |   |   
+    |           |   |   |   +---app
+    |           |   |   |   |   |   build.gradle.kts
+    |           |   |   |   |   |   
+    |           |   |   |   |   \---src
+    |           |   |   |   |       +---debug
+    |           |   |   |   |       |       AndroidManifest.xml
+    |           |   |   |   |       |       
+    |           |   |   |   |       +---main
+    |           |   |   |   |       |   |   AndroidManifest.xml
+    |           |   |   |   |       |   |   
+    |           |   |   |   |       |   +---java
+    |           |   |   |   |       |   |   +---com
+    |           |   |   |   |       |   |   |   \---llfbandit
+    |           |   |   |   |       |   |   |       \---app_links_example
+    |           |   |   |   |       |   |   \---io
+    |           |   |   |   |       |   |       \---flutter
+    |           |   |   |   |       |   |           \---plugins
+    |           |   |   |   |       |   |                   GeneratedPluginRegistrant.java
+    |           |   |   |   |       |   |                   
+    |           |   |   |   |       |   +---kotlin
+    |           |   |   |   |       |   |   \---com
+    |           |   |   |   |       |   |       \---llfbandit
+    |           |   |   |   |       |   |           \---app_links_example
+    |           |   |   |   |       |   |                   MainActivity.kt
+    |           |   |   |   |       |   |                   
+    |           |   |   |   |       |   \---res
+    |           |   |   |   |       |       +---drawable
+    |           |   |   |   |       |       |       launch_background.xml
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---drawable-v21
+    |           |   |   |   |       |       |       launch_background.xml
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-hdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-mdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-xhdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-xxhdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-xxxhdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---values
+    |           |   |   |   |       |       |       styles.xml
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       \---values-night
+    |           |   |   |   |       |               styles.xml
+    |           |   |   |   |       |               
+    |           |   |   |   |       \---profile
+    |           |   |   |   |               AndroidManifest.xml
+    |           |   |   |   |               
+    |           |   |   |   \---gradle
+    |           |   |   |       \---wrapper
+    |           |   |   |               gradle-wrapper.jar
+    |           |   |   |               gradle-wrapper.properties
+    |           |   |   |               
+    |           |   |   +---ios
+    |           |   |   |   +---Flutter
+    |           |   |   |   |       AppFrameworkInfo.plist
+    |           |   |   |   |       Debug.xcconfig
+    |           |   |   |   |       Release.xcconfig
+    |           |   |   |   |       
+    |           |   |   |   +---Runner
+    |           |   |   |   |   |   AppDelegate.swift
+    |           |   |   |   |   |   Info.plist
+    |           |   |   |   |   |   Runner-Bridging-Header.h
+    |           |   |   |   |   |   Runner.entitlements
+    |           |   |   |   |   |   SceneDelegate.swift
+    |           |   |   |   |   |   
+    |           |   |   |   |   +---Assets.xcassets
+    |           |   |   |   |   |   +---AppIcon.appiconset
+    |           |   |   |   |   |   |       Contents.json
+    |           |   |   |   |   |   |       Icon-App-1024x1024@1x.png
+    |           |   |   |   |   |   |       Icon-App-20x20@1x.png
+    |           |   |   |   |   |   |       Icon-App-20x20@2x.png
+    |           |   |   |   |   |   |       Icon-App-20x20@3x.png
+    |           |   |   |   |   |   |       Icon-App-29x29@1x.png
+    |           |   |   |   |   |   |       Icon-App-29x29@2x.png
+    |           |   |   |   |   |   |       Icon-App-29x29@3x.png
+    |           |   |   |   |   |   |       Icon-App-40x40@1x.png
+    |           |   |   |   |   |   |       Icon-App-40x40@2x.png
+    |           |   |   |   |   |   |       Icon-App-40x40@3x.png
+    |           |   |   |   |   |   |       Icon-App-60x60@2x.png
+    |           |   |   |   |   |   |       Icon-App-60x60@3x.png
+    |           |   |   |   |   |   |       Icon-App-76x76@1x.png
+    |           |   |   |   |   |   |       Icon-App-76x76@2x.png
+    |           |   |   |   |   |   |       Icon-App-83.5x83.5@2x.png
+    |           |   |   |   |   |   |       
+    |           |   |   |   |   |   \---LaunchImage.imageset
+    |           |   |   |   |   |           Contents.json
+    |           |   |   |   |   |           LaunchImage.png
+    |           |   |   |   |   |           LaunchImage@2x.png
+    |           |   |   |   |   |           LaunchImage@3x.png
+    |           |   |   |   |   |           README.md
+    |           |   |   |   |   |           
+    |           |   |   |   |   \---Base.lproj
+    |           |   |   |   |           LaunchScreen.storyboard
+    |           |   |   |   |           Main.storyboard
+    |           |   |   |   |           
+    |           |   |   |   +---Runner.xcodeproj
+    |           |   |   |   |   |   project.pbxproj
+    |           |   |   |   |   |   
+    |           |   |   |   |   +---project.xcworkspace
+    |           |   |   |   |   |   |   contents.xcworkspacedata
+    |           |   |   |   |   |   |   
+    |           |   |   |   |   |   \---xcshareddata
+    |           |   |   |   |   |           IDEWorkspaceChecks.plist
+    |           |   |   |   |   |           WorkspaceSettings.xcsettings
+    |           |   |   |   |   |           
+    |           |   |   |   |   \---xcshareddata
+    |           |   |   |   |       \---xcschemes
+    |           |   |   |   |               Runner.xcscheme
+    |           |   |   |   |               
+    |           |   |   |   +---Runner.xcworkspace
+    |           |   |   |   |   |   contents.xcworkspacedata
+    |           |   |   |   |   |   
+    |           |   |   |   |   \---xcshareddata
+    |           |   |   |   |           IDEWorkspaceChecks.plist
+    |           |   |   |   |           WorkspaceSettings.xcsettings
+    |           |   |   |   |           
+    |           |   |   |   \---RunnerTests
+    |           |   |   |           RunnerTests.swift
+    |           |   |   |           
+    |           |   |   +---lib
+    |           |   |   |   |   main.dart
+    |           |   |   |   |   
+    |           |   |   |   \---url_protocol
+    |           |   |   |           api.dart
+    |           |   |   |           protocol.dart
+    |           |   |   |           web_url_protocol.dart
+    |           |   |   |           windows_protocol.dart
+    |           |   |   |           
+    |           |   |   +---linux
+    |           |   |   |   |   CMakeLists.txt
+    |           |   |   |   |   main.cc
+    |           |   |   |   |   my_application.cc
+    |           |   |   |   |   my_application.h
+    |           |   |   |   |   
+    |           |   |   |   +---flutter
+    |           |   |   |   |       CMakeLists.txt
+    |           |   |   |   |       generated_plugins.cmake
+    |           |   |   |   |       generated_plugin_registrant.cc
+    |           |   |   |   |       generated_plugin_registrant.h
+    |           |   |   |   |       
+    |           |   |   |   \---runner
+    |           |   |   +---macos
+    |           |   |   |   +---Flutter
+    |           |   |   |   |       Flutter-Debug.xcconfig
+    |           |   |   |   |       Flutter-Release.xcconfig
+    |           |   |   |   |       GeneratedPluginRegistrant.swift
+    |           |   |   |   |       
+    |           |   |   |   +---Runner
+    |           |   |   |   |   |   AppDelegate.swift
+    |           |   |   |   |   |   DebugProfile.entitlements
+    |           |   |   |   |   |   Info.plist
+    |           |   |   |   |   |   MainFlutterWindow.swift
+    |           |   |   |   |   |   Release.entitlements
+    |           |   |   |   |   |   
+    |           |   |   |   |   +---Assets.xcassets
+    |           |   |   |   |   |   \---AppIcon.appiconset
+    |           |   |   |   |   |           app_icon_1024.png
+    |           |   |   |   |   |           app_icon_128.png
+    |           |   |   |   |   |           app_icon_16.png
+    |           |   |   |   |   |           app_icon_256.png
+    |           |   |   |   |   |           app_icon_32.png
+    |           |   |   |   |   |           app_icon_512.png
+    |           |   |   |   |   |           app_icon_64.png
+    |           |   |   |   |   |           Contents.json
+    |           |   |   |   |   |           
+    |           |   |   |   |   +---Base.lproj
+    |           |   |   |   |   |       MainMenu.xib
+    |           |   |   |   |   |       
+    |           |   |   |   |   \---Configs
+    |           |   |   |   |           AppInfo.xcconfig
+    |           |   |   |   |           Debug.xcconfig
+    |           |   |   |   |           Release.xcconfig
+    |           |   |   |   |           Warnings.xcconfig
+    |           |   |   |   |           
+    |           |   |   |   +---Runner.xcodeproj
+    |           |   |   |   |   |   project.pbxproj
+    |           |   |   |   |   |   
+    |           |   |   |   |   +---project.xcworkspace
+    |           |   |   |   |   |   \---xcshareddata
+    |           |   |   |   |   |           IDEWorkspaceChecks.plist
+    |           |   |   |   |   |           
+    |           |   |   |   |   \---xcshareddata
+    |           |   |   |   |       \---xcschemes
+    |           |   |   |   |               Runner.xcscheme
+    |           |   |   |   |               
+    |           |   |   |   +---Runner.xcworkspace
+    |           |   |   |   |   |   contents.xcworkspacedata
+    |           |   |   |   |   |   
+    |           |   |   |   |   \---xcshareddata
+    |           |   |   |   |           IDEWorkspaceChecks.plist
+    |           |   |   |   |           
+    |           |   |   |   \---RunnerTests
+    |           |   |   |           RunnerTests.swift
+    |           |   |   |           
+    |           |   |   +---web
+    |           |   |   |   |   favicon.png
+    |           |   |   |   |   index.html
+    |           |   |   |   |   manifest.json
+    |           |   |   |   |   
+    |           |   |   |   \---icons
+    |           |   |   |           Icon-192.png
+    |           |   |   |           Icon-512.png
+    |           |   |   |           Icon-maskable-192.png
+    |           |   |   |           Icon-maskable-512.png
+    |           |   |   |           
+    |           |   |   \---windows
+    |           |   |       |   CMakeLists.txt
+    |           |   |       |   
+    |           |   |       +---flutter
+    |           |   |       |       CMakeLists.txt
+    |           |   |       |       generated_plugins.cmake
+    |           |   |       |       generated_plugin_registrant.cc
+    |           |   |       |       generated_plugin_registrant.h
+    |           |   |       |       
+    |           |   |       \---runner
+    |           |   |           |   CMakeLists.txt
+    |           |   |           |   flutter_window.cpp
+    |           |   |           |   flutter_window.h
+    |           |   |           |   main.cpp
+    |           |   |           |   resource.h
+    |           |   |           |   runner.exe.manifest
+    |           |   |           |   Runner.rc
+    |           |   |           |   utils.cpp
+    |           |   |           |   utils.h
+    |           |   |           |   win32_window.cpp
+    |           |   |           |   win32_window.h
+    |           |   |           |   
+    |           |   |           \---resources
+    |           |   |                   app_icon.ico
+    |           |   |                   
+    |           |   +---ios
+    |           |   |   |   app_links.podspec
+    |           |   |   |   
+    |           |   |   \---app_links
+    |           |   |       |   Package.swift
+    |           |   |       |   
+    |           |   |       \---Sources
+    |           |   |           \---app_links
+    |           |   |                   AppLinksIosPlugin.swift
+    |           |   |                   PrivacyInfo.xcprivacy
+    |           |   |                   
+    |           |   +---lib
+    |           |   |   |   app_links.dart
+    |           |   |   |   
+    |           |   |   \---src
+    |           |   |           app_links.dart
+    |           |   |           
+    |           |   +---linux
+    |           |   |   +---include
+    |           |   |   |   \---app_links
+    |           |   |   \---test
+    |           |   +---macos
+    |           |   |   |   app_links.podspec
+    |           |   |   |   
+    |           |   |   \---app_links
+    |           |   |       |   Package.swift
+    |           |   |       |   
+    |           |   |       \---Sources
+    |           |   |           \---app_links
+    |           |   |                   AppLinksMacosPlugin.swift
+    |           |   |                   PrivacyInfo.xcprivacy
+    |           |   |                   
+    |           |   +---test
+    |           |   \---windows
+    |           |       |   app_links_plugin.cpp
+    |           |       |   app_links_plugin.h
+    |           |       |   app_links_plugin_c_api.cpp
+    |           |       |   CMakeLists.txt
+    |           |       |   
+    |           |       +---include
+    |           |       |   \---app_links
+    |           |       |           app_links_plugin_c_api.h
+    |           |       |           
+    |           |       \---test
+    |           +---file_selector_windows
+    |           |   |   AUTHORS
+    |           |   |   CHANGELOG.md
+    |           |   |   LICENSE
+    |           |   |   pubspec.yaml
+    |           |   |   README.md
+    |           |   |   
+    |           |   +---example
+    |           |   |   |   pubspec.yaml
+    |           |   |   |   README.md
+    |           |   |   |   
+    |           |   |   +---lib
+    |           |   |   |       get_directory_page.dart
+    |           |   |   |       get_multiple_directories_page.dart
+    |           |   |   |       home_page.dart
+    |           |   |   |       main.dart
+    |           |   |   |       open_image_page.dart
+    |           |   |   |       open_multiple_images_page.dart
+    |           |   |   |       open_text_page.dart
+    |           |   |   |       save_text_page.dart
+    |           |   |   |       
+    |           |   |   \---windows
+    |           |   |       |   CMakeLists.txt
+    |           |   |       |   
+    |           |   |       +---flutter
+    |           |   |       |       CMakeLists.txt
+    |           |   |       |       
+    |           |   |       \---runner
+    |           |   |           |   CMakeLists.txt
+    |           |   |           |   flutter_window.cpp
+    |           |   |           |   flutter_window.h
+    |           |   |           |   main.cpp
+    |           |   |           |   resource.h
+    |           |   |           |   runner.exe.manifest
+    |           |   |           |   Runner.rc
+    |           |   |           |   utils.cpp
+    |           |   |           |   utils.h
+    |           |   |           |   win32_window.cpp
+    |           |   |           |   win32_window.h
+    |           |   |           |   
+    |           |   |           \---resources
+    |           |   |                   app_icon.ico
+    |           |   |                   
+    |           |   +---lib
+    |           |   |   |   file_selector_windows.dart
+    |           |   |   |   
+    |           |   |   \---src
+    |           |   |           messages.g.dart
+    |           |   |           
+    |           |   +---pigeons
+    |           |   |       copyright.txt
+    |           |   |       messages.dart
+    |           |   |       
+    |           |   +---test
+    |           |   |       file_selector_windows_test.dart
+    |           |   |       
+    |           |   \---windows
+    |           |       |   CMakeLists.txt
+    |           |       |   file_dialog_controller.cpp
+    |           |       |   file_dialog_controller.h
+    |           |       |   file_selector_plugin.cpp
+    |           |       |   file_selector_plugin.h
+    |           |       |   file_selector_windows.cpp
+    |           |       |   messages.g.cpp
+    |           |       |   messages.g.h
+    |           |       |   string_utils.cpp
+    |           |       |   string_utils.h
+    |           |       |   
+    |           |       +---include
+    |           |       |   \---file_selector_windows
+    |           |       |           file_selector_windows.h
+    |           |       |           
+    |           |       \---test
+    |           |               file_selector_plugin_test.cpp
+    |           |               test_file_dialog_controller.cpp
+    |           |               test_file_dialog_controller.h
+    |           |               test_main.cpp
+    |           |               test_utils.cpp
+    |           |               test_utils.h
+    |           |               
+    |           +---image_picker_windows
+    |           |   |   AUTHORS
+    |           |   |   CHANGELOG.md
+    |           |   |   LICENSE
+    |           |   |   pubspec.yaml
+    |           |   |   README.md
+    |           |   |   
+    |           |   +---example
+    |           |   |   |   pubspec.yaml
+    |           |   |   |   README.md
+    |           |   |   |   
+    |           |   |   +---lib
+    |           |   |   |       main.dart
+    |           |   |   |       
+    |           |   |   \---windows
+    |           |   |       |   CMakeLists.txt
+    |           |   |       |   
+    |           |   |       +---flutter
+    |           |   |       |       CMakeLists.txt
+    |           |   |       |       generated_plugins.cmake
+    |           |   |       |       
+    |           |   |       \---runner
+    |           |   |           |   CMakeLists.txt
+    |           |   |           |   flutter_window.cpp
+    |           |   |           |   flutter_window.h
+    |           |   |           |   main.cpp
+    |           |   |           |   resource.h
+    |           |   |           |   runner.exe.manifest
+    |           |   |           |   Runner.rc
+    |           |   |           |   utils.cpp
+    |           |   |           |   utils.h
+    |           |   |           |   win32_window.cpp
+    |           |   |           |   win32_window.h
+    |           |   |           |   
+    |           |   |           \---resources
+    |           |   |                   app_icon.ico
+    |           |   |                   
+    |           |   +---lib
+    |           |   |       image_picker_windows.dart
+    |           |   |       
+    |           |   \---test
+    |           |           image_picker_windows_test.dart
+    |           |           image_picker_windows_test.mocks.dart
+    |           |           
+    |           +---jni
+    |           |   |   analysis_options.yaml
+    |           |   |   CHANGELOG.md
+    |           |   |   dart_test.yaml
+    |           |   |   ffigen.yaml
+    |           |   |   ffigen_exts.yaml
+    |           |   |   LICENSE
+    |           |   |   pubspec.yaml
+    |           |   |   README.md
+    |           |   |   
+    |           |   +---android
+    |           |   |   |   build.gradle
+    |           |   |   |   consumer-rules.pro
+    |           |   |   |   README.md
+    |           |   |   |   settings.gradle
+    |           |   |   |   
+    |           |   |   +---.cxx
+    |           |   |   |   +---RelWithDebInfo
+    |           |   |   |   |   \---6tc4q394
+    |           |   |   |   |       |   hash_key.txt
+    |           |   |   |   |       |   
+    |           |   |   |   |       +---arm64-v8a
+    |           |   |   |   |       |   |   .ninja_deps
+    |           |   |   |   |       |   |   .ninja_log
+    |           |   |   |   |       |   |   additional_project_files.txt
+    |           |   |   |   |       |   |   android_gradle_build.json
+    |           |   |   |   |       |   |   android_gradle_build_mini.json
+    |           |   |   |   |       |   |   build.ninja
+    |           |   |   |   |       |   |   build_file_index.txt
+    |           |   |   |   |       |   |   CMakeCache.txt
+    |           |   |   |   |       |   |   cmake_install.cmake
+    |           |   |   |   |       |   |   compile_commands.json
+    |           |   |   |   |       |   |   compile_commands.json.bin
+    |           |   |   |   |       |   |   configure_fingerprint.bin
+    |           |   |   |   |       |   |   metadata_generation_command.txt
+    |           |   |   |   |       |   |   prefab_config.json
+    |           |   |   |   |       |   |   symbol_folder_index.txt
+    |           |   |   |   |       |   |   
+    |           |   |   |   |       |   +---.cmake
+    |           |   |   |   |       |   |   \---api
+    |           |   |   |   |       |   |       \---v1
+    |           |   |   |   |       |   |           +---query
+    |           |   |   |   |       |   |           |   \---client-agp
+    |           |   |   |   |       |   |           |           cache-v2
+    |           |   |   |   |       |   |           |           cmakeFiles-v1
+    |           |   |   |   |       |   |           |           codemodel-v2
+    |           |   |   |   |       |   |           |           
+    |           |   |   |   |       |   |           \---reply
+    |           |   |   |   |       |   |                   cache-v2-90fb50e8ea6cabbd6ad4.json
+    |           |   |   |   |       |   |                   cmakeFiles-v1-37511b5c9013c9321237.json
+    |           |   |   |   |       |   |                   codemodel-v2-b8fb940304c688b34e3b.json
+    |           |   |   |   |       |   |                   directory-.-RelWithDebInfo-d0094a50bb2071803777.json
+    |           |   |   |   |       |   |                   index-2026-09-12T11-12-28-0080.json
+    |           |   |   |   |       |   |                   target-jni-RelWithDebInfo-d45f70817fae33ed43e8.json
+    |           |   |   |   |       |   |                   
+    |           |   |   |   |       |   \---CMakeFiles
+    |           |   |   |   |       |       |   cmake.check_cache
+    |           |   |   |   |       |       |   CMakeOutput.log
+    |           |   |   |   |       |       |   rules.ninja
+    |           |   |   |   |       |       |   TargetDirectories.txt
+    |           |   |   |   |       |       |   
+    |           |   |   |   |       |       +---3.22.1-g37088a8-dirty
+    |           |   |   |   |       |       |   |   CMakeCCompiler.cmake
+    |           |   |   |   |       |       |   |   CMakeDetermineCompilerABI_C.bin
+    |           |   |   |   |       |       |   |   CMakeSystem.cmake
+    |           |   |   |   |       |       |   |   
+    |           |   |   |   |       |       |   \---CompilerIdC
+    |           |   |   |   |       |       |       |   CMakeCCompilerId.c
+    |           |   |   |   |       |       |       |   CMakeCCompilerId.o
+    |           |   |   |   |       |       |       |   
+    |           |   |   |   |       |       |       \---tmp
+    |           |   |   |   |       |       +---CMakeTmp
+    |           |   |   |   |       |       \---jni.dir
+    |           |   |   |   |       |           |   dartjni.c.o
+    |           |   |   |   |       |           |   
+    |           |   |   |   |       |           +---include
+    |           |   |   |   |       |           |       dart_api_dl.c.o
+    |           |   |   |   |       |           |       
+    |           |   |   |   |       |           \---third_party
+    |           |   |   |   |       |                   global_jni_env.c.o
+    |           |   |   |   |       |                   
+    |           |   |   |   |       +---armeabi-v7a
+    |           |   |   |   |       |   |   .ninja_deps
+    |           |   |   |   |       |   |   .ninja_log
+    |           |   |   |   |       |   |   additional_project_files.txt
+    |           |   |   |   |       |   |   android_gradle_build.json
+    |           |   |   |   |       |   |   android_gradle_build_mini.json
+    |           |   |   |   |       |   |   build.ninja
+    |           |   |   |   |       |   |   build_file_index.txt
+    |           |   |   |   |       |   |   CMakeCache.txt
+    |           |   |   |   |       |   |   cmake_install.cmake
+    |           |   |   |   |       |   |   compile_commands.json
+    |           |   |   |   |       |   |   compile_commands.json.bin
+    |           |   |   |   |       |   |   configure_fingerprint.bin
+    |           |   |   |   |       |   |   metadata_generation_command.txt
+    |           |   |   |   |       |   |   prefab_config.json
+    |           |   |   |   |       |   |   symbol_folder_index.txt
+    |           |   |   |   |       |   |   
+    |           |   |   |   |       |   +---.cmake
+    |           |   |   |   |       |   |   \---api
+    |           |   |   |   |       |   |       \---v1
+    |           |   |   |   |       |   |           +---query
+    |           |   |   |   |       |   |           |   \---client-agp
+    |           |   |   |   |       |   |           |           cache-v2
+    |           |   |   |   |       |   |           |           cmakeFiles-v1
+    |           |   |   |   |       |   |           |           codemodel-v2
+    |           |   |   |   |       |   |           |           
+    |           |   |   |   |       |   |           \---reply
+    |           |   |   |   |       |   |                   cache-v2-e1957db12ea144c0bcf2.json
+    |           |   |   |   |       |   |                   cmakeFiles-v1-8f7b65655ccec1f544e9.json
+    |           |   |   |   |       |   |                   codemodel-v2-83d717dd6f86f2d82285.json
+    |           |   |   |   |       |   |                   directory-.-RelWithDebInfo-d0094a50bb2071803777.json
+    |           |   |   |   |       |   |                   index-2026-09-12T11-12-32-0305.json
+    |           |   |   |   |       |   |                   target-jni-RelWithDebInfo-6b700e39787dfce00a31.json
+    |           |   |   |   |       |   |                   
+    |           |   |   |   |       |   \---CMakeFiles
+    |           |   |   |   |       |       |   cmake.check_cache
+    |           |   |   |   |       |       |   CMakeOutput.log
+    |           |   |   |   |       |       |   rules.ninja
+    |           |   |   |   |       |       |   TargetDirectories.txt
+    |           |   |   |   |       |       |   
+    |           |   |   |   |       |       +---3.22.1-g37088a8-dirty
+    |           |   |   |   |       |       |   |   CMakeCCompiler.cmake
+    |           |   |   |   |       |       |   |   CMakeDetermineCompilerABI_C.bin
+    |           |   |   |   |       |       |   |   CMakeSystem.cmake
+    |           |   |   |   |       |       |   |   
+    |           |   |   |   |       |       |   \---CompilerIdC
+    |           |   |   |   |       |       |       |   CMakeCCompilerId.c
+    |           |   |   |   |       |       |       |   CMakeCCompilerId.o
+    |           |   |   |   |       |       |       |   
+    |           |   |   |   |       |       |       \---tmp
+    |           |   |   |   |       |       +---CMakeTmp
+    |           |   |   |   |       |       \---jni.dir
+    |           |   |   |   |       |           |   dartjni.c.o
+    |           |   |   |   |       |           |   
+    |           |   |   |   |       |           +---include
+    |           |   |   |   |       |           |       dart_api_dl.c.o
+    |           |   |   |   |       |           |       
+    |           |   |   |   |       |           \---third_party
+    |           |   |   |   |       |                   global_jni_env.c.o
+    |           |   |   |   |       |                   
+    |           |   |   |   |       +---x86
+    |           |   |   |   |       |   |   .ninja_deps
+    |           |   |   |   |       |   |   .ninja_log
+    |           |   |   |   |       |   |   additional_project_files.txt
+    |           |   |   |   |       |   |   android_gradle_build.json
+    |           |   |   |   |       |   |   android_gradle_build_mini.json
+    |           |   |   |   |       |   |   build.ninja
+    |           |   |   |   |       |   |   build_file_index.txt
+    |           |   |   |   |       |   |   CMakeCache.txt
+    |           |   |   |   |       |   |   cmake_install.cmake
+    |           |   |   |   |       |   |   compile_commands.json
+    |           |   |   |   |       |   |   compile_commands.json.bin
+    |           |   |   |   |       |   |   configure_fingerprint.bin
+    |           |   |   |   |       |   |   metadata_generation_command.txt
+    |           |   |   |   |       |   |   prefab_config.json
+    |           |   |   |   |       |   |   symbol_folder_index.txt
+    |           |   |   |   |       |   |   
+    |           |   |   |   |       |   +---.cmake
+    |           |   |   |   |       |   |   \---api
+    |           |   |   |   |       |   |       \---v1
+    |           |   |   |   |       |   |           +---query
+    |           |   |   |   |       |   |           |   \---client-agp
+    |           |   |   |   |       |   |           |           cache-v2
+    |           |   |   |   |       |   |           |           cmakeFiles-v1
+    |           |   |   |   |       |   |           |           codemodel-v2
+    |           |   |   |   |       |   |           |           
+    |           |   |   |   |       |   |           \---reply
+    |           |   |   |   |       |   |                   cache-v2-6a354bb5f1415fd71807.json
+    |           |   |   |   |       |   |                   cmakeFiles-v1-6a81818f9a05973744c1.json
+    |           |   |   |   |       |   |                   codemodel-v2-ed696912bfe71d83323e.json
+    |           |   |   |   |       |   |                   directory-.-RelWithDebInfo-d0094a50bb2071803777.json
+    |           |   |   |   |       |   |                   index-2026-09-12T11-12-35-0195.json
+    |           |   |   |   |       |   |                   target-jni-RelWithDebInfo-1a6444b87d897bbbff49.json
+    |           |   |   |   |       |   |                   
+    |           |   |   |   |       |   \---CMakeFiles
+    |           |   |   |   |       |       |   cmake.check_cache
+    |           |   |   |   |       |       |   CMakeOutput.log
+    |           |   |   |   |       |       |   rules.ninja
+    |           |   |   |   |       |       |   TargetDirectories.txt
+    |           |   |   |   |       |       |   
+    |           |   |   |   |       |       +---3.22.1-g37088a8-dirty
+    |           |   |   |   |       |       |   |   CMakeCCompiler.cmake
+    |           |   |   |   |       |       |   |   CMakeDetermineCompilerABI_C.bin
+    |           |   |   |   |       |       |   |   CMakeSystem.cmake
+    |           |   |   |   |       |       |   |   
+    |           |   |   |   |       |       |   \---CompilerIdC
+    |           |   |   |   |       |       |       |   CMakeCCompilerId.c
+    |           |   |   |   |       |       |       |   CMakeCCompilerId.o
+    |           |   |   |   |       |       |       |   
+    |           |   |   |   |       |       |       \---tmp
+    |           |   |   |   |       |       +---CMakeTmp
+    |           |   |   |   |       |       \---jni.dir
+    |           |   |   |   |       |           |   dartjni.c.o
+    |           |   |   |   |       |           |   
+    |           |   |   |   |       |           +---include
+    |           |   |   |   |       |           |       dart_api_dl.c.o
+    |           |   |   |   |       |           |       
+    |           |   |   |   |       |           \---third_party
+    |           |   |   |   |       |                   global_jni_env.c.o
+    |           |   |   |   |       |                   
+    |           |   |   |   |       \---x86_64
+    |           |   |   |   |           |   .ninja_deps
+    |           |   |   |   |           |   .ninja_log
+    |           |   |   |   |           |   additional_project_files.txt
+    |           |   |   |   |           |   android_gradle_build.json
+    |           |   |   |   |           |   android_gradle_build_mini.json
+    |           |   |   |   |           |   build.ninja
+    |           |   |   |   |           |   build_file_index.txt
+    |           |   |   |   |           |   CMakeCache.txt
+    |           |   |   |   |           |   cmake_install.cmake
+    |           |   |   |   |           |   compile_commands.json
+    |           |   |   |   |           |   compile_commands.json.bin
+    |           |   |   |   |           |   configure_fingerprint.bin
+    |           |   |   |   |           |   metadata_generation_command.txt
+    |           |   |   |   |           |   prefab_config.json
+    |           |   |   |   |           |   symbol_folder_index.txt
+    |           |   |   |   |           |   
+    |           |   |   |   |           +---.cmake
+    |           |   |   |   |           |   \---api
+    |           |   |   |   |           |       \---v1
+    |           |   |   |   |           |           +---query
+    |           |   |   |   |           |           |   \---client-agp
+    |           |   |   |   |           |           |           cache-v2
+    |           |   |   |   |           |           |           cmakeFiles-v1
+    |           |   |   |   |           |           |           codemodel-v2
+    |           |   |   |   |           |           |           
+    |           |   |   |   |           |           \---reply
+    |           |   |   |   |           |                   cache-v2-a76374c80706304590bc.json
+    |           |   |   |   |           |                   cmakeFiles-v1-a48aeaf79de5ce58c9d3.json
+    |           |   |   |   |           |                   codemodel-v2-e3a1a9e63df287e67ce4.json
+    |           |   |   |   |           |                   directory-.-RelWithDebInfo-d0094a50bb2071803777.json
+    |           |   |   |   |           |                   index-2026-09-12T11-12-37-0895.json
+    |           |   |   |   |           |                   target-jni-RelWithDebInfo-ce06e9f256660c8bc0f3.json
+    |           |   |   |   |           |                   
+    |           |   |   |   |           \---CMakeFiles
+    |           |   |   |   |               |   cmake.check_cache
+    |           |   |   |   |               |   CMakeOutput.log
+    |           |   |   |   |               |   rules.ninja
+    |           |   |   |   |               |   TargetDirectories.txt
+    |           |   |   |   |               |   
+    |           |   |   |   |               +---3.22.1-g37088a8-dirty
+    |           |   |   |   |               |   |   CMakeCCompiler.cmake
+    |           |   |   |   |               |   |   CMakeDetermineCompilerABI_C.bin
+    |           |   |   |   |               |   |   CMakeSystem.cmake
+    |           |   |   |   |               |   |   
+    |           |   |   |   |               |   \---CompilerIdC
+    |           |   |   |   |               |       |   CMakeCCompilerId.c
+    |           |   |   |   |               |       |   CMakeCCompilerId.o
+    |           |   |   |   |               |       |   
+    |           |   |   |   |               |       \---tmp
+    |           |   |   |   |               +---CMakeTmp
+    |           |   |   |   |               \---jni.dir
+    |           |   |   |   |                   |   dartjni.c.o
+    |           |   |   |   |                   |   
+    |           |   |   |   |                   +---include
+    |           |   |   |   |                   |       dart_api_dl.c.o
+    |           |   |   |   |                   |       
+    |           |   |   |   |                   \---third_party
+    |           |   |   |   |                           global_jni_env.c.o
+    |           |   |   |   |                           
+    |           |   |   |   \---tools
+    |           |   |   |       \---release
+    |           |   |   |           +---arm64-v8a
+    |           |   |   |           |       compile_commands.json
+    |           |   |   |           |       
+    |           |   |   |           +---armeabi-v7a
+    |           |   |   |           |       compile_commands.json
+    |           |   |   |           |       
+    |           |   |   |           +---x86
+    |           |   |   |           |       compile_commands.json
+    |           |   |   |           |       
+    |           |   |   |           \---x86_64
+    |           |   |   |                   compile_commands.json
+    |           |   |   |                   
+    |           |   |   \---src
+    |           |   |       \---main
+    |           |   |           |   AndroidManifest.xml
+    |           |   |           |   
+    |           |   |           \---java
+    |           |   |               \---com
+    |           |   |                   \---github
+    |           |   |                       \---dart_lang
+    |           |   |                           \---jni
+    |           |   |                                   JniPlugin.java
+    |           |   |                                   
+    |           |   +---bin
+    |           |   |       setup.dart
+    |           |   |       
+    |           |   +---example
+    |           |   |   |   analysis_options.yaml
+    |           |   |   |   pubspec.yaml
+    |           |   |   |   README.md
+    |           |   |   |   
+    |           |   |   +---android
+    |           |   |   |   |   build.gradle
+    |           |   |   |   |   gradle.properties
+    |           |   |   |   |   settings.gradle
+    |           |   |   |   |   
+    |           |   |   |   +---app
+    |           |   |   |   |   |   build.gradle
+    |           |   |   |   |   |   
+    |           |   |   |   |   \---src
+    |           |   |   |   |       +---debug
+    |           |   |   |   |       |       AndroidManifest.xml
+    |           |   |   |   |       |       
+    |           |   |   |   |       +---main
+    |           |   |   |   |       |   |   AndroidManifest.xml
+    |           |   |   |   |       |   |   
+    |           |   |   |   |       |   +---java
+    |           |   |   |   |       |   |   +---com
+    |           |   |   |   |       |   |   |   \---github
+    |           |   |   |   |       |   |   |       \---dart_lang
+    |           |   |   |   |       |   |   |           \---jni_example
+    |           |   |   |   |       |   |   |                   Toaster.java
+    |           |   |   |   |       |   |   |                   
+    |           |   |   |   |       |   |   \---io
+    |           |   |   |   |       |   |       \---flutter
+    |           |   |   |   |       |   |           \---plugins
+    |           |   |   |   |       |   +---kotlin
+    |           |   |   |   |       |   |   \---dev
+    |           |   |   |   |       |   |       \---dart
+    |           |   |   |   |       |   |           \---jni_example
+    |           |   |   |   |       |   |                   MainActivity.kt
+    |           |   |   |   |       |   |                   
+    |           |   |   |   |       |   \---res
+    |           |   |   |   |       |       +---drawable
+    |           |   |   |   |       |       |       launch_background.xml
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---drawable-v21
+    |           |   |   |   |       |       |       launch_background.xml
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-hdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-mdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-xhdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-xxhdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---mipmap-xxxhdpi
+    |           |   |   |   |       |       |       ic_launcher.png
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       +---values
+    |           |   |   |   |       |       |       styles.xml
+    |           |   |   |   |       |       |       
+    |           |   |   |   |       |       \---values-night
+    |           |   |   |   |       |               styles.xml
+    |           |   |   |   |       |               
+    |           |   |   |   |       \---profile
+    |           |   |   |   |               AndroidManifest.xml
+    |           |   |   |   |               
+    |           |   |   |   \---gradle
+    |           |   |   |       \---wrapper
+    |           |   |   |               gradle-wrapper.properties
+    |           |   |   |               
+    |           |   |   +---integration_test
+    |           |   |   |       on_device_jni_test.dart
+    |           |   |   |       
+    |           |   |   +---lib
+    |           |   |   |       main.dart
+    |           |   |   |       
+    |           |   |   +---linux
+    |           |   |   |   |   CMakeLists.txt
+    |           |   |   |   |   main.cc
+    |           |   |   |   |   my_application.cc
+    |           |   |   |   |   my_application.h
+    |           |   |   |   |   
+    |           |   |   |   \---flutter
+    |           |   |   |           CMakeLists.txt
+    |           |   |   |           
+    |           |   |   +---macos
+    |           |   |   |   |   Podfile
+    |           |   |   |   |   
+    |           |   |   |   +---Flutter
+    |           |   |   |   |       Flutter-Debug.xcconfig
+    |           |   |   |   |       Flutter-Release.xcconfig
+    |           |   |   |   |       
+    |           |   |   |   +---Runner
+    |           |   |   |   |   |   AppDelegate.swift
+    |           |   |   |   |   |   DebugProfile.entitlements
+    |           |   |   |   |   |   Info.plist
+    |           |   |   |   |   |   MainFlutterWindow.swift
+    |           |   |   |   |   |   Release.entitlements
+    |           |   |   |   |   |   
+    |           |   |   |   |   +---Assets.xcassets
+    |           |   |   |   |   |   \---AppIcon.appiconset
+    |           |   |   |   |   |           app_icon_1024.png
+    |           |   |   |   |   |           app_icon_128.png
+    |           |   |   |   |   |           app_icon_16.png
+    |           |   |   |   |   |           app_icon_256.png
+    |           |   |   |   |   |           app_icon_32.png
+    |           |   |   |   |   |           app_icon_512.png
+    |           |   |   |   |   |           app_icon_64.png
+    |           |   |   |   |   |           Contents.json
+    |           |   |   |   |   |           
+    |           |   |   |   |   +---Base.lproj
+    |           |   |   |   |   |       MainMenu.xib
+    |           |   |   |   |   |       
+    |           |   |   |   |   \---Configs
+    |           |   |   |   |           AppInfo.xcconfig
+    |           |   |   |   |           Debug.xcconfig
+    |           |   |   |   |           Release.xcconfig
+    |           |   |   |   |           Warnings.xcconfig
+    |           |   |   |   |           
+    |           |   |   |   +---Runner.xcodeproj
+    |           |   |   |   |   |   project.pbxproj
+    |           |   |   |   |   |   
+    |           |   |   |   |   +---project.xcworkspace
+    |           |   |   |   |   |   \---xcshareddata
+    |           |   |   |   |   |       |   IDEWorkspaceChecks.plist
+    |           |   |   |   |   |       |   
+    |           |   |   |   |   |       \---swiftpm
+    |           |   |   |   |   |           \---configuration
+    |           |   |   |   |   \---xcshareddata
+    |           |   |   |   |       \---xcschemes
+    |           |   |   |   |               Runner.xcscheme
+    |           |   |   |   |               
+    |           |   |   |   \---Runner.xcworkspace
+    |           |   |   |       |   contents.xcworkspacedata
+    |           |   |   |       |   
+    |           |   |   |       \---xcshareddata
+    |           |   |   |               IDEWorkspaceChecks.plist
+    |           |   |   |               
+    |           |   |   \---windows
+    |           |   |       |   CMakeLists.txt
+    |           |   |       |   
+    |           |   |       +---flutter
+    |           |   |       |       CMakeLists.txt
+    |           |   |       |       
+    |           |   |       \---runner
+    |           |   |           |   CMakeLists.txt
+    |           |   |           |   flutter_window.cpp
+    |           |   |           |   flutter_window.h
+    |           |   |           |   main.cpp
+    |           |   |           |   resource.h
+    |           |   |           |   runner.exe.manifest
+    |           |   |           |   Runner.rc
+    |           |   |           |   utils.cpp
+    |           |   |           |   utils.h
+    |           |   |           |   win32_window.cpp
+    |           |   |           |   win32_window.h
+    |           |   |           |   
+    |           |   |           \---resources
+    |           |   |                   app_icon.ico
+    |           |   |                   
+    |           |   +---java
+    |           |   |   |   build.gradle.kts
+    |           |   |   |   gradlew
+    |           |   |   |   gradlew.bat
+    |           |   |   |   README.md
+    |           |   |   |   settings.gradle.kts
+    |           |   |   |   
+    |           |   |   +---gradle
+    |           |   |   |   |   libs.versions.toml
+    |           |   |   |   |   
+    |           |   |   |   \---wrapper
+    |           |   |   |           gradle-wrapper.jar
+    |           |   |   |           gradle-wrapper.properties
+    |           |   |   |           
+    |           |   |   \---src
+    |           |   |       \---main
+    |           |   |           \---java
+    |           |   |               \---com
+    |           |   |                   \---github
+    |           |   |                       \---dart_lang
+    |           |   |                           \---jni
+    |           |   |                                   JniUtils.java
+    |           |   |                                   PortCleaner.java
+    |           |   |                                   PortContinuation.java
+    |           |   |                                   PortProxyBuilder.java
+    |           |   |                                   
+    |           |   +---lib
+    |           |   |   |   jni.dart
+    |           |   |   |   jni_symbols.yaml
+    |           |   |   |   _internal.dart
+    |           |   |   |   
+    |           |   |   \---src
+    |           |   |       |   accessors.dart
+    |           |   |       |   core_bindings.dart
+    |           |   |       |   errors.dart
+    |           |   |       |   jarray.dart
+    |           |   |       |   jclass.dart
+    |           |   |       |   jimplementer.dart
+    |           |   |       |   jni.dart
+    |           |   |       |   jobject.dart
+    |           |   |       |   jprimitives.dart
+    |           |   |       |   jreference.dart
+    |           |   |       |   jvalues.dart
+    |           |   |       |   kotlin.dart
+    |           |   |       |   method_invocation.dart
+    |           |   |       |   primitive_jarrays.dart
+    |           |   |       |   types.dart
+    |           |   |       |   version_check.dart
+    |           |   |       |   
+    |           |   |       +---build_util
+    |           |   |       |       build_util.dart
+    |           |   |       |       
+    |           |   |       +---lang
+    |           |   |       |       jboolean.dart
+    |           |   |       |       jbyte.dart
+    |           |   |       |       jcharacter.dart
+    |           |   |       |       jdouble.dart
+    |           |   |       |       jfloat.dart
+    |           |   |       |       jinteger.dart
+    |           |   |       |       jlong.dart
+    |           |   |       |       jnumber.dart
+    |           |   |       |       jshort.dart
+    |           |   |       |       jstring.dart
+    |           |   |       |       lang.dart
+    |           |   |       |       
+    |           |   |       +---nio
+    |           |   |       |       jbuffer.dart
+    |           |   |       |       jbyte_buffer.dart
+    |           |   |       |       nio.dart
+    |           |   |       |       
+    |           |   |       +---third_party
+    |           |   |       |       generated_bindings.dart
+    |           |   |       |       global_env_extensions.dart
+    |           |   |       |       jni_bindings_generated.dart
+    |           |   |       |       
+    |           |   |       \---util
+    |           |   |               jiterator.dart
+    |           |   |               jlist.dart
+    |           |   |               jmap.dart
+    |           |   |               jset.dart
+    |           |   |               util.dart
+    |           |   |               
+    |           |   +---linux
+    |           |   |       CMakeLists.txt
+    |           |   |       
+    |           |   +---src
+    |           |   |   |   CMakeLists.txt
+    |           |   |   |   dartjni.c
+    |           |   |   |   dartjni.h
+    |           |   |   |   jni_constants.h
+    |           |   |   |   README.md
+    |           |   |   |   
+    |           |   |   +---include
+    |           |   |   |   |   analyze_snapshot_api.h
+    |           |   |   |   |   BUILD.gn
+    |           |   |   |   |   dart_api.h
+    |           |   |   |   |   dart_api_dl.c
+    |           |   |   |   |   dart_api_dl.h
+    |           |   |   |   |   dart_embedder_api.h
+    |           |   |   |   |   dart_native_api.h
+    |           |   |   |   |   dart_tools_api.h
+    |           |   |   |   |   dart_version.h
+    |           |   |   |   |   
+    |           |   |   |   +---bin
+    |           |   |   |   |       dart_io_api.h
+    |           |   |   |   |       native_assets_api.h
+    |           |   |   |   |       
+    |           |   |   |   \---internal
+    |           |   |   |           dart_api_dl_impl.h
+    |           |   |   |           
+    |           |   |   \---third_party
+    |           |   |           global_jni_env.c
+    |           |   |           global_jni_env.h
+    |           |   |           
+    |           |   +---test
+    |           |   |   |   boxed_test.dart
+    |           |   |   |   debug_release_test.dart
+    |           |   |   |   exception_test.dart
+    |           |   |   |   global_env_test.dart
+    |           |   |   |   isolate_test.dart
+    |           |   |   |   jarray_test.dart
+    |           |   |   |   jbyte_buffer_test.dart
+    |           |   |   |   jlist_test.dart
+    |           |   |   |   jmap_test.dart
+    |           |   |   |   jobject_test.dart
+    |           |   |   |   jset_test.dart
+    |           |   |   |   jstring_test.dart
+    |           |   |   |   load_test.dart
+    |           |   |   |   no_such_method_test.dart
+    |           |   |   |   version_check_test.dart
+    |           |   |   |   
+    |           |   |   +---test_util
+    |           |   |   |       test_util.dart
+    |           |   |   |       
+    |           |   |   \---version_check
+    |           |   |           fail_major.dart
+    |           |   |           fail_minor.dart
+    |           |   |           pass.dart
+    |           |   |           
+    |           |   +---third_party
+    |           |   |       jni.h
+    |           |   |       
+    |           |   +---tool
+    |           |   |   |   generate_ffi_bindings.dart
+    |           |   |   |   generate_ide_files.dart
+    |           |   |   |   generate_jni_bindings.dart
+    |           |   |   |   generate_primitive_arrays.dart
+    |           |   |   |   
+    |           |   |   \---wrapper_generators
+    |           |   |           ffigen_util.dart
+    |           |   |           generate_c_extensions.dart
+    |           |   |           generate_dart_extensions.dart
+    |           |   |           generate_helper_functions.dart
+    |           |   |           logging.dart
+    |           |   |           
+    |           |   \---windows
+    |           |           CMakeLists.txt
+    |           |           
+    |           +---path_provider_windows
+    |           |   |   AUTHORS
+    |           |   |   CHANGELOG.md
+    |           |   |   LICENSE
+    |           |   |   pubspec.yaml
+    |           |   |   README.md
+    |           |   |   
+    |           |   +---example
+    |           |   |   |   pubspec.yaml
+    |           |   |   |   README.md
+    |           |   |   |   
+    |           |   |   +---integration_test
+    |           |   |   |       path_provider_test.dart
+    |           |   |   |       
+    |           |   |   +---lib
+    |           |   |   |       main.dart
+    |           |   |   |       
+    |           |   |   +---test_driver
+    |           |   |   |       integration_test.dart
+    |           |   |   |       
+    |           |   |   \---windows
+    |           |   |       |   CMakeLists.txt
+    |           |   |       |   
+    |           |   |       +---flutter
+    |           |   |       |       CMakeLists.txt
+    |           |   |       |       generated_plugins.cmake
+    |           |   |       |       
+    |           |   |       \---runner
+    |           |   |           |   CMakeLists.txt
+    |           |   |           |   flutter_window.cpp
+    |           |   |           |   flutter_window.h
+    |           |   |           |   main.cpp
+    |           |   |           |   resource.h
+    |           |   |           |   runner.exe.manifest
+    |           |   |           |   Runner.rc
+    |           |   |           |   run_loop.cpp
+    |           |   |           |   run_loop.h
+    |           |   |           |   utils.cpp
+    |           |   |           |   utils.h
+    |           |   |           |   win32_window.cpp
+    |           |   |           |   win32_window.h
+    |           |   |           |   
+    |           |   |           \---resources
+    |           |   |                   app_icon.ico
+    |           |   |                   
+    |           |   +---lib
+    |           |   |   |   path_provider_windows.dart
+    |           |   |   |   
+    |           |   |   \---src
+    |           |   |           folders.dart
+    |           |   |           folders_stub.dart
+    |           |   |           guid.dart
+    |           |   |           path_provider_windows_real.dart
+    |           |   |           path_provider_windows_stub.dart
+    |           |   |           win32_wrappers.dart
+    |           |   |           
+    |           |   \---test
+    |           |           guid_test.dart
+    |           |           path_provider_windows_test.dart
+    |           |           
+    |           +---shared_preferences_windows
+    |           |   |   AUTHORS
+    |           |   |   CHANGELOG.md
+    |           |   |   LICENSE
+    |           |   |   pubspec.yaml
+    |           |   |   README.md
+    |           |   |   
+    |           |   +---example
+    |           |   |   |   AUTHORS
+    |           |   |   |   LICENSE
+    |           |   |   |   pubspec.yaml
+    |           |   |   |   README.md
+    |           |   |   |   
+    |           |   |   +---integration_test
+    |           |   |   |       shared_preferences_test.dart
+    |           |   |   |       
+    |           |   |   +---lib
+    |           |   |   |       main.dart
+    |           |   |   |       
+    |           |   |   +---test_driver
+    |           |   |   |       integration_test.dart
+    |           |   |   |       
+    |           |   |   \---windows
+    |           |   |       |   CMakeLists.txt
+    |           |   |       |   
+    |           |   |       +---flutter
+    |           |   |       |       CMakeLists.txt
+    |           |   |       |       generated_plugins.cmake
+    |           |   |       |       
+    |           |   |       \---runner
+    |           |   |           |   CMakeLists.txt
+    |           |   |           |   flutter_window.cpp
+    |           |   |           |   flutter_window.h
+    |           |   |           |   main.cpp
+    |           |   |           |   resource.h
+    |           |   |           |   runner.exe.manifest
+    |           |   |           |   Runner.rc
+    |           |   |           |   run_loop.cpp
+    |           |   |           |   run_loop.h
+    |           |   |           |   utils.cpp
+    |           |   |           |   utils.h
+    |           |   |           |   win32_window.cpp
+    |           |   |           |   win32_window.h
+    |           |   |           |   
+    |           |   |           \---resources
+    |           |   |                   app_icon.ico
+    |           |   |                   
+    |           |   +---lib
+    |           |   |       shared_preferences_windows.dart
+    |           |   |       
+    |           |   \---test
+    |           |           fake_path_provider_windows.dart
+    |           |           legacy_shared_preferences_windows_test.dart
+    |           |           shared_preferences_windows_async_test.dart
+    |           |           
+    |           \---url_launcher_windows
+    |               |   AUTHORS
+    |               |   CHANGELOG.md
+    |               |   LICENSE
+    |               |   pubspec.yaml
+    |               |   README.md
+    |               |   
+    |               +---example
+    |               |   |   pubspec.yaml
+    |               |   |   README.md
+    |               |   |   
+    |               |   +---integration_test
+    |               |   |       url_launcher_test.dart
+    |               |   |       
+    |               |   +---lib
+    |               |   |       main.dart
+    |               |   |       
+    |               |   +---test_driver
+    |               |   |       integration_test.dart
+    |               |   |       
+    |               |   \---windows
+    |               |       |   CMakeLists.txt
+    |               |       |   
+    |               |       +---flutter
+    |               |       |       CMakeLists.txt
+    |               |       |       
+    |               |       \---runner
+    |               |           |   CMakeLists.txt
+    |               |           |   flutter_window.cpp
+    |               |           |   flutter_window.h
+    |               |           |   main.cpp
+    |               |           |   resource.h
+    |               |           |   runner.exe.manifest
+    |               |           |   Runner.rc
+    |               |           |   run_loop.cpp
+    |               |           |   run_loop.h
+    |               |           |   utils.cpp
+    |               |           |   utils.h
+    |               |           |   win32_window.cpp
+    |               |           |   win32_window.h
+    |               |           |   
+    |               |           \---resources
+    |               |                   app_icon.ico
+    |               |                   
+    |               +---lib
+    |               |   |   url_launcher_windows.dart
+    |               |   |   
+    |               |   \---src
+    |               |           messages.g.dart
+    |               |           
+    |               +---pigeons
+    |               |       copyright.txt
+    |               |       messages.dart
+    |               |       
+    |               +---test
+    |               |       url_launcher_windows_test.dart
+    |               |       
+    |               \---windows
+    |                   |   CMakeLists.txt
+    |                   |   messages.g.cpp
+    |                   |   messages.g.h
+    |                   |   system_apis.cpp
+    |                   |   system_apis.h
+    |                   |   url_launcher_plugin.cpp
+    |                   |   url_launcher_plugin.h
+    |                   |   url_launcher_windows.cpp
+    |                   |   
+    |                   +---include
+    |                   |   \---url_launcher_windows
+    |                   |           url_launcher_windows.h
+    |                   |           
+    |                   \---test
+    |                           url_launcher_windows_test.cpp
+    |                           
+    \---runner
+        |   CMakeLists.txt
+        |   flutter_window.cpp
+        |   flutter_window.h
+        |   main.cpp
+        |   resource.h
+        |   runner.exe.manifest
+        |   Runner.rc
+        |   utils.cpp
+        |   utils.h
+        |   win32_window.cpp
+        |   win32_window.h
+        |   
+        \---resources
+                app_icon.ico
+                
