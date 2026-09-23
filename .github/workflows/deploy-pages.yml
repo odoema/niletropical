@@ -33,12 +33,24 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Flutter commerce app with portable relative paths
+      - name: Build Flutter commerce app
         run: |
-          flutter build web --release --base-href ./ \
+          flutter build web --release \
             --dart-define=APP_ENV=production \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+
+      - name: Convert Flutter build to portable relative base path
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          index = Path("build/web/index.html")
+          text = index.read_text(encoding="utf-8")
+          text = text.replace('<base href="/">', '<base href="./">')
+          index.write_text(text, encoding="utf-8")
+          print("Updated build/web/index.html to use relative base href ./")
+          PY
 
       - name: Assemble public website and app
         run: |
