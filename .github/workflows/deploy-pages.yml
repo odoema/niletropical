@@ -1,4 +1,4 @@
-name: Deploy Flutter Web to GitHub Pages
+name: Deploy Nile Tropical Website + Flutter App
 
 on:
   push:
@@ -33,18 +33,34 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web
+      - name: Build Flutter app for custom domain
         run: |
-          flutter build web --release \
-            --base-href /niletropical/app/ \
+          flutter build web --release --base-href /app/ \
             --dart-define=APP_ENV=production \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          rm -rf build/site
+          mkdir -p build/site/app
+          cp -R build/web/. build/site/app/
+
+      - name: Build Flutter app for GitHub project site
+        run: |
+          flutter build web --release --base-href /niletropical/app/ \
+            --dart-define=APP_ENV=production \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          mkdir -p build/site/niletropical/app
+          cp -R build/web/. build/site/niletropical/app/
+
+      - name: Assemble public website
+        run: |
+          cp index.html build/site/index.html
+          cp CNAME build/site/CNAME
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/web
+          path: build/site
 
   deploy:
     environment:
