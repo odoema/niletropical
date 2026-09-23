@@ -1,5 +1,6 @@
 /// Responsive scaffold: bottom nav on mobile, side rail on wide screens
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
 
@@ -50,7 +51,12 @@ class ResponsiveScaffold extends StatelessWidget {
                 Expanded(
                   child: Scaffold(
                     appBar: appBar,
-                    body: body,
+                    body: Column(
+                      children: [
+                        _WebsiteBanner(),
+                        Expanded(child: body),
+                      ],
+                    ),
                     floatingActionButton: floatingActionButton,
                   ),
                 ),
@@ -61,7 +67,12 @@ class ResponsiveScaffold extends StatelessWidget {
         // Mobile: bottom nav
         return Scaffold(
           appBar: appBar,
-          body: body,
+          body: Column(
+            children: [
+              _WebsiteBanner(),
+              Expanded(child: body),
+            ],
+          ),
           floatingActionButton: floatingActionButton,
           bottomNavigationBar: NavigationBar(
             selectedIndex: selectedIndex.clamp(0, destinations.length - 1),
@@ -78,6 +89,59 @@ class ResponsiveScaffold extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+
+class _WebsiteBanner extends StatelessWidget {
+  const _WebsiteBanner();
+
+  static final Uri _website = Uri.parse('https://niletropicaluganda.com/');
+
+  Future<void> _openWebsite(BuildContext context) async {
+    final opened = await launchUrl(
+      _website,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open the Nile Tropical website.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: NileColors.primary,
+      child: InkWell(
+        onTap: () => _openWebsite(context),
+        child: SafeArea(
+          bottom: false,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              children: [
+                const Icon(Icons.public, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'NILE TROPICAL WEBSITE',
+                    style: NileTypography.labelLarge.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: .4,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.open_in_new, color: Colors.white, size: 18),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
