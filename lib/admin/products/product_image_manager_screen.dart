@@ -147,6 +147,20 @@ class _ProductImageManagerScreenState
     try {
       await StorageService.delete(bucket: StorageService.productImages, path: path);
       await SupabaseService.client.from('product_images').delete().eq('id', imageId);
+      if (image['is_main'] == true) {
+        final remaining = await SupabaseService.client
+            .from('product_images')
+            .select('id')
+            .eq('product_id', productId)
+            .order('sort_order')
+            .limit(1);
+        if ((remaining as List).isNotEmpty) {
+          await SupabaseService.client
+              .from('product_images')
+              .update({'is_main': true, 'sort_order': 0})
+              .eq('id', remaining.first['id']);
+        }
+      }
       if (!mounted) return;
       setState(() => _products = _loadProducts());
     } catch (e) {
