@@ -26,14 +26,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f "assets/generated-product-images.zip" ]; then
-            rm -rf assets/generated-products
-            mkdir -p assets/generated-products
-            unzip -o "assets/generated-product-images.zip" -d assets/generated-products
-            echo "Using generated product image package."
-          else
-            echo "Generated image package not present."
-          fi
+          test -f "assets/generated-product-images.zip" || {
+            echo "::error::assets/generated-product-images.zip is missing."
+            echo "Refusing to report success because no generated product images can be uploaded."
+            exit 1
+          }
+          rm -rf assets/generated-products
+          mkdir -p assets/generated-products
+          unzip -o "assets/generated-product-images.zip" -d assets/generated-products
+          count="$(find assets/generated-products -maxdepth 1 -type f -name '*.jpg' | wc -l)"
+          test "$count" -eq 20 || {
+            echo "::error::Expected 20 generated JPGs, found $count."
+            exit 1
+          }
+          echo "Using generated product image package: $count JPGs."
 
       - name: Upload generated JPGs and attach them to products
         if: hashFiles('assets/generated-products/*.jpg') != ''
@@ -65,9 +71,8 @@ jobs:
             echo "Attached $slug.jpg to $product_id"
           done
 
-      - name: Refuse placeholder SVG upload when generated package is present
-        if: hashFiles('assets/generated-products/*.jpg') != ''
+      - name: Verify generated JPGs are the only image source
         shell: bash
         run: |
-          echo "Generated JPG package is active; SVG placeholders will not be uploaded."
-          exit 0
+          set -euo pipefail
+          echo "Generated JPG package uploaded and attached. Placeholder SVGs were not uploaded."
