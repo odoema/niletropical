@@ -92,15 +92,23 @@ jobs:
             echo "Uploaded and attached $slug.jpg -> $product_id"
           done
 
-      - name: Verify all 20 storage objects and product image references
+      - name: Verify all 20 product images in Storage and database
         shell: bash
         run: |
           set -euo pipefail
 
-          storage_count="$(curl --fail-with-body --silent --show-error             "$SUPABASE_URL/storage/v1/object/list/product-images"             -X POST             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"             -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"             -H "Content-Type: application/json"             --data '{"limit":1000,"offset":0,"search":""}'             | jq '[.[] | select(.name | endswith(".jpg"))] | length')"
+          expected=0
+          while IFS= read -r file; do
+            slug="$(basename "$file" .jpg)"
+            expected=$((expected + 1))
 
-          test "$storage_count" -ge 20 || {
-            echo "::error::Expected at least 20 JPG objects in product-images, found $storage_count."
+            curl --fail-with-body --silent --show-error --head               "$SUPABASE_URL/storage/v1/object/public/product-images/$slug.jpg" >/dev/null
+
+            echo "Verified storage object: $slug.jpg"
+          done < <(find assets/generated-products -maxdepth 1 -type f -name '*.jpg' | sort)
+
+          test "$expected" -eq 20 || {
+            echo "::error::Expected 20 generated JPGs for verification, found $expected."
             exit 1
           }
 
@@ -111,5 +119,5 @@ jobs:
             exit 1
           }
 
-          echo "VERIFIED: $storage_count JPG storage objects and $image_ref_count main JPG references are present."
-          echo "The committed SVG artworks are only the source; no placeholder SVG was uploaded to Supabase."
+          echo "VERIFIED: all 20 expected JPG storage objects are reachable and $image_ref_count main JPG references are present."
+          echo "The committed SVG artworks were only the source; no SVG placeholder was uploaded to Supabase."
