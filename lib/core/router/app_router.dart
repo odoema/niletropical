@@ -39,6 +39,8 @@ import '../../admin/cms/cms_dashboard_screen.dart';
 import '../../admin/cms/cms_collection_screen.dart';
 import '../../admin/auth/admin_login_screen.dart';
 import '../../admin/auth/admin_reset_password_screen.dart';
+import '../../admin/cms/cms_banners_screen.dart';
+import '../../admin/cms/cms_media_library_screen.dart';
 import '../../admin/customers/customers_screen.dart';
 import '../../admin/customers/customer_detail_screen.dart';
 import '../../admin/finance/cod_reconciliation_screen.dart';
@@ -196,7 +198,8 @@ final appRouter = GoRouter(
           builder: (_, __) => const CodReconciliationScreen(),
         ),
         GoRoute(path: '/admin/cms', name: 'admin-cms', builder: (_, __) => const CmsDashboardScreen()),
-        GoRoute(path: '/admin/cms/banners', builder: (_, __) => const CmsCollectionScreen(title: 'Banners', table: 'banners', titleField: 'title', subtitleField: 'image_storage_path')),
+        GoRoute(path: '/admin/cms/banners', builder: (_, __) => const CmsBannersScreen()),
+        GoRoute(path: '/admin/cms/media', builder: (_, __) => const CmsMediaLibraryScreen()),
         GoRoute(path: '/admin/cms/pages', builder: (_, __) => const CmsCollectionScreen(title: 'Pages', table: 'pages', titleField: 'title', subtitleField: 'slug')),
         GoRoute(path: '/admin/cms/faqs', builder: (_, __) => const CmsCollectionScreen(title: 'FAQs', table: 'faqs', titleField: 'question', subtitleField: 'answer')),
         GoRoute(path: '/admin/cms/testimonials', builder: (_, __) => const CmsCollectionScreen(title: 'Testimonials', table: 'testimonials', titleField: 'customer_name', subtitleField: 'testimonial')),
