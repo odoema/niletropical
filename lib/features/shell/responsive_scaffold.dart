@@ -74,19 +74,25 @@ class ResponsiveScaffold extends StatelessWidget {
             ],
           ),
           floatingActionButton: floatingActionButton,
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: selectedIndex.clamp(0, destinations.length - 1),
-            onDestinationSelected: onDestinationSelected,
-            destinations: destinations
-                .map(
-                  (d) => NavigationDestination(
-                    icon: Icon(d.icon),
-                    selectedIcon: Icon(d.selectedIcon ?? d.icon),
-                    label: d.label,
-                  ),
+          bottomNavigationBar: destinations.length <= 5
+              ? NavigationBar(
+                  selectedIndex: selectedIndex.clamp(0, destinations.length - 1),
+                  onDestinationSelected: onDestinationSelected,
+                  destinations: destinations
+                      .map(
+                        (d) => NavigationDestination(
+                          icon: Icon(d.icon),
+                          selectedIcon: Icon(d.selectedIcon ?? d.icon),
+                          label: d.label,
+                        ),
+                      )
+                      .toList(),
                 )
-                .toList(),
-          ),
+              : _MobileAdminNavigation(
+                  destinations: destinations,
+                  selectedIndex: selectedIndex,
+                  onSelected: onDestinationSelected,
+                ),
         );
       },
     );
@@ -142,6 +148,80 @@ class _WebsiteBanner extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+
+class _MobileAdminNavigation extends StatelessWidget {
+  const _MobileAdminNavigation({
+    required this.destinations,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final List<NileSideNavItem> destinations;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = destinations.take(4).toList();
+    final moreSelected = selectedIndex >= 4;
+    return NavigationBar(
+      selectedIndex: moreSelected ? 4 : selectedIndex,
+      onDestinationSelected: (index) {
+        if (index < 4) {
+          onSelected(index);
+          return;
+        }
+        showModalBottomSheet<void>(
+          context: context,
+          showDragHandle: true,
+          builder: (sheetContext) => SafeArea(
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                const ListTile(
+                  title: Text('Admin menu', style: TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: Text('All administration modules'),
+                ),
+                ...List.generate(destinations.length, (i) {
+                  final item = destinations[i];
+                  return ListTile(
+                    leading: Icon(
+                      i == selectedIndex
+                          ? (item.selectedIcon ?? item.icon)
+                          : item.icon,
+                      color: i == selectedIndex ? NileColors.primary : null,
+                    ),
+                    title: Text(item.label),
+                    selected: i == selectedIndex,
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      onSelected(i);
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+      destinations: [
+        ...visible.map(
+          (d) => NavigationDestination(
+            icon: Icon(d.icon),
+            selectedIcon: Icon(d.selectedIcon ?? d.icon),
+            label: d.label,
+          ),
+        ),
+        const NavigationDestination(
+          icon: Icon(Icons.more_horiz),
+          selectedIcon: Icon(Icons.more_horiz),
+          label: 'More',
+        ),
+      ],
     );
   }
 }
