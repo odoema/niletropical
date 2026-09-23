@@ -38,6 +38,7 @@ import '../../admin/reports/reports_screen.dart';
 import '../../admin/cms/cms_dashboard_screen.dart';
 import '../../admin/cms/cms_collection_screen.dart';
 import '../../admin/auth/admin_login_screen.dart';
+import '../../admin/auth/admin_reset_password_screen.dart';
 import '../../admin/customers/customers_screen.dart';
 import '../../admin/customers/customer_detail_screen.dart';
 import '../../admin/finance/cod_reconciliation_screen.dart';
@@ -54,7 +55,9 @@ final appRouter = GoRouter(
       ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
     }
     final loc = state.uri.path;
-    final isAdmin = loc.startsWith('/admin') && loc != '/admin/login';
+    final isAdmin = loc.startsWith('/admin') &&
+        loc != '/admin/login' &&
+        loc != '/admin/reset-password';
     final isCourier = loc.startsWith('/courier');
     if (!isAdmin && !isCourier) return null;
     if (!Env.isConfigured) return '/admin/login';
@@ -223,6 +226,11 @@ final appRouter = GoRouter(
 
     // ── Auth / standalone ───────────────────────────────────────────────
     GoRoute(path: '/admin/login', name: 'admin-login', builder: (_, __) => const AdminLoginScreen()),
+    GoRoute(
+      path: '/admin/reset-password',
+      name: 'admin-reset-password',
+      builder: (_, __) => const AdminResetPasswordScreen(),
+    ),
     GoRoute(
       path: '/design-system',
       name: 'design-system',
