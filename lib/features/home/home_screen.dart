@@ -19,6 +19,8 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartCount = ref.watch(cartItemCountProvider);
     final featured = ref.watch(featuredProductsProvider);
+    final allProducts = ref.watch(productsProvider(null));
+    final categories = ref.watch(categoriesProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -183,30 +185,63 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
           featured.when(
-            data: (products) {
-              if (products.isEmpty) {
-                return const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(NileSpacing.lg),
-                    child: NileEmptyState(
-                      title: 'No featured products',
-                      message: 'Check back soon.',
-                      icon: Icons.spa_outlined,
+            data: (products) => products.isNotEmpty
+                ? _productGrid(products.take(4).toList())
+                : allProducts.when(
+                    data: (all) => _productGrid(all.take(4).toList()),
+                    loading: () => const SliverToBoxAdapter(
+                      child: SizedBox(height: 180, child: NileLoadingState()),
+                    ),
+                    error: (e, _) => SliverToBoxAdapter(
+                      child: NileErrorState(message: e.toString()),
                     ),
                   ),
-                );
-              }
-              return _productGrid(products);
-            },
             loading: () => const SliverToBoxAdapter(
-              child: SizedBox(height: 200, child: NileLoadingState()),
+              child: SizedBox(height: 180, child: NileLoadingState()),
             ),
             error: (e, _) => SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(NileSpacing.md),
-                child: NileErrorState(message: e.toString()),
-              ),
+              child: NileErrorState(message: e.toString()),
             ),
+          ),
+
+          // Show up to four real products for every production category.
+          // This keeps the home page populated even when merchandising flags
+          // such as featured/bestseller/new have not yet been configured.
+          categories.when(
+            data: (cats) => allProducts.when(
+              data: (products) {
+                final groups = <Widget>[];
+                for (final category in cats) {
+                  final id = category['id']?.toString();
+                  final name = category['name']?.toString() ?? 'Products';
+                  final slug = category['slug']?.toString();
+                  if (id == null) continue;
+                  final items = products.where((p) => p.categoryId == id).take(4).toList();
+                  if (items.isEmpty) continue;
+                  groups.add(
+                    SliverToBoxAdapter(
+                      child: NileSectionHeader(
+                        title: name,
+                        actionLabel: 'Shop',
+                        onAction: () => slug == null || slug.isEmpty
+                            ? context.go('/shop')
+                            : context.push('/category/$slug'),
+                      ),
+                    ),
+                  );
+                  groups.add(_productGrid(items));
+                }
+                return groups.isEmpty
+                    ? const SliverToBoxAdapter(child: SizedBox.shrink())
+                    : SliverMainAxisGroup(slivers: groups);
+              },
+              loading: () => const SliverToBoxAdapter(
+                child: SizedBox(height: 180, child: NileLoadingState()),
+              ),
+              error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            ),
+            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
           ),
 
           SliverToBoxAdapter(
@@ -217,7 +252,11 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
           ref.watch(flaggedProductsProvider('is_bestseller')).when(
-                data: (p) => p.isEmpty ? const SliverToBoxAdapter(child: SizedBox.shrink()) : _productGrid(p),
+                data: (p) => _productGrid(
+                  (p.isNotEmpty ? p : (allProducts.valueOrNull ?? const <Product>[]))
+                      .take(4)
+                      .toList(),
+                ),
                 loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
                 error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
               ),
@@ -229,7 +268,11 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
           ref.watch(flaggedProductsProvider('is_new')).when(
-                data: (p) => p.isEmpty ? const SliverToBoxAdapter(child: SizedBox.shrink()) : _productGrid(p),
+                data: (p) => _productGrid(
+                  (p.isNotEmpty ? p : (allProducts.valueOrNull ?? const <Product>[]))
+                      .take(4)
+                      .toList(),
+                ),
                 loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
                 error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
               ),
@@ -267,6 +310,9 @@ class HomeScreen extends ConsumerWidget {
   }
 
   static Widget _productGrid(List<Product> products) {
+    if (products.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
       sliver: SliverGrid(
