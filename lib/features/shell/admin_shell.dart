@@ -23,6 +23,10 @@ class AdminShell extends StatelessWidget {
     NileSideNavItem(label: 'CMS', icon: Icons.article_outlined, selectedIcon: Icons.article, route: '/admin/cms'),
     NileSideNavItem(label: 'Media Library', icon: Icons.perm_media_outlined, selectedIcon: Icons.perm_media, route: '/admin/cms/media'),
     NileSideNavItem(label: 'Reports', icon: Icons.bar_chart_outlined, selectedIcon: Icons.bar_chart, route: '/admin/reports'),
+    NileSideNavItem(label: 'Pricing', icon: Icons.price_change_outlined, selectedIcon: Icons.price_change, route: '/admin/pricing'),
+    NileSideNavItem(label: 'Notifications', icon: Icons.notifications_none, selectedIcon: Icons.notifications, route: '/admin/notifications'),
+    NileSideNavItem(label: 'Audit Log', icon: Icons.history_outlined, selectedIcon: Icons.history, route: '/admin/audit'),
+    NileSideNavItem(label: 'Settings', icon: Icons.settings_outlined, selectedIcon: Icons.settings, route: '/admin/settings'),
   ];
 
   int get _index {
@@ -36,6 +40,10 @@ class AdminShell extends StatelessWidget {
     if (location.startsWith('/admin/cms/media')) return 9;
     if (location.startsWith('/admin/cms')) return 8;
     if (location.startsWith('/admin/reports')) return 10;
+    if (location.startsWith('/admin/pricing')) return 11;
+    if (location.startsWith('/admin/notifications')) return 12;
+    if (location.startsWith('/admin/audit')) return 13;
+    if (location.startsWith('/admin/settings')) return 14;
     return 0;
   }
 
