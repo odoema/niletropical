@@ -99,19 +99,19 @@ class _ProofOfDeliveryScreenState
         'submit_proof_of_delivery',
         params: {
           'p_shipment_id': widget.shipmentId,
-          'p_otp_or_code':
+          'p_otp_or_signature':
               _otpCtrl.text.trim().isEmpty ? null : _otpCtrl.text.trim(),
-          'p_customer_name': _customerNameCtrl.text.trim().isEmpty
+          'p_recipient_name': _customerNameCtrl.text.trim().isEmpty
               ? null
               : _customerNameCtrl.text.trim(),
           'p_location': _locationCtrl.text.trim().isEmpty
               ? null
               : _locationCtrl.text.trim(),
-          'p_notes':
-              _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-          'p_payment_collected': widget.isCod ? amount : null,
-          'p_signature_path': null,
-          'p_photo_path': _photoPath,
+          'p_otp_or_signature': _otpCtrl.text.trim().isEmpty
+              ? (_notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim())
+              : _otpCtrl.text.trim(),
+          'p_cod_collected': widget.isCod ? amount : null,
+          'p_photo_storage_path': _photoPath,
         },
       );
 

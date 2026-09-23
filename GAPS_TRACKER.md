@@ -8,9 +8,9 @@ Status legend: `Not started` / `In progress` / `Done` / `Blocked`
 | # | Gap | Priority | Backend ready? | Effort | Status | Notes |
 |---|-----|----------|-----------------|--------|--------|-------|
 | 1 | Checkout has no coupon/promo code field | High | Yes (`coupons`, `coupon_redemptions`) | Small | **Done** | Added `validate_coupon` RPC, wired `create_order` to accept + record redemptions, checkout UI has code field + live discount. Test coupon `WELCOME10` (10%) seeded. |
-| 2 | No admin "Customers" screen | High | Yes (`customers` table) | Small–Medium | Not started | Staff can't look up buyers or their order history |
-| 3 | No COD cash reconciliation UI | High (if COD is used) | Yes (`cod_collections`) | Medium | Not started | Real money currently untracked for cash-on-delivery orders |
-| 4 | Courier proof-of-delivery has no photo capture | Medium–High | Partial (RPC takes text only; `proof-of-delivery` bucket exists unused) | Medium | Not started | Only OTP/signature/notes text captured today |
+| 2 | No admin "Customers" screen | High | Yes (`customers` table) | Small–Medium | **Done** | Customers list + detail screens wired into admin |
+| 3 | No COD cash reconciliation UI | High (if COD is used) | Yes (`cod_collections`) | Medium | **Done** | COD reconciliation screen wired into admin |
+| 4 | Courier proof-of-delivery has no photo capture | Medium–High | Yes (`proof_of_delivery` + storage) | Medium | **Done** | Camera capture uploads to private `pod` bucket and submits the correct RPC parameters |
 | 5 | No pricing-recommendation review/approval UI | Medium | Yes (`pricing_recommendations`, has a comment describing an approval workflow) | Medium | Not started | Proposals currently just sit in the table |
 | 6 | No notification template/log admin screen | Medium | Yes (`notification_templates`, `notification_logs`) | Medium | Not started | Can send notifications but not manage templates or see history |
 | 7 | No audit log viewer | Low–Medium | Yes (`audit_logs`, `nile_admin.admin_activity_log`) | Small–Medium | Not started | No visibility into staff actions |
@@ -30,4 +30,5 @@ Ordered by business impact vs. effort. Re-order anytime — this file is the pla
 
 ## Log
 - 2026-09-12 — Tracker created after full backend/frontend audit.
+- 2026-09-24 — Gaps #2–#4 closed in the admin/courier UI; POD parameter and storage-path consistency fixed.
 - 2026-09-12 — Gap #1 closed: coupon support end-to-end (backend RPCs + checkout UI).

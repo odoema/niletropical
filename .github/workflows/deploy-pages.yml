@@ -50,16 +50,6 @@ jobs:
           index.write_text(text, encoding="utf-8")
           PY
 
-      - name: Generate public CMS configuration
-        run: |
-          mkdir -p assets/website
-          cat > assets/website/cms-config.js <<EOF
-          window.NILE_CMS = {
-            url: "${SUPABASE_URL}",
-            anonKey: "${SUPABASE_ANON_KEY}"
-          };
-          EOF
-
       - name: Assemble public website and Flutter app
         run: |
           rm -rf build/site

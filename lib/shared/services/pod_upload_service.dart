@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 /// Handles camera / gallery capture and upload to the private
-/// `proof-of-delivery` storage bucket.
+/// `pod` storage bucket.
 class PodUploadService {
   PodUploadService(this._client);
 
@@ -32,7 +32,7 @@ class PodUploadService {
     final objectPath =
         'photos/$shipmentId/${_uuid.v4()}.jpg';
 
-    await _client.storage.from('proof-of-delivery').uploadBinary(
+    await _client.storage.from('pod').uploadBinary(
           objectPath,
           bytes,
           fileOptions: FileOptions(
@@ -42,7 +42,7 @@ class PodUploadService {
         );
 
     // Return the path the RPC expects (bucket-relative).
-    return 'proof-of-delivery/$objectPath';
+    return objectPath;
   }
 
   /// Convenience: pick + upload in one step.

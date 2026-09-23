@@ -15,8 +15,8 @@ This file supersedes the older P3–P10 checkboxes in README/CHANGES_FULL.
 | Addresses add (no fake phone) | Done |
 | Product upsert + extra fields | Done; variants expandable |
 | Courier own shipments | Done |
-| POD RPC | Done; camera upload still manual path |
-| CMS two-field CRUD | Done |
+| POD RPC | Done; camera upload + correct RPC mapping |
+| CMS management | Done — media library, website slots, banners and collection editors |
 | Storage policies 025 | In repo; apply after checking bucket ids |
 | Notifications | Stub only |
 | flutter analyze/test/build | Not certified in this environment |
