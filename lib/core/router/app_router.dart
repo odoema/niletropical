@@ -45,6 +45,10 @@ import '../../admin/cms/cms_website_slots_screen.dart';
 import '../../admin/customers/customers_screen.dart';
 import '../../admin/customers/customer_detail_screen.dart';
 import '../../admin/finance/cod_reconciliation_screen.dart';
+import '../../admin/pricing/pricing_recommendations_screen.dart';
+import '../../admin/notifications/notifications_admin_screen.dart';
+import '../../admin/audit/audit_log_screen.dart';
+import '../../admin/settings/admin_settings_screen.dart';
 import '../../shared/services/auth_service.dart';
 import '../../core/config/env.dart';
 
@@ -208,6 +212,10 @@ final appRouter = GoRouter(
         GoRoute(path: '/admin/cms/videos', builder: (_, __) => const CmsCollectionScreen(title: 'Videos', table: 'videos', titleField: 'title', subtitleField: 'storage_path')),
         GoRoute(path: '/admin/cms/promotions', builder: (_, __) => const CmsCollectionScreen(title: 'Promotions', table: 'promotions', titleField: 'name', subtitleField: 'description')),
         GoRoute(path: '/admin/reports', name: 'admin-reports', builder: (_, __) => const ReportsScreen()),
+        GoRoute(path: '/admin/pricing', name: 'admin-pricing', builder: (_, __) => const PricingRecommendationsScreen()),
+        GoRoute(path: '/admin/notifications', name: 'admin-notifications', builder: (_, __) => const NotificationsAdminScreen()),
+        GoRoute(path: '/admin/audit', name: 'admin-audit', builder: (_, __) => const AuditLogScreen()),
+        GoRoute(path: '/admin/settings', name: 'admin-settings', builder: (_, __) => const AdminSettingsScreen()),
       ],
     ),
 
