@@ -30,10 +30,10 @@ class ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AspectRatio(
-              aspectRatio: 1.45,
+              aspectRatio: 1.75,
               child: Container(
                 color: Colors.white,
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: imageUrl != null && imageUrl.isNotEmpty
@@ -72,7 +72,7 @@ class ProductCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 2, 10, 10),
+              padding: const EdgeInsets.fromLTRB(9, 2, 9, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -85,7 +85,7 @@ class ProductCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   NilePrice(amount: price),
                 ],
               ),
