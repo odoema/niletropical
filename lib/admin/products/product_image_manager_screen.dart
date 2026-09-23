@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../shared/services/media_upload.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
@@ -19,6 +18,7 @@ class ProductImageManagerScreen extends ConsumerStatefulWidget {
 class _ProductImageManagerScreenState
     extends ConsumerState<ProductImageManagerScreen> {
   late Future<List<Map<String, dynamic>>> _products;
+  final _picker = ImagePicker();
   String? _busyProductId;
 
   @override
@@ -33,56 +33,126 @@ class _ProductImageManagerScreenState
         .select('id,name,slug,is_active,product_images(id,storage_path,is_main,sort_order,alt_text)')
         .isFilter('deleted_at', null)
         .order('name');
-
     return List<Map<String, dynamic>>.from(rows);
   }
 
-  Future<void> _replaceImage(Map<String, dynamic> product) async {
-    final productId = product['id'] as String;
-    final slug = (product['slug'] as String?)?.trim().isNotEmpty == true
-        ? product['slug'] as String
-        : productId;
-    setState(() => _busyProductId = productId);
+  String _slugFor(Map<String, dynamic> product) {
+    final slug = (product['slug'] as String?)?.trim();
+    return slug?.isNotEmpty == true ? slug! : product['id'].toString();
+  }
 
+  Future<void> _addImages(Map<String, dynamic> product) async {
+    final productId = product['id'].toString();
+    final picked = await _picker.pickMultiImage(imageQuality: 88);
+    if (picked.isEmpty) return;
+
+    setState(() => _busyProductId = productId);
     try {
-      final path = await MediaUpload.pickAndUpload(
-        bucket: StorageService.productImages,
-        objectPath:
-            'products/$slug/${DateTime.now().millisecondsSinceEpoch}.jpg',
-        source: ImageSource.gallery,
+      final existing = await SupabaseService.client
+          .from('product_images')
+          .select('id,is_main')
+          .eq('product_id', productId);
+
+      var hasMain = (existing as List).any(
+        (row) => (row as Map<String, dynamic>)['is_main'] == true,
       );
 
-      if (path == null || !mounted) {
-        if (mounted) setState(() => _busyProductId = null);
-        return;
+      for (var i = 0; i < picked.length; i++) {
+        final file = picked[i];
+        final bytes = await file.readAsBytes();
+        final ext = file.name.contains('.') ? file.name.split('.').last.toLowerCase() : 'jpg';
+        final safeName = file.name
+            .replaceAll(RegExp(r'[^a-zA-Z0-9._-]+'), '-')
+            .replaceAll(RegExp(r'-+'), '-');
+        final path =
+            'products/${_slugFor(product)}/${DateTime.now().millisecondsSinceEpoch}-$i-$safeName';
+
+        await StorageService.upload(
+          bucket: StorageService.productImages,
+          objectPath: path,
+          bytes: bytes,
+          contentType: file.mimeType ?? 'image/$ext',
+        );
+
+        await SupabaseService.client.from('product_images').insert({
+          'product_id': productId,
+          'storage_path': path,
+          'alt_text': product['name'],
+          'sort_order': existing.length + i,
+          'is_main': !hasMain && i == 0,
+        });
+        if (!hasMain && i == 0) hasMain = true;
       }
 
-      await SupabaseService.client.rpc(
-        'admin_replace_product_main_image',
-        params: {
-          'p_product_id': productId,
-          'p_storage_path': path,
-          'p_alt_text': product['name'],
-        },
-      );
-
       if (!mounted) return;
-      setState(() {
-        _busyProductId = null;
-        _products = _loadProducts();
-      });
-
+      setState(() => _products = _loadProducts());
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${product['name']} image updated')),
+        SnackBar(content: Text('${picked.length} image${picked.length == 1 ? '' : 's'} added to ${product['name']}')),
       );
     } catch (e) {
       if (!mounted) return;
-      setState(() => _busyProductId = null);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Image update failed: $e'),
-          backgroundColor: NileColors.error,
-        ),
+        SnackBar(content: Text('Upload failed: $e'), backgroundColor: NileColors.error),
+      );
+    } finally {
+      if (mounted) setState(() => _busyProductId = null);
+    }
+  }
+
+  Future<void> _setMain(String productId, String imageId) async {
+    try {
+      await SupabaseService.client
+          .from('product_images')
+          .update({'is_main': false})
+          .eq('product_id', productId);
+      await SupabaseService.client
+          .from('product_images')
+          .update({'is_main': true, 'sort_order': 0})
+          .eq('id', imageId);
+      if (!mounted) return;
+      setState(() => _products = _loadProducts());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Main product image updated')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not set main image: $e'), backgroundColor: NileColors.error),
+      );
+    }
+  }
+
+  Future<void> _deleteImage(String productId, Map<String, dynamic> image) async {
+    final imageId = image['id']?.toString();
+    final path = image['storage_path']?.toString();
+    if (imageId == null || path == null || path.isEmpty) return;
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete product image?'),
+        content: const Text('The image file and its catalogue reference will be removed.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: NileColors.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      await StorageService.delete(bucket: StorageService.productImages, path: path);
+      await SupabaseService.client.from('product_images').delete().eq('id', imageId);
+      if (!mounted) return;
+      setState(() => _products = _loadProducts());
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Delete failed: $e'), backgroundColor: NileColors.error),
       );
     }
   }
@@ -91,7 +161,7 @@ class _ProductImageManagerScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Images'),
+        title: const Text('Product Image Manager'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/admin/products'),
@@ -125,70 +195,144 @@ class _ProductImageManagerScreenState
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: products.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, __) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final product = products[index];
-                final images =
-                    (product['product_images'] as List?)?.cast<Map<String, dynamic>>() ??
-                        const <Map<String, dynamic>>[];
-                final main = images.where((x) => x['is_main'] == true).isNotEmpty
-                    ? images.firstWhere((x) => x['is_main'] == true)
-                    : (images.isNotEmpty ? images.first : null);
-                final path = main?['storage_path'] as String?;
-                final url = StorageService.resolvePublicUrl(path);
-                final isBusy = _busyProductId == product['id'];
+                final images = (product['product_images'] as List?)
+                        ?.map((x) => Map<String, dynamic>.from(x as Map))
+                        .toList() ??
+                    <Map<String, dynamic>>[];
+                final busy = _busyProductId == product['id'];
 
                 return Card(
                   clipBehavior: Clip.antiAlias,
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          width: 88,
-                          height: 88,
-                          child: url.isEmpty
-                              ? const Icon(Icons.image_not_supported_outlined, size: 36)
-                              : Image.network(
-                                  url,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(
-                                    Icons.broken_image_outlined,
-                                    size: 36,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                product['name']?.toString() ?? 'Unnamed product',
+                                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                            FilledButton.icon(
+                              onPressed: busy ? null : () => _addImages(product),
+                              icon: busy
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.add_photo_alternate_outlined),
+                              label: Text(busy ? 'Uploading…' : 'Add images'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        if (images.isEmpty)
+                          Container(
+                            height: 130,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: NileColors.surfaceVariant,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image_not_supported_outlined, size: 40),
+                                SizedBox(height: 6),
+                                Text('No product images yet'),
+                              ],
+                            ),
+                          )
+                        else
+                          SizedBox(
+                            height: 190,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: images.length,
+                              separatorBuilder: (_, __) => const SizedBox(width: 12),
+                              itemBuilder: (_, imageIndex) {
+                                final image = images[imageIndex];
+                                final path = image['storage_path']?.toString();
+                                final url = StorageService.resolvePublicUrl(path);
+                                final isMain = image['is_main'] == true;
+                                return SizedBox(
+                                  width: 155,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: Stack(
+                                          children: [
+                                            Positioned.fill(
+                                              child: ClipRRect(
+                                                borderRadius: BorderRadius.circular(10),
+                                                child: url.isEmpty
+                                                    ? const Icon(Icons.broken_image_outlined, size: 40)
+                                                    : Image.network(
+                                                        url,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder: (_, __, ___) => const Center(
+                                                          child: Icon(Icons.broken_image_outlined, size: 40),
+                                                        ),
+                                                      ),
+                                              ),
+                                            ),
+                                            if (isMain)
+                                              Positioned(
+                                                left: 6,
+                                                top: 6,
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: NileColors.primary,
+                                                    borderRadius: BorderRadius.circular(6),
+                                                  ),
+                                                  child: const Text(
+                                                    'MAIN',
+                                                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                                                  ),
+                                                ),
+                                              ),
+                                            Positioned(
+                                              right: 4,
+                                              top: 4,
+                                              child: IconButton(
+                                                tooltip: 'Delete',
+                                                style: IconButton.styleFrom(
+                                                  backgroundColor: Colors.white.withValues(alpha: .9),
+                                                ),
+                                                onPressed: () => _deleteImage(product['id'].toString(), image),
+                                                icon: const Icon(Icons.delete_outline, color: NileColors.error),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        image['alt_text']?.toString() ?? '',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      TextButton(
+                                        onPressed: isMain
+                                            ? null
+                                            : () => _setMain(product['id'].toString(), image['id'].toString()),
+                                        child: Text(isMain ? 'Main image' : 'Set as main'),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                product['name'] as String? ?? 'Unnamed product',
-                                style: const TextStyle(fontWeight: FontWeight.w700),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                path ?? 'No image',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        FilledButton.icon(
-                          onPressed: isBusy ? null : () => _replaceImage(product),
-                          icon: isBusy
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.upload_outlined),
-                          label: Text(isBusy ? 'Uploading…' : 'Replace'),
-                        ),
                       ],
                     ),
                   ),
