@@ -15,6 +15,31 @@ class StorageService {
     return SupabaseService.client.storage.from(bucket).getPublicUrl(path);
   }
 
+  static Future<List<FileObject>> list({
+    required String bucket,
+    String path = '',
+    int limit = 100,
+  }) async {
+    if (!Env.isConfigured) return const [];
+    return SupabaseService.client.storage.from(bucket).list(
+      path: path,
+      searchOptions: SearchOptions(
+        limit: limit,
+        sortBy: const SortBy(column: 'name', order: 'asc'),
+      ),
+    );
+  }
+
+  static Future<void> delete({
+    required String bucket,
+    required String path,
+  }) async {
+    if (!Env.isConfigured) {
+      throw StateError('Supabase is not configured.');
+    }
+    await SupabaseService.client.storage.from(bucket).remove([path]);
+  }
+
   static Future<String> signedUrl(String path, {String bucket = pod, int expires = 300}) async {
     if (path.startsWith('http')) return path;
     final res = await SupabaseService.client.storage.from(bucket).createSignedUrl(path, expires);
