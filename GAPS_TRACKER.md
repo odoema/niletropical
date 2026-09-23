@@ -11,10 +11,10 @@ Status legend: `Not started` / `In progress` / `Done` / `Blocked`
 | 2 | No admin "Customers" screen | High | Yes (`customers` table) | Small–Medium | **Done** | Customers list + detail screens wired into admin |
 | 3 | No COD cash reconciliation UI | High (if COD is used) | Yes (`cod_collections`) | Medium | **Done** | COD reconciliation screen wired into admin |
 | 4 | Courier proof-of-delivery has no photo capture | Medium–High | Yes (`proof_of_delivery` + storage) | Medium | **Done** | Camera capture uploads to private `pod` bucket and submits the correct RPC parameters |
-| 5 | No pricing-recommendation review/approval UI | Medium | Yes (`pricing_recommendations`, has a comment describing an approval workflow) | Medium | Not started | Proposals currently just sit in the table |
-| 6 | No notification template/log admin screen | Medium | Yes (`notification_templates`, `notification_logs`) | Medium | Not started | Can send notifications but not manage templates or see history |
-| 7 | No audit log viewer | Low–Medium | Yes (`audit_logs`, `nile_admin.admin_activity_log`) | Small–Medium | Not started | No visibility into staff actions |
-| 8 | No admin Settings screen for feature flags/config | Low–Medium | Yes (`nile_admin.project_config`, `nile_admin.modules` — already has 11 module rows) | Medium | Not started | Config exists but nothing reads/writes it from the app |
+| 5 | No pricing-recommendation review/approval UI | Medium | Yes (`pricing_recommendations`, has a comment describing an approval workflow) | Medium | **Done** | Admin review screen with pending/approved/rejected filters and approval actions |
+| 6 | No notification template/log admin screen | Medium | Yes (`notification_templates`, `notification_logs`) | Medium | **Done** | Template editor plus delivery-log viewer wired to the production notification schema |
+| 7 | No audit log viewer | Low–Medium | Yes (`audit_logs`, `nile_admin.admin_activity_log`) | Small–Medium | **Done** | Admin audit viewer reads the staff activity log with public-table fallback |
+| 8 | No admin Settings screen for feature flags/config | Low–Medium | Yes (`nile_admin.project_config`, `nile_admin.modules` — already has 11 module rows) | Medium | **Done** | Admin module toggles and project configuration editor added |
 
 ## Working order (recommended)
 Ordered by business impact vs. effort. Re-order anytime — this file is the plan, not a mandate.
@@ -32,3 +32,5 @@ Ordered by business impact vs. effort. Re-order anytime — this file is the pla
 - 2026-09-12 — Tracker created after full backend/frontend audit.
 - 2026-09-24 — Gaps #2–#4 closed in the admin/courier UI; POD parameter and storage-path consistency fixed.
 - 2026-09-12 — Gap #1 closed: coupon support end-to-end (backend RPCs + checkout UI).
+
+- 2026-09-24 — Gaps #5–#8 closed in the admin UI: pricing approvals, notification templates/logs, audit viewer, and admin settings. Navigation and mobile admin menu expanded accordingly.
