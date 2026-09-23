@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
+import 'cms_media_library_screen.dart';
 
 class CmsDashboardScreen extends StatelessWidget {
   const CmsDashboardScreen({super.key});
@@ -14,6 +15,45 @@ class CmsDashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.all(NileSpacing.md),
         children: [
           Text('Content management', style: NileTypography.headlineSmall),
+          const SizedBox(height: 8),
+          Text(
+            'Manage storefront content and media without touching code.',
+            style: NileTypography.bodyMedium,
+          ),
+          const SizedBox(height: NileSpacing.md),
+          NileCard(
+            margin: const EdgeInsets.only(bottom: NileSpacing.md),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CmsMediaLibraryScreen()),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: NileColors.primaryContainer,
+                    borderRadius: NileRadius.borderMd,
+                  ),
+                  child: const Icon(Icons.perm_media_outlined, color: NileColors.primary, size: 28),
+                ),
+                const SizedBox(width: NileSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Media Library', style: NileTypography.titleMedium),
+                      Text(
+                        'Upload website images, banners and CMS media. Preview, copy URLs and delete files.',
+                        style: NileTypography.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: NileColors.textTertiary),
+              ],
+            ),
+          ),
           const SizedBox(height: NileSpacing.md),
           _section(context, Icons.image_outlined, 'Banners', 'Home & promo banners', '/admin/cms/banners'),
           _section(context, Icons.article_outlined, 'Pages', 'Static pages', '/admin/cms/pages'),
