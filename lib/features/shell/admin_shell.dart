@@ -15,6 +15,7 @@ class AdminShell extends StatelessWidget {
     NileSideNavItem(label: 'Dashboard', icon: Icons.dashboard_outlined, selectedIcon: Icons.dashboard, route: '/admin'),
     NileSideNavItem(label: 'Orders', icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long, route: '/admin/orders'),
     NileSideNavItem(label: 'Products', icon: Icons.inventory_2_outlined, selectedIcon: Icons.inventory_2, route: '/admin/products'),
+    NileSideNavItem(label: 'Product Images', icon: Icons.photo_library_outlined, selectedIcon: Icons.photo_library, route: '/admin/products/images'),
     NileSideNavItem(label: 'Inventory', icon: Icons.warehouse_outlined, selectedIcon: Icons.warehouse, route: '/admin/inventory'),
     NileSideNavItem(label: 'Delivery', icon: Icons.local_shipping_outlined, selectedIcon: Icons.local_shipping, route: '/admin/delivery'),
     NileSideNavItem(label: 'Customers', icon: Icons.people_outline, selectedIcon: Icons.people, route: '/admin/customers'),
@@ -25,13 +26,14 @@ class AdminShell extends StatelessWidget {
 
   int get _index {
     if (location.startsWith('/admin/orders')) return 1;
+    if (location.startsWith('/admin/products/images')) return 3;
     if (location.startsWith('/admin/products')) return 2;
-    if (location.startsWith('/admin/inventory')) return 3;
-    if (location.startsWith('/admin/delivery')) return 4;
-    if (location.startsWith('/admin/customers')) return 5;
-    if (location.startsWith('/admin/finance')) return 6;
-    if (location.startsWith('/admin/cms')) return 7;
-    if (location.startsWith('/admin/reports')) return 8;
+    if (location.startsWith('/admin/inventory')) return 4;
+    if (location.startsWith('/admin/delivery')) return 5;
+    if (location.startsWith('/admin/customers')) return 6;
+    if (location.startsWith('/admin/finance')) return 7;
+    if (location.startsWith('/admin/cms')) return 8;
+    if (location.startsWith('/admin/reports')) return 9;
     return 0;
   }
 
