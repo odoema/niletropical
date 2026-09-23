@@ -53,7 +53,7 @@ jobs:
       - name: Generate public CMS configuration
         run: |
           mkdir -p assets/website
-          cat > assets/website/cms-config.js <<'EOF'
+          cat > assets/website/cms-config.js <<EOF
           window.NILE_CMS = {
             url: "${SUPABASE_URL}",
             anonKey: "${SUPABASE_ANON_KEY}"
