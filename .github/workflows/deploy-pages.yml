@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - web-nextjs-storefront
   workflow_dispatch:
 
 permissions:
@@ -21,43 +22,53 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install web storefront dependencies
+        working-directory: web-store
+        run: npm install
+
+      - name: Build Next.js web storefront
+        working-directory: web-store
+        run: npm run build
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Install dependencies
+      - name: Install Flutter dependencies
         run: flutter pub get
 
       - name: Build Flutter commerce app
         run: |
-          flutter build web --release \
-            --dart-define=APP_ENV=production \
-            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          flutter build web --release             --dart-define=APP_ENV=production             --dart-define=SUPABASE_URL="$SUPABASE_URL"             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
 
       - name: Convert Flutter build to portable relative base path
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
           index = Path("build/web/index.html")
           text = index.read_text(encoding="utf-8")
           text = text.replace('<base href="/">', '<base href="./">')
           index.write_text(text, encoding="utf-8")
-          print("Updated build/web/index.html to use relative base href ./")
           PY
 
-      - name: Assemble public website and app
+      - name: Assemble public Next.js website and Flutter app
         run: |
           rm -rf build/site
           mkdir -p build/site/app
+          cp -R web-store/out/. build/site/
           cp -R build/web/. build/site/app/
-          cp index.html build/site/index.html
           cp CNAME build/site/CNAME
 
       - name: Upload Pages artifact
@@ -73,5 +84,5 @@ jobs:
     needs: build
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
+        id: deployment
