@@ -16,46 +16,82 @@ class ProductCard extends StatelessWidget {
     final imageUrl = StorageService.resolvePublicUrl(rawImageUrl);
     final price = product.variants.isNotEmpty ? product.variants.first.price : 0;
 
-    return NileCard(
-      padding: EdgeInsets.zero,
-      onTap: () => context.push('/product/${product.slug}'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: imageUrl != null && imageUrl.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(color: NileColors.surfaceVariant),
-                    errorWidget: (_, __, ___) => Container(
-                      color: NileColors.surfaceVariant,
-                      child: const Icon(Icons.image_not_supported_outlined, color: NileColors.textTertiary),
-                    ),
-                  )
-                : Container(
-                    color: NileColors.surfaceVariant,
-                    child: const Icon(Icons.spa, color: NileColors.primary, size: 40),
-                  ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(NileSpacing.sm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.name,
-                  style: NileTypography.titleSmall,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
+      elevation: 1.5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: NileColors.border.withOpacity(.55)),
+      ),
+      child: InkWell(
+        onTap: () => context.push('/product/${product.slug}'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 7,
+              child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: imageUrl != null && imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.contain,
+                          placeholder: (_, __) => Container(
+                            color: NileColors.surfaceVariant,
+                            alignment: Alignment.center,
+                            child: const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          errorWidget: (_, __, ___) => Container(
+                            color: NileColors.surfaceVariant,
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.image_not_supported_outlined,
+                              color: NileColors.textTertiary,
+                              size: 28,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          color: NileColors.surfaceVariant,
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.spa_outlined,
+                            color: NileColors.primary,
+                            size: 34,
+                          ),
+                        ),
                 ),
-                const SizedBox(height: 4),
-                NilePrice(amount: price),
-              ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 2, 10, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    style: NileTypography.titleSmall.copyWith(
+                      fontWeight: FontWeight.w700,
+                      height: 1.15,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  NilePrice(amount: price),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
