@@ -52,6 +52,7 @@ class CmsDashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: NileSpacing.md),
+          _section(context, Icons.web_outlined, 'Website Slots', 'Choose which uploaded images power the public website', '/admin/cms/website-slots'),
           _section(context, Icons.image_outlined, 'Banners', 'Home & promo banners', '/admin/cms/banners'),
           _section(context, Icons.article_outlined, 'Pages', 'Static pages', '/admin/cms/pages'),
           _section(context, Icons.help_outline, 'FAQs', 'Customer FAQ entries', '/admin/cms/faqs'),
