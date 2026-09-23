@@ -48,7 +48,7 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
     final picked = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Choose image for \${slot['label']}'),
+        title: Text('Choose image for ${slot['label']}'),
         content: SizedBox(
           width: 720, height: 420,
           child: GridView.builder(
@@ -57,7 +57,7 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
             itemBuilder: (_, i) {
               final file = _files[i];
               final name = file.name.toString();
-              final path = 'website/\$name';
+              final path = 'website/$name';
               return InkWell(
                 onTap: () => Navigator.pop(ctx, path),
                 child: Card(
@@ -108,7 +108,7 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
         IconButton(onPressed: _loading ? null : _load, icon: const Icon(Icons.refresh)),
       ]),
       body: _loading ? const Center(child: CircularProgressIndicator()) :
-        _error != null ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Could not load website slots: \$_error'))) :
+        _error != null ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Could not load website slots: $_error'))) :
         RefreshIndicator(
           onRefresh: _load,
           child: ListView.separated(
