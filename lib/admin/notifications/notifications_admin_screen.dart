@@ -48,7 +48,7 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
   Future<void> _editTemplate([Map<String, dynamic>? existing]) async {
     final name = TextEditingController(text: existing?['event_key']?.toString() ?? '');
     final channel = TextEditingController(text: existing?['channel']?.toString() ?? 'push');
-        final body = TextEditingController(text: existing?['template_body']?.toString() ?? '');
+    final body = TextEditingController(text: existing?['template_body']?.toString() ?? '');
     bool active = existing?['is_active'] != false;
     final ok = await showDialog<bool>(
       context: context,
@@ -78,7 +78,7 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
       await _load();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: ' + e.toString()), backgroundColor: NileColors.error));
-    } finally { for (final c in [name, channel, subject, body]) c.dispose(); }
+    } finally { for (final c in [name, channel, body]) c.dispose(); }
   }
 
   @override
@@ -103,7 +103,7 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
         return Card(child: ListTile(
           leading: const Icon(Icons.notifications_outlined),
           title: Text((r['event_key'] ?? 'Template').toString()),
-          subtitle: Text((r['channel'] ?? '—').toString() + ' • ' + (r['is_active'] == false ? 'Inactive' : 'Active') + '\n' + (r['subject'] ?? r['body'] ?? r['content'] ?? '').toString(), maxLines: 3, overflow: TextOverflow.ellipsis),
+          subtitle: Text((r['channel'] ?? '—').toString() + ' • ' + (r['is_active'] == false ? 'Inactive' : 'Active') + '\n' + (r['template_body'] ?? '').toString(), maxLines: 3, overflow: TextOverflow.ellipsis),
           isThreeLine: true,
           trailing: IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _editTemplate(r)),
         ));
