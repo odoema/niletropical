@@ -78,11 +78,16 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
           : _error != null
               ? NileEmptyState(title: _title, message: _error)
               : GridView.builder(
-                  padding: const EdgeInsets.all(NileSpacing.md),
+                  padding: const EdgeInsets.fromLTRB(
+                    NileSpacing.md,
+                    NileSpacing.sm,
+                    NileSpacing.md,
+                    NileSpacing.lg,
+                  ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.68,
-                    mainAxisSpacing: NileSpacing.sm,
+                    childAspectRatio: 0.78,
+                    mainAxisSpacing: NileSpacing.md,
                     crossAxisSpacing: NileSpacing.sm,
                   ),
                   itemCount: _products.length,
