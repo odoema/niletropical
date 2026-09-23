@@ -21,6 +21,7 @@ class AdminShell extends StatelessWidget {
     NileSideNavItem(label: 'Customers', icon: Icons.people_outline, selectedIcon: Icons.people, route: '/admin/customers'),
     NileSideNavItem(label: 'COD', icon: Icons.payments_outlined, selectedIcon: Icons.payments, route: '/admin/finance/cod'),
     NileSideNavItem(label: 'CMS', icon: Icons.article_outlined, selectedIcon: Icons.article, route: '/admin/cms'),
+    NileSideNavItem(label: 'Media Library', icon: Icons.perm_media_outlined, selectedIcon: Icons.perm_media, route: '/admin/cms/media'),
     NileSideNavItem(label: 'Reports', icon: Icons.bar_chart_outlined, selectedIcon: Icons.bar_chart, route: '/admin/reports'),
   ];
 
@@ -32,8 +33,9 @@ class AdminShell extends StatelessWidget {
     if (location.startsWith('/admin/delivery')) return 5;
     if (location.startsWith('/admin/customers')) return 6;
     if (location.startsWith('/admin/finance')) return 7;
+    if (location.startsWith('/admin/cms/media')) return 9;
     if (location.startsWith('/admin/cms')) return 8;
-    if (location.startsWith('/admin/reports')) return 9;
+    if (location.startsWith('/admin/reports')) return 10;
     return 0;
   }
 
