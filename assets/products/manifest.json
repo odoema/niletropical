@@ -1,0 +1,126 @@
+{
+  "generated_from": "production product export supplied in conversation",
+  "count": 20,
+  "products": [
+    {
+      "slug": "hand-sanitizer-gel-50ml",
+      "category": "Hygiene",
+      "name": "Hand sanitizer gel 50ml",
+      "image": "assets/products/hand-sanitizer-gel-50ml.svg"
+    },
+    {
+      "slug": "nile-liquid-hand-sanitizer-1litre",
+      "category": "Hygiene",
+      "name": "Nile Liquid hand sanitizer - 1litre",
+      "image": "assets/products/nile-liquid-hand-sanitizer-1litre.svg"
+    },
+    {
+      "slug": "nile-liquid-hand-sanitizer-5-litres",
+      "category": "Hygiene",
+      "name": "Nile Liquid hand sanitizer - 5 litres",
+      "image": "assets/products/nile-liquid-hand-sanitizer-5-litres.svg"
+    },
+    {
+      "slug": "nile-liquid-hand-sanitizer-500ml",
+      "category": "Hygiene",
+      "name": "Nile Liquid hand sanitizer - 500ml",
+      "image": "assets/products/nile-liquid-hand-sanitizer-500ml.svg"
+    },
+    {
+      "slug": "nile-sheabutter-lotion-apple-200ml",
+      "category": "Lotions",
+      "name": "Nile sheabutter lotion –Apple 200ml",
+      "image": "assets/products/nile-sheabutter-lotion-apple-200ml.svg"
+    },
+    {
+      "slug": "nile-sheabutter-lotion-lavender-200ml",
+      "category": "Lotions",
+      "name": "Nile sheabutter lotion –Lavender 200ml",
+      "image": "assets/products/nile-sheabutter-lotion-lavender-200ml.svg"
+    },
+    {
+      "slug": "nile-sheabutter-lotion-lemon-200ml",
+      "category": "Lotions",
+      "name": "Nile sheabutter lotion –Lemon 200ml",
+      "image": "assets/products/nile-sheabutter-lotion-lemon-200ml.svg"
+    },
+    {
+      "slug": "nile-sheabutter-lotion-sweetie-200ml",
+      "category": "Lotions",
+      "name": "Nile sheabutter lotion –sweetie 200ml",
+      "image": "assets/products/nile-sheabutter-lotion-sweetie-200ml.svg"
+    },
+    {
+      "slug": "sheabutter-baby-lotion-200ml",
+      "category": "Lotions",
+      "name": "Sheabutter baby lotion- 200ml",
+      "image": "assets/products/sheabutter-baby-lotion-200ml.svg"
+    },
+    {
+      "slug": "shea-butter-mosquito-repellent-jelly-150g",
+      "category": "Personal Care",
+      "name": "Shea butter Mosquito repellent Jelly- 150grams",
+      "image": "assets/products/shea-butter-mosquito-repellent-jelly-150g.svg"
+    },
+    {
+      "slug": "eco-shea-butter",
+      "category": "Shea Butter",
+      "name": "E.C.O SHEA BUTTER",
+      "image": "assets/products/eco-shea-butter.svg"
+    },
+    {
+      "slug": "eco-shea-butter-250g",
+      "category": "Shea Butter",
+      "name": "E.C.O SHEA BUTTER – 250G",
+      "image": "assets/products/eco-shea-butter-250g.svg"
+    },
+    {
+      "slug": "eco-shea-butter-500g",
+      "category": "Shea Butter",
+      "name": "E.C.O SHEA BUTTER – 500G",
+      "image": "assets/products/eco-shea-butter-500g.svg"
+    },
+    {
+      "slug": "pure-sheabutter-soap-120g",
+      "category": "Soaps",
+      "name": "Pure sheabutter soap- 120 grams",
+      "image": "assets/products/pure-sheabutter-soap-120g.svg"
+    },
+    {
+      "slug": "shea-butter-tumeric-soap-120g",
+      "category": "Soaps",
+      "name": "Shea butter Tumeric soap- 120 grams",
+      "image": "assets/products/shea-butter-tumeric-soap-120g.svg"
+    },
+    {
+      "slug": "sheabutter-facial-scrub-soap-120g",
+      "category": "Soaps",
+      "name": "Sheabutter Facial scrub soap- 120 grams",
+      "image": "assets/products/sheabutter-facial-scrub-soap-120g.svg"
+    },
+    {
+      "slug": "sheabutter-herbal-soap-120g",
+      "category": "Soaps",
+      "name": "Sheabutter Herbal soap- 120 grams",
+      "image": "assets/products/sheabutter-herbal-soap-120g.svg"
+    },
+    {
+      "slug": "tropisun-sunscreen-for-albinism-200g",
+      "category": "Sun Care",
+      "name": "Tropisun sunscreen For Albinism- 200 grams",
+      "image": "assets/products/tropisun-sunscreen-for-albinism-200g.svg"
+    },
+    {
+      "slug": "hibiscus-powder-150g",
+      "category": "Tea & Botanicals",
+      "name": "Hibiscus powder – 150 grams",
+      "image": "assets/products/hibiscus-powder-150g.svg"
+    },
+    {
+      "slug": "hibiscus-tea-150g",
+      "category": "Tea & Botanicals",
+      "name": "Hibiscus Tea- 150 grams",
+      "image": "assets/products/hibiscus-tea-150g.svg"
+    }
+  ]
+}
