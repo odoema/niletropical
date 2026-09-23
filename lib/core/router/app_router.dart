@@ -29,6 +29,7 @@ import '../../admin/inventory/inventory_dashboard_screen.dart';
 import '../../admin/inventory/stock_adjustment_screen.dart';
 import '../../admin/products/product_list_screen.dart';
 import '../../admin/products/product_form_screen.dart';
+import '../../admin/products/product_image_manager_screen.dart';
 import '../../admin/delivery/delivery_dashboard_screen.dart';
 import '../../admin/orders/order_list_screen.dart';
 import '../../admin/orders/order_detail_screen.dart';
@@ -161,6 +162,7 @@ final appRouter = GoRouter(
         GoRoute(path: '/admin/inventory', name: 'admin-inventory', builder: (_, __) => const InventoryDashboardScreen()),
         GoRoute(path: '/admin/inventory/adjust', name: 'admin-stock-adjust', builder: (_, __) => const StockAdjustmentScreen()),
         GoRoute(path: '/admin/products', name: 'admin-products', builder: (_, __) => const AdminProductListScreen()),
+        GoRoute(path: '/admin/products/images', name: 'admin-product-images', builder: (_, __) => const ProductImageManagerScreen()),
         GoRoute(path: '/admin/products/new', name: 'admin-product-new', builder: (_, __) => const ProductFormScreen()),
         GoRoute(
           path: '/admin/products/:id',
