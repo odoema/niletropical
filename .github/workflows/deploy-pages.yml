@@ -6,6 +6,9 @@ on:
       - master
       - web-nextjs-storefront
   workflow_dispatch:
+  pull_request:
+    branches:
+      - master
 
 permissions:
   contents: read
