@@ -15,12 +15,15 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _loading = false;
+  bool _obscurePassword = true;
   String? _error;
+  String? _message;
 
   Future<void> _login() async {
     setState(() {
       _loading = true;
       _error = null;
+      _message = null;
     });
     try {
       await AuthService.signIn(
@@ -42,6 +45,36 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         return;
       }
       context.go('/admin');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final email = _email.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      setState(() {
+        _error = 'Enter your email address first.';
+        _message = null;
+      });
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+      _message = null;
+    });
+    try {
+      await AuthService.sendPasswordReset(email);
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _message = 'Password reset instructions have been sent to $email.';
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -87,13 +120,33 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 NileTextField(
                   controller: _password,
                   label: 'Password',
-                  obscureText: true,
+                  obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _login(),
+                  suffixIcon: IconButton(
+                    tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    ),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _loading ? null : _forgotPassword,
+                    child: const Text('Forgot password?'),
+                  ),
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: NileSpacing.sm),
                   Text(_error!, style: NileTypography.bodySmall.copyWith(color: NileColors.error)),
                 ],
-                const SizedBox(height: NileSpacing.lg),
+                if (_message != null) ...[
+                  const SizedBox(height: NileSpacing.sm),
+                  Text(_message!, style: NileTypography.bodySmall.copyWith(color: NileColors.primary)),
+                ],
+                const SizedBox(height: NileSpacing.sm),
                 NileButton(label: 'Sign in', loading: _loading, onPressed: _login),
               ],
             ),
