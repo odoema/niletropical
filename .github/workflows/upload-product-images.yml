@@ -12,6 +12,7 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,30 +20,44 @@ jobs:
       - name: Validate secrets
         shell: bash
         run: |
-          test -n "$SUPABASE_URL" || { echo "SUPABASE_URL secret is missing"; exit 1; }
-          test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo "SUPABASE_SERVICE_ROLE_KEY secret is missing"; exit 1; }
+          set -euo pipefail
+          test -n "$SUPABASE_URL" || { echo "::error::SUPABASE_URL secret is missing."; exit 1; }
+          test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo "::error::SUPABASE_SERVICE_ROLE_KEY secret is missing."; exit 1; }
 
-      - name: Prepare generated product images
+      - name: Prepare product JPGs from the 20 committed product artworks
         shell: bash
         run: |
           set -euo pipefail
-          test -f "assets/generated-product-images.zip" || {
-            echo "::error::assets/generated-product-images.zip is missing."
-            echo "Refusing to report success because no generated product images can be uploaded."
+
+          svg_count="$(find assets/products -maxdepth 1 -type f -name '*.svg' | wc -l)"
+          test "$svg_count" -eq 20 || {
+            echo "::error::Expected exactly 20 product SVG artworks, found $svg_count."
             exit 1
           }
+
+          command -v convert >/dev/null 2>&1 || {
+            echo "::error::ImageMagick convert is not available on the runner."
+            exit 1
+          }
+
           rm -rf assets/generated-products
           mkdir -p assets/generated-products
-          unzip -o "assets/generated-product-images.zip" -d assets/generated-products
-          count="$(find assets/generated-products -maxdepth 1 -type f -name '*.jpg' | wc -l)"
-          test "$count" -eq 20 || {
-            echo "::error::Expected 20 generated JPGs, found $count."
+
+          for svg in assets/products/*.svg; do
+            slug="$(basename "$svg" .svg)"
+            echo "Rendering $slug.jpg"
+            convert -background white -density 144 "$svg" -resize '1200x1200>' -strip -interlace Plane -quality 88 "assets/generated-products/$slug.jpg"
+          done
+
+          jpg_count="$(find assets/generated-products -maxdepth 1 -type f -name '*.jpg' | wc -l)"
+          test "$jpg_count" -eq 20 || {
+            echo "::error::Expected 20 rendered JPGs, found $jpg_count."
             exit 1
           }
-          echo "Using generated product image package: $count JPGs."
 
-      - name: Upload generated JPGs and attach them to products
-        if: hashFiles('assets/generated-products/*.jpg') != ''
+          echo "Prepared $jpg_count JPGs from the exact 20 committed production slugs."
+
+      - name: Upload JPGs and attach them to the matching production products
         shell: bash
         run: |
           set -euo pipefail
@@ -51,28 +66,44 @@ jobs:
             slug="$(basename "$file" .jpg)"
             echo "=== $slug ==="
 
-            curl --fail-with-body --silent --show-error               -X PUT "$SUPABASE_URL/storage/v1/object/product-images/$slug.jpg"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: image/jpeg"               -H "x-upsert: true"               --data-binary "@$file"
-
-            product_id="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" | jq -r '.[0].id // empty')"
+            product_id="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               | jq -r '.[0].id // empty')"
 
             if [ -z "$product_id" ]; then
-              echo "Product not found for slug: $slug"
+              echo "::error::Production product not found for slug: $slug"
               exit 1
             fi
 
-            payload="$(jq -n               --arg path "$slug.jpg"               --arg alt "$slug product image"               '{storage_path:$path, alt_text:$alt, is_main:true, sort_order:0}')"
+            curl --fail-with-body --silent --show-error               -X PUT "$SUPABASE_URL/storage/v1/object/product-images/$slug.jpg"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: image/jpeg"               -H "x-upsert: true"               --data-binary "@$file"
 
-            updated="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/product_images?product_id=eq.$product_id&is_main=eq.true"               -X PATCH               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: application/json"               -H "Prefer: return=representation"               -d "$payload")"
+            payload="$(jq -n               --arg path "$slug.jpg"               --arg alt "$slug product image"               '{storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}')"
+
+            updated="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/product_images?product_id=eq.$product_id&is_main=eq.true"               -X PATCH               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: application/json"               -H "Prefer: return=representation"               -d "$payload")"
 
             if [ "$(echo "$updated" | jq 'length')" -eq 0 ]; then
-              jq -n                 --arg product_id "$product_id"                 --arg path "$slug.jpg"                 --arg alt "$slug product image"                 '{product_id:$product_id,storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}'                 | curl --fail-with-body --silent --show-error                     "$SUPABASE_URL/rest/v1/product_images"                     -X POST                     -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"                     -H "Content-Type: application/json"                     -H "Prefer: return=minimal"                     -d @-
+              jq -n                 --arg product_id "$product_id"                 --arg path "$slug.jpg"                 --arg alt "$slug product image"                 '{product_id:$product_id,storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}'                 | curl --fail-with-body --silent --show-error                     "$SUPABASE_URL/rest/v1/product_images"                     -X POST                     -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"                     -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"                     -H "Content-Type: application/json"                     -H "Prefer: return=minimal"                     -d @-
             fi
 
-            echo "Attached $slug.jpg to $product_id"
+            echo "Uploaded and attached $slug.jpg -> $product_id"
           done
 
-      - name: Verify generated JPGs are the only image source
+      - name: Verify all 20 storage objects and product image references
         shell: bash
         run: |
           set -euo pipefail
-          echo "Generated JPG package uploaded and attached. Placeholder SVGs were not uploaded."
+
+          storage_count="$(curl --fail-with-body --silent --show-error             "$SUPABASE_URL/storage/v1/object/list/product-images"             -X POST             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"             -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"             -H "Content-Type: application/json"             --data '{"limit":1000,"offset":0,"search":""}'             | jq '[.[] | select(.name | endswith(".jpg"))] | length')"
+
+          test "$storage_count" -ge 20 || {
+            echo "::error::Expected at least 20 JPG objects in product-images, found $storage_count."
+            exit 1
+          }
+
+          image_ref_count="$(curl --fail-with-body --silent --show-error             "$SUPABASE_URL/rest/v1/product_images?select=id,storage_path,is_main&storage_path=like.*.jpg&is_main=eq.true"             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"             -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"             | jq 'length')"
+
+          test "$image_ref_count" -ge 20 || {
+            echo "::error::Expected at least 20 main JPG image references, found $image_ref_count."
+            exit 1
+          }
+
+          echo "VERIFIED: $storage_count JPG storage objects and $image_ref_count main JPG references are present."
+          echo "The committed SVG artworks are only the source; no placeholder SVG was uploaded to Supabase."
