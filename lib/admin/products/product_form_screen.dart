@@ -47,7 +47,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   bool _active = true;
   String? _categoryId;
   String? _imagePath;
-  String? _originalImagePath;
   List<Map<String, dynamic>> _categories = const [];
   List<Map<String, dynamic>> _existingImages = const [];
   String? _defaultVariantId;
@@ -115,10 +114,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 .toList() ??
             const <Map<String, dynamic>>[];
         final main = _existingImages.where((x) => x['is_main'] == true);
-        if (main.isNotEmpty) {
-          _imagePath = main.first['storage_path']?.toString();
-          _originalImagePath = _imagePath;
-        }
+        if (main.isNotEmpty) _imagePath = main.first['storage_path']?.toString();
       }
     } catch (e) {
       if (mounted) {
@@ -206,18 +202,16 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         'is_active': true,
       };
 
-      final imagePayload = isEditing
+      final imagePayload = _imagePath == null
           ? <Map<String, dynamic>>[]
-          : (_imagePath == null
-              ? <Map<String, dynamic>>[]
-              : [
-                  {
-                    'storage_path': _imagePath,
-                    'alt_text': _name.text.trim(),
-                    'sort_order': 0,
-                    'is_main': true,
-                  }
-                ]);
+          : [
+              {
+                'storage_path': _imagePath,
+                'alt_text': _name.text.trim(),
+                'sort_order': 0,
+                'is_main': true,
+              }
+            ];
 
       final savedId = await SupabaseService.client.rpc(
         'admin_upsert_product',
@@ -229,28 +223,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       );
 
       final productId = savedId.toString();
-
-      if (isEditing && _imagePath != null && _imagePath != _originalImagePath) {
-        await SupabaseService.client
-            .from('product_images')
-            .update({'is_main': false})
-            .eq('product_id', productId);
-        await SupabaseService.client.from('product_images').insert({
-          'product_id': productId,
-          'storage_path': _imagePath,
-          'alt_text': _name.text.trim(),
-          'sort_order': 0,
-          'is_main': true,
-        });
-        if (_originalImagePath != null && _originalImagePath!.isNotEmpty) {
-          try {
-            await StorageService.delete(
-              bucket: StorageService.productImages,
-              path: _originalImagePath!,
-            );
-          } catch (_) {}
-        }
-      }
       if (_categoryId != null && _categoryId!.isNotEmpty) {
         await SupabaseService.client
             .from('products')
