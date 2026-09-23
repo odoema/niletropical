@@ -26,6 +26,26 @@ class AuthService {
     );
   }
 
+  static Future<void> sendPasswordReset(String email) async {
+    if (!Env.isConfigured) {
+      throw StateError('Supabase is not configured. Cannot reset password.');
+    }
+    final redirectTo = '${Uri.base.origin}/app/#/admin/reset-password';
+    await SupabaseService.client.auth.resetPasswordForEmail(
+      email.trim(),
+      redirectTo: redirectTo,
+    );
+  }
+
+  static Future<void> updatePassword(String password) async {
+    if (!Env.isConfigured) {
+      throw StateError('Supabase is not configured. Cannot update password.');
+    }
+    await SupabaseService.client.auth.updateUser(
+      UserAttributes(password: password),
+    );
+  }
+
   static Future<void> signOut() async {
     if (!Env.isConfigured) return;
     await SupabaseService.client.auth.signOut();
