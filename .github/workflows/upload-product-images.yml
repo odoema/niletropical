@@ -24,6 +24,15 @@ jobs:
           test -n "$SUPABASE_URL" || { echo "::error::SUPABASE_URL secret is missing."; exit 1; }
           test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo "::error::SUPABASE_SERVICE_ROLE_KEY secret is missing."; exit 1; }
 
+      - name: Install SVG renderer
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y imagemagick librsvg2-bin
+          command -v convert
+          command -v rsvg-convert
+
       - name: Prepare product JPGs from the 20 committed product artworks
         shell: bash
         run: |
@@ -35,18 +44,15 @@ jobs:
             exit 1
           }
 
-          command -v convert >/dev/null 2>&1 || {
-            echo "::error::ImageMagick convert is not available on the runner."
-            exit 1
-          }
-
           rm -rf assets/generated-products
           mkdir -p assets/generated-products
 
           for svg in assets/products/*.svg; do
             slug="$(basename "$svg" .svg)"
             echo "Rendering $slug.jpg"
-            convert -background white -density 144 "$svg" -resize '1200x1200>' -strip -interlace Plane -quality 88 "assets/generated-products/$slug.jpg"
+            rsvg-convert -w 1200 -h 1200 "$svg" -o "assets/generated-products/$slug.png"
+            convert "assets/generated-products/$slug.png" -background white -alpha remove -alpha off -strip -interlace Plane -quality 88 "assets/generated-products/$slug.jpg"
+            rm "assets/generated-products/$slug.png"
           done
 
           jpg_count="$(find assets/generated-products -maxdepth 1 -type f -name '*.jpg' | wc -l)"
