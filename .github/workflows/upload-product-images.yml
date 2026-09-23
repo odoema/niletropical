@@ -22,62 +22,52 @@ jobs:
           test -n "$SUPABASE_URL" || { echo "SUPABASE_URL secret is missing"; exit 1; }
           test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo "SUPABASE_SERVICE_ROLE_KEY secret is missing"; exit 1; }
 
-      - name: Upload SVGs and attach them to products
+      - name: Prepare generated product images
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f "assets/generated-product-images.zip" ]; then
+            rm -rf assets/generated-products
+            mkdir -p assets/generated-products
+            unzip -o "assets/generated-product-images.zip" -d assets/generated-products
+            echo "Using generated product image package."
+          else
+            echo "Generated image package not present."
+          fi
+
+      - name: Upload generated JPGs and attach them to products
+        if: hashFiles('assets/generated-products/*.jpg') != ''
         shell: bash
         run: |
           set -euo pipefail
 
-          for file in assets/products/*.svg; do
-            slug="$(basename "$file" .svg)"
+          for file in assets/generated-products/*.jpg; do
+            slug="$(basename "$file" .jpg)"
             echo "=== $slug ==="
 
-            curl --fail-with-body --silent --show-error \
-              -X PUT "$SUPABASE_URL/storage/v1/object/product-images/$slug.svg" \
-              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-              -H "Content-Type: image/svg+xml" \
-              -H "x-upsert: true" \
-              --data-binary "@$file"
+            curl --fail-with-body --silent --show-error               -X PUT "$SUPABASE_URL/storage/v1/object/product-images/$slug.jpg"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: image/jpeg"               -H "x-upsert: true"               --data-binary "@$file"
 
-            product_id="$(curl --fail-with-body --silent --show-error \
-              "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1" \
-              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" | jq -r '.[0].id // empty')"
+            product_id="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" | jq -r '.[0].id // empty')"
 
             if [ -z "$product_id" ]; then
               echo "Product not found for slug: $slug"
               exit 1
             fi
 
-            payload="$(jq -n \
-              --arg path "$slug.svg" \
-              --arg alt "$slug product image" \
-              '{storage_path:$path, alt_text:$alt, is_main:true, sort_order:0}')"
+            payload="$(jq -n               --arg path "$slug.jpg"               --arg alt "$slug product image"               '{storage_path:$path, alt_text:$alt, is_main:true, sort_order:0}')"
 
-            updated="$(curl --fail-with-body --silent --show-error \
-              "$SUPABASE_URL/rest/v1/product_images?product_id=eq.$product_id&is_main=eq.true" \
-              -X PATCH \
-              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-              -H "Content-Type: application/json" \
-              -H "Prefer: return=representation" \
-              -d "$payload")"
+            updated="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/product_images?product_id=eq.$product_id&is_main=eq.true"               -X PATCH               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: application/json"               -H "Prefer: return=representation"               -d "$payload")"
 
             if [ "$(echo "$updated" | jq 'length')" -eq 0 ]; then
-              jq -n \
-                --arg product_id "$product_id" \
-                --arg path "$slug.svg" \
-                --arg alt "$slug product image" \
-                '{product_id:$product_id,storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}' \
-                | curl --fail-with-body --silent --show-error \
-                    "$SUPABASE_URL/rest/v1/product_images" \
-                    -X POST \
-                    -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-                    -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-                    -H "Content-Type: application/json" \
-                    -H "Prefer: return=minimal" \
-                    -d @-
+              jq -n                 --arg product_id "$product_id"                 --arg path "$slug.jpg"                 --arg alt "$slug product image"                 '{product_id:$product_id,storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}'                 | curl --fail-with-body --silent --show-error                     "$SUPABASE_URL/rest/v1/product_images"                     -X POST                     -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"                     -H "Content-Type: application/json"                     -H "Prefer: return=minimal"                     -d @-
             fi
 
-            echo "Attached $slug.svg to $product_id"
+            echo "Attached $slug.jpg to $product_id"
           done
+
+      - name: Refuse placeholder SVG upload when generated package is present
+        if: hashFiles('assets/generated-products/*.jpg') != ''
+        shell: bash
+        run: |
+          echo "Generated JPG package is active; SVG placeholders will not be uploaded."
+          exit 0
