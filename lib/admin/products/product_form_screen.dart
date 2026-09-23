@@ -1,19 +1,19 @@
-/// Nile Tropical - Admin Product Form (Add / Edit)
+/// Nile Tropical - Admin Product Form
 /// Copyright © Hon. Dr. Betty Udongo Pacutho
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/constants/app_constants.dart';
-import '../../core/config/env.dart';
-import '../../shared/services/supabase_service.dart';
-import '../../shared/services/media_upload.dart';
-import '../../shared/services/storage_service.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/config/env.dart';
+import '../../core/theme/app_theme.dart';
+import '../../shared/services/media_upload.dart';
+import '../../shared/services/storage_service.dart';
+import '../../shared/services/supabase_service.dart';
+
 class ProductFormScreen extends ConsumerStatefulWidget {
-  final String? productId; // null = create new
+  final String? productId;
 
   const ProductFormScreen({super.key, this.productId});
 
@@ -23,142 +23,222 @@ class ProductFormScreen extends ConsumerStatefulWidget {
 
 class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _shortDescController = TextEditingController();
-  final _fullDescController = TextEditingController();
-  final _benefitsController = TextEditingController();
-  final _howToUseController = TextEditingController();
-  final _skuController = TextEditingController();
-  final _variantNameController = TextEditingController(text: 'Default');
-  final _priceController = TextEditingController();
-  final _costController = TextEditingController();
-  final _comparePriceController = TextEditingController();
-  final _stockController = TextEditingController(text: '0');
-  final _reorderController = TextEditingController(text: '5');
-  final _imagePathController = TextEditingController();
-  final _ingredientsController = TextEditingController();
-  final _warningsController = TextEditingController();
-  final List<Map<String, TextEditingController>> _extraVariants = [];
+  final _name = TextEditingController();
+  final _short = TextEditingController();
+  final _full = TextEditingController();
+  final _benefits = TextEditingController();
+  final _howToUse = TextEditingController();
+  final _ingredients = TextEditingController();
+  final _warnings = TextEditingController();
+  final _sku = TextEditingController();
+  final _variantName = TextEditingController(text: 'Default');
+  final _price = TextEditingController();
+  final _cost = TextEditingController();
+  final _compare = TextEditingController();
+  final _stock = TextEditingController(text: '0');
+  final _reorder = TextEditingController(text: '5');
 
-  bool _isFeatured = false;
-  bool _isBestseller = false;
-  bool _isNew = false;
-  bool _isPromotional = false;
-  bool _isActive = true;
+  bool _loading = true;
   bool _saving = false;
+  bool _featured = false;
+  bool _bestseller = false;
+  bool _newArrival = false;
+  bool _promotional = false;
+  bool _active = true;
+  String? _categoryId;
+  String? _imagePath;
+  List<Map<String, dynamic>> _categories = const [];
+  List<Map<String, dynamic>> _existingImages = const [];
+  String? _defaultVariantId;
 
   bool get isEditing => widget.productId != null;
 
   @override
-  void dispose() {
-    _nameController.dispose();
-    _shortDescController.dispose();
-    _fullDescController.dispose();
-    _benefitsController.dispose();
-    _howToUseController.dispose();
-    _skuController.dispose();
-    _variantNameController.dispose();
-    _priceController.dispose();
-    _costController.dispose();
-    _comparePriceController.dispose();
-    _stockController.dispose();
-    _reorderController.dispose();
-    _imagePathController.dispose();
-    _ingredientsController.dispose();
-    _warningsController.dispose();
-    for (final v in _extraVariants) {
-      for (final c in v.values) {
-        c.dispose();
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      _categories = List<Map<String, dynamic>>.from(
+        await SupabaseService.client
+            .from('categories')
+            .select('id,name,slug,is_active')
+            .eq('is_active', true)
+            .order('sort_order'),
+      );
+
+      if (isEditing) {
+        final product = await SupabaseService.client
+            .from('products')
+            .select('*, product_variants(*), product_images(*)')
+            .eq('id', widget.productId!)
+            .maybeSingle();
+        if (product == null) {
+          throw StateError('Product not found.');
+        }
+
+        _name.text = product['name']?.toString() ?? '';
+        _short.text = product['short_description']?.toString() ?? '';
+        _full.text = product['full_description']?.toString() ?? '';
+        _benefits.text = product['benefits']?.toString() ?? '';
+        _howToUse.text = product['how_to_use']?.toString() ?? '';
+        _ingredients.text = product['ingredients']?.toString() ?? '';
+        _warnings.text = product['warnings']?.toString() ?? '';
+        _categoryId = product['category_id']?.toString();
+        _featured = product['is_featured'] == true;
+        _bestseller = product['is_bestseller'] == true;
+        _newArrival = product['is_new'] == true;
+        _promotional = product['is_promotional'] == true;
+        _active = product['is_active'] != false;
+
+        final variants = (product['product_variants'] as List?)
+                ?.map((x) => Map<String, dynamic>.from(x as Map))
+                .toList() ??
+            const <Map<String, dynamic>>[];
+        if (variants.isNotEmpty) {
+          final v = variants.first;
+          _defaultVariantId = v['id']?.toString();
+          _sku.text = v['sku']?.toString() ?? '';
+          _variantName.text = v['name']?.toString() ?? 'Default';
+          _price.text = v['price']?.toString() ?? '';
+          _cost.text = v['cost_price']?.toString() ?? '';
+          _compare.text = v['compare_at_price']?.toString() ?? '';
+          _stock.text = v['stock_quantity']?.toString() ?? '0';
+          _reorder.text = v['reorder_level']?.toString() ?? '5';
+        }
+
+        _existingImages = (product['product_images'] as List?)
+                ?.map((x) => Map<String, dynamic>.from(x as Map))
+                .toList() ??
+            const <Map<String, dynamic>>[];
+        final main = _existingImages.where((x) => x['is_main'] == true);
+        if (main.isNotEmpty) _imagePath = main.first['storage_path']?.toString();
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not load product: $e'), backgroundColor: NileColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in [
+      _name,
+      _short,
+      _full,
+      _benefits,
+      _howToUse,
+      _ingredients,
+      _warnings,
+      _sku,
+      _variantName,
+      _price,
+      _cost,
+      _compare,
+      _stock,
+      _reorder,
+    ]) {
+      c.dispose();
     }
     super.dispose();
   }
 
+  Future<void> _uploadImage() async {
+    final slug = _name.text.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+    final path = await MediaUpload.pickAndUpload(
+      bucket: StorageService.productImages,
+      objectPath: 'products/${slug.isEmpty ? 'draft' : slug}/${DateTime.now().millisecondsSinceEpoch}.jpg',
+      source: ImageSource.gallery,
+    );
+    if (path != null && mounted) setState(() => _imagePath = path);
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _saving = true);
 
     try {
-      final slug = _nameController.text
+      if (!Env.isConfigured) throw StateError('Supabase is not configured.');
+
+      final slug = _name.text
           .trim()
           .toLowerCase()
-          .replaceAll(RegExp(r'[^a-z0-9]+'), '-');
-      // Field names match the schema (003_catalog.sql) and the rewritten
-      // admin_upsert_product RPC in 019_admin_rpcs.sql — full_description
-      // (not description), and all flags + long-form copy propagated.
-      final product = {
+          .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+          .replaceAll(RegExp(r'-+'), '-');
+
+      final product = <String, dynamic>{
         if (isEditing) 'id': widget.productId,
-        'name': _nameController.text.trim(),
+        'name': _name.text.trim(),
         'slug': slug,
-        'short_description': _shortDescController.text.trim(),
-        'full_description': _fullDescController.text.trim(),
-        'benefits': _benefitsController.text.trim(),
-        'how_to_use': _howToUseController.text.trim(),
-        'ingredients': _ingredientsController.text.trim(),
-        'warnings': _warningsController.text.trim(),
-        'is_active': _isActive,
-        'is_featured': _isFeatured,
-        'is_bestseller': _isBestseller,
-        'is_new': _isNew,
-        'is_promotional': _isPromotional,
+        'short_description': _short.text.trim(),
+        'full_description': _full.text.trim(),
+        'benefits': _benefits.text.trim(),
+        'how_to_use': _howToUse.text.trim(),
+        'ingredients': _ingredients.text.trim(),
+        'warnings': _warnings.text.trim(),
+        'is_active': _active,
+        'is_featured': _featured,
+        'is_bestseller': _bestseller,
+        'is_new': _newArrival,
+        'is_promotional': _promotional,
       };
 
-      final priceVal = double.tryParse(_priceController.text) ?? 0;
-      final costVal = double.tryParse(_costController.text);
-      final compareVal = double.tryParse(_comparePriceController.text);
+      final variant = <String, dynamic>{
+        if (_defaultVariantId != null) 'id': _defaultVariantId,
+        'sku': _sku.text.trim().isEmpty ? slug : _sku.text.trim(),
+        'name': _variantName.text.trim().isEmpty ? 'Default' : _variantName.text.trim(),
+        'price': double.tryParse(_price.text) ?? 0,
+        if (_cost.text.trim().isNotEmpty) 'cost_price': double.tryParse(_cost.text),
+        if (_compare.text.trim().isNotEmpty) 'compare_at_price': double.tryParse(_compare.text),
+        'stock_quantity': int.tryParse(_stock.text) ?? 0,
+        'reorder_level': int.tryParse(_reorder.text) ?? 5,
+        'is_active': true,
+      };
 
-      final variants = <Map<String, dynamic>>[
-        {
-          'sku': _skuController.text.trim().isEmpty
-              ? slug
-              : _skuController.text.trim(),
-          'name': _variantNameController.text.trim().isEmpty
-              ? 'Default'
-              : _variantNameController.text.trim(),
-          'price': priceVal,
-          if (costVal != null) 'cost_price': costVal,
-          if (compareVal != null) 'compare_at_price': compareVal,
-          'stock_quantity': int.tryParse(_stockController.text) ?? 0,
-          'reorder_level': int.tryParse(_reorderController.text) ?? 5,
-          'is_active': true,
+      final imagePayload = _imagePath == null
+          ? <Map<String, dynamic>>[]
+          : [
+              {
+                'storage_path': _imagePath,
+                'alt_text': _name.text.trim(),
+                'sort_order': 0,
+                'is_main': true,
+              }
+            ];
+
+      final savedId = await SupabaseService.client.rpc(
+        'admin_upsert_product',
+        params: {
+          'p_product': product,
+          'p_variants': [variant],
+          'p_images': imagePayload,
         },
-        ..._extraVariants.map((v) {
-          final p = double.tryParse(v['price']!.text) ?? 0;
-          final c = double.tryParse(v['cost']!.text);
-          final cmp = double.tryParse(v['compare']!.text);
-          return {
-            'sku': v['sku']!.text.trim(),
-            'name': v['name']!.text.trim(),
-            'price': p,
-            if (c != null) 'cost_price': c,
-            if (cmp != null) 'compare_at_price': cmp,
-            'stock_quantity': int.tryParse(v['stock']!.text) ?? 0,
-            'reorder_level': int.tryParse(v['reorder']!.text) ?? 5,
-            'is_active': true,
-          };
-        }),
-      ];
-      if (!Env.isConfigured) {
-        throw StateError('Supabase is not configured. Product was not saved.');
+      );
+
+      final productId = savedId.toString();
+      if (_categoryId != null && _categoryId!.isNotEmpty) {
+        await SupabaseService.client
+            .from('products')
+            .update({'category_id': _categoryId})
+            .eq('id', productId);
+      } else {
+        await SupabaseService.client
+            .from('products')
+            .update({'category_id': null})
+            .eq('id', productId);
       }
-      await SupabaseService.client.rpc('admin_upsert_product', params: {
-        'p_product': product,
-        'p_variants': variants,
-        'p_images': _imagePathController.text.trim().isEmpty
-            ? <Map<String, dynamic>>[]
-            : [
-                {
-                  'storage_path': _imagePathController.text.trim(),
-                  'sort_order': 0,
-                  'is_main': true,
-                }
-              ],
-      });
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isEditing ? 'Product updated' : 'Product created'),
+          content: Text(isEditing ? 'Product updated successfully' : 'Product created successfully'),
           backgroundColor: NileColors.success,
         ),
       );
@@ -169,261 +249,167 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Save failed: $e'), backgroundColor: NileColors.error),
       );
-      return;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Product' : 'Add Product'),
+        actions: [
+          TextButton.icon(
+            onPressed: _saving ? null : _save,
+            icon: const Icon(Icons.save_outlined),
+            label: const Text('Save'),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           children: [
-            // Basic Info
-            const Text('Basic Information',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
+            _sectionTitle('Basic information'),
             TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Product Name *'),
-              validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+              controller: _name,
+              decoration: const InputDecoration(labelText: 'Product name *'),
+              validator: (v) => v == null || v.trim().isEmpty ? 'Product name is required' : null,
             ),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: _shortDescController,
-              decoration: const InputDecoration(labelText: 'Short Description'),
-              maxLines: 2,
+            DropdownButtonFormField<String?>(
+              value: _categoryId,
+              decoration: const InputDecoration(labelText: 'Category'),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text('Uncategorised'),
+                ),
+                ..._categories.map(
+                  (c) => DropdownMenuItem<String?>(
+                    value: c['id']?.toString(),
+                    child: Text(c['name']?.toString() ?? ''),
+                  ),
+                ),
+              ],
+              onChanged: (v) => setState(() => _categoryId = v),
             ),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: _fullDescController,
-              decoration: const InputDecoration(labelText: 'Full Description'),
-              maxLines: 4,
-            ),
+            TextFormField(controller: _short, decoration: const InputDecoration(labelText: 'Short description'), maxLines: 2),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: _benefitsController,
-              decoration: const InputDecoration(labelText: 'Benefits'),
-              maxLines: 3,
-            ),
+            TextFormField(controller: _full, decoration: const InputDecoration(labelText: 'Full description'), maxLines: 5),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: _howToUseController,
-              decoration: const InputDecoration(labelText: 'How to Use'),
-              maxLines: 3,
-            ),
+            TextFormField(controller: _benefits, decoration: const InputDecoration(labelText: 'Benefits'), maxLines: 4),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: _ingredientsController,
-              decoration: const InputDecoration(labelText: 'Ingredients'),
-              maxLines: 3,
-            ),
+            TextFormField(controller: _howToUse, decoration: const InputDecoration(labelText: 'How to use'), maxLines: 4),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: _warningsController,
-              decoration: const InputDecoration(labelText: 'Warnings'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 28),
+            TextFormField(controller: _ingredients, decoration: const InputDecoration(labelText: 'Ingredients'), maxLines: 4),
+            const SizedBox(height: 12),
+            TextFormField(controller: _warnings, decoration: const InputDecoration(labelText: 'Warnings'), maxLines: 3),
 
-            // Pricing & Inventory
-            const Text('Pricing & Inventory',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _skuController,
-              decoration: const InputDecoration(labelText: 'SKU *'),
-              validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _imagePathController,
-              decoration: const InputDecoration(
-                labelText: 'Image storage path',
-                hintText: 'product-images/{id}/hero.jpg',
+            const SizedBox(height: 28),
+            _sectionTitle('Product images'),
+            if (_imagePath != null)
+              Container(
+                height: 220,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: NileColors.surfaceVariant,
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Image.network(
+                  StorageService.resolvePublicUrl(_imagePath),
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined, size: 48)),
+                ),
               ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: _saving ? null : _uploadImage,
+              icon: const Icon(Icons.add_photo_alternate_outlined),
+              label: Text(_imagePath == null ? 'Upload product image' : 'Replace main image'),
             ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () async {
-                  final slug = _nameController.text
-                      .trim()
-                      .toLowerCase()
-                      .replaceAll(RegExp(r'[^a-z0-9]+'), '-');
-                  final path = await MediaUpload.pickAndUpload(
-                    bucket: StorageService.productImages,
-                    objectPath:
-                        '${slug.isEmpty ? 'draft' : slug}/${DateTime.now().millisecondsSinceEpoch}.jpg',
-                    source: ImageSource.gallery,
-                  );
-                  if (path != null && mounted) {
-                    setState(() => _imagePathController.text = path);
-                  }
-                },
-                icon: const Icon(Icons.upload),
-                label: const Text('Upload image'),
+            if (_existingImages.length > 1)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text('${_existingImages.length} catalogue images already attached. Use Product Images to manage the full gallery.'),
               ),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _variantNameController,
-              decoration: const InputDecoration(
-                  labelText: 'Variant Name (e.g. 250g, 500ml)'),
+
+            const SizedBox(height: 28),
+            _sectionTitle('Pricing & inventory'),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _sku,
+                    decoration: const InputDecoration(labelText: 'SKU *'),
+                    validator: (v) => v == null || v.trim().isEmpty ? 'SKU is required' : null,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(controller: _variantName, decoration: const InputDecoration(labelText: 'Variant name')),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
-                    controller: _priceController,
-                    decoration: const InputDecoration(
-                      labelText: 'Selling Price (UGX) *',
-                    ),
+                    controller: _price,
+                    decoration: const InputDecoration(labelText: 'Selling price (UGX) *'),
                     keyboardType: TextInputType.number,
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Required' : null,
+                    validator: (v) => v == null || v.trim().isEmpty ? 'Price is required' : null,
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    controller: _costController,
-                    decoration: const InputDecoration(
-                      labelText: 'Cost Price (UGX)',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
+                Expanded(child: TextFormField(controller: _cost, decoration: const InputDecoration(labelText: 'Cost price (UGX)'), keyboardType: TextInputType.number)),
+                const SizedBox(width: 12),
+                Expanded(child: TextFormField(controller: _compare, decoration: const InputDecoration(labelText: 'Compare-at price'), keyboardType: TextInputType.number)),
               ],
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _comparePriceController,
-              decoration: const InputDecoration(
-                labelText: 'Compare at Price (for discounts)',
-              ),
-              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _stockController,
-                    decoration: const InputDecoration(labelText: 'Opening Stock'),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
+                Expanded(child: TextFormField(controller: _stock, decoration: const InputDecoration(labelText: 'Stock'), keyboardType: TextInputType.number)),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    controller: _reorderController,
-                    decoration: const InputDecoration(labelText: 'Reorder Level'),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
+                Expanded(child: TextFormField(controller: _reorder, decoration: const InputDecoration(labelText: 'Reorder level'), keyboardType: TextInputType.number)),
               ],
             ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _extraVariants.add({
-                      'sku': TextEditingController(),
-                      'name': TextEditingController(),
-                      'price': TextEditingController(),
-                      'cost': TextEditingController(),
-                      'compare': TextEditingController(),
-                      'stock': TextEditingController(text: '0'),
-                      'reorder': TextEditingController(text: '5'),
-                    });
-                  });
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Add variant'),
-              ),
-            ),
-            ..._extraVariants.asMap().entries.map((e) {
-              final i = e.key;
-              final v = e.value;
-              return Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Variant ${i + 2}', style: const TextStyle(fontWeight: FontWeight.w700)),
-                    TextFormField(controller: v['sku'], decoration: const InputDecoration(labelText: 'SKU')),
-                    TextFormField(controller: v['name'], decoration: const InputDecoration(labelText: 'Name')),
-                    TextFormField(controller: v['price'], decoration: const InputDecoration(labelText: 'Price UGX'), keyboardType: TextInputType.number),
-                    TextFormField(controller: v['stock'], decoration: const InputDecoration(labelText: 'Stock'), keyboardType: TextInputType.number),
-                  ],
-                ),
-              );
-            }),
+
             const SizedBox(height: 28),
+            _sectionTitle('Storefront visibility'),
+            SwitchListTile(title: const Text('Featured'), value: _featured, onChanged: (v) => setState(() => _featured = v)),
+            SwitchListTile(title: const Text('Bestseller'), value: _bestseller, onChanged: (v) => setState(() => _bestseller = v)),
+            SwitchListTile(title: const Text('New arrival'), value: _newArrival, onChanged: (v) => setState(() => _newArrival = v)),
+            SwitchListTile(title: const Text('Promotional'), value: _promotional, onChanged: (v) => setState(() => _promotional = v)),
+            SwitchListTile(title: const Text('Active — visible in shop'), value: _active, onChanged: (v) => setState(() => _active = v)),
 
-            // Display flags
-            const Text('Display Options',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            SwitchListTile(
-              title: const Text('Featured'),
-              value: _isFeatured,
-              onChanged: (v) => setState(() => _isFeatured = v),
-              activeColor: NileColors.primary,
-            ),
-            SwitchListTile(
-              title: const Text('Best Seller'),
-              value: _isBestseller,
-              onChanged: (v) => setState(() => _isBestseller = v),
-              activeColor: NileColors.primary,
-            ),
-            SwitchListTile(
-              title: const Text('New Arrival'),
-              value: _isNew,
-              onChanged: (v) => setState(() => _isNew = v),
-              activeColor: NileColors.primary,
-            ),
-            SwitchListTile(
-              title: const Text('Promotional'),
-              value: _isPromotional,
-              onChanged: (v) => setState(() => _isPromotional = v),
-              activeColor: NileColors.primary,
-            ),
-            SwitchListTile(
-              title: const Text('Active (visible in shop)'),
-              value: _isActive,
-              onChanged: (v) => setState(() => _isActive = v),
-              activeColor: NileColors.primary,
-            ),
-            const SizedBox(height: 32),
-
-            ElevatedButton(
+            const SizedBox(height: 24),
+            FilledButton.icon(
               onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : Text(isEditing ? 'Save Changes' : 'Create Product'),
+              icon: _saving
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.save_outlined),
+              label: Text(_saving ? 'Saving…' : (isEditing ? 'Save changes' : 'Create product')),
             ),
             const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: _saving ? null : () => context.pop(),
-              child: const Text('Cancel'),
-            ),
+            OutlinedButton(onPressed: _saving ? null : () => context.pop(), child: const Text('Cancel')),
             const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
+
+  Widget _sectionTitle(String title) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Text(title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
+      );
 }
