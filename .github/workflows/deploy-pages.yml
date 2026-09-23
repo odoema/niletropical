@@ -33,27 +33,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Flutter app for custom domain
+      - name: Build Flutter commerce app with portable relative paths
         run: |
-          flutter build web --release --base-href /app/ \
+          flutter build web --release --base-href ./ \
             --dart-define=APP_ENV=production \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+
+      - name: Assemble public website and app
+        run: |
           rm -rf build/site
           mkdir -p build/site/app
           cp -R build/web/. build/site/app/
-
-      - name: Build Flutter app for GitHub project site
-        run: |
-          flutter build web --release --base-href /niletropical/app/ \
-            --dart-define=APP_ENV=production \
-            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
-          mkdir -p build/site/niletropical/app
-          cp -R build/web/. build/site/niletropical/app/
-
-      - name: Assemble public website
-        run: |
           cp index.html build/site/index.html
           cp CNAME build/site/CNAME
 
