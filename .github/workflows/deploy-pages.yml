@@ -56,6 +56,8 @@ jobs:
           mkdir -p build/site/app
           cp index.html build/site/index.html
           cp CNAME build/site/CNAME
+          mkdir -p build/site/assets/website
+          cp -R assets/website/. build/site/assets/website/
           cp -R build/web/. build/site/app/
 
       - name: Upload Pages artifact
