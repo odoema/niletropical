@@ -30,8 +30,8 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
     setState(() { _loading = true; _error = null; });
     try {
       final results = await Future.wait([
-        SupabaseService.client.from('notification_templates').select().order('created_at', ascending: false),
-        SupabaseService.client.from('notification_logs').select().order('created_at', ascending: false).limit(200),
+        SupabaseService.client.from('notification_templates').select().order('event_key'),
+        SupabaseService.client.from('notification_logs').select('*, notifications(recipient, channel, event_key, order_id)').order('created_at', ascending: false).limit(200),
       ]);
       if (!mounted) return;
       setState(() {
@@ -46,10 +46,9 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
   }
 
   Future<void> _editTemplate([Map<String, dynamic>? existing]) async {
-    final name = TextEditingController(text: existing?['name']?.toString() ?? existing?['key']?.toString() ?? '');
+    final name = TextEditingController(text: existing?['event_key']?.toString() ?? '');
     final channel = TextEditingController(text: existing?['channel']?.toString() ?? 'push');
-    final subject = TextEditingController(text: existing?['subject']?.toString() ?? '');
-    final body = TextEditingController(text: existing?['body']?.toString() ?? existing?['content']?.toString() ?? '');
+        final body = TextEditingController(text: existing?['template_body']?.toString() ?? '');
     bool active = existing?['is_active'] != false;
     final ok = await showDialog<bool>(
       context: context,
@@ -68,9 +67,9 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
         ],
       )),
     );
-    if (ok != true) { for (final c in [name, channel, subject, body]) c.dispose(); return; }
+    if (ok != true) { for (final c in [name, channel, body]) c.dispose(); return; }
     try {
-      final payload = {'name': name.text.trim(), 'channel': channel.text.trim(), 'subject': subject.text.trim().isEmpty ? null : subject.text.trim(), 'body': body.text.trim(), 'is_active': active};
+      final payload = {'event_key': name.text.trim(), 'channel': channel.text.trim(), 'template_body': body.text.trim(), 'is_active': active};
       if (existing == null) {
         await SupabaseService.client.from('notification_templates').insert(payload);
       } else {
@@ -103,7 +102,7 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
         final r = _templates[i];
         return Card(child: ListTile(
           leading: const Icon(Icons.notifications_outlined),
-          title: Text((r['name'] ?? r['key'] ?? 'Template').toString()),
+          title: Text((r['event_key'] ?? 'Template').toString()),
           subtitle: Text((r['channel'] ?? '—').toString() + ' • ' + (r['is_active'] == false ? 'Inactive' : 'Active') + '\n' + (r['subject'] ?? r['body'] ?? r['content'] ?? '').toString(), maxLines: 3, overflow: TextOverflow.ellipsis),
           isThreeLine: true,
           trailing: IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _editTemplate(r)),
@@ -117,10 +116,11 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (_, i) {
         final r = _logs[i];
+        final n = Map<String, dynamic>.from(r['notifications'] as Map? ?? {});
         final status = r['status']?.toString() ?? 'unknown';
         return Card(child: ListTile(
           leading: Icon(status == 'sent' || status == 'delivered' ? Icons.check_circle_outline : Icons.error_outline),
-          title: Text((r['channel'] ?? 'notification').toString() + ' • ' + status),
+          title: Text((n['channel'] ?? 'notification').toString() + ' • ' + status),
           subtitle: Text((r['recipient'] ?? r['recipient_phone'] ?? r['recipient_email'] ?? r['user_id'] ?? '').toString() + '\n' + (r['created_at'] ?? '').toString(), maxLines: 2),
         ));
       },
