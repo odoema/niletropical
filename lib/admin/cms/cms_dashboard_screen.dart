@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
-import 'cms_media_library_screen.dart';
 
 class CmsDashboardScreen extends StatelessWidget {
   const CmsDashboardScreen({super.key});
@@ -23,9 +22,7 @@ class CmsDashboardScreen extends StatelessWidget {
           const SizedBox(height: NileSpacing.md),
           NileCard(
             margin: const EdgeInsets.only(bottom: NileSpacing.md),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const CmsMediaLibraryScreen()),
-            ),
+            onTap: () => context.go('/admin/cms/media'),
             child: Row(
               children: [
                 Container(
