@@ -6,6 +6,8 @@ plugins {
 
 android {
     namespace = "com.example.nile_tropical"
+
+    sourceSets["main"].res.srcDir(layout.buildDirectory.dir("generated/nile-logo"))
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
