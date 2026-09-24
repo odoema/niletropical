@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../shared/services/image_quality_service.dart';
+
 import '../../core/theme/app_theme.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
@@ -58,14 +60,29 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
   }
 
   Future<void> _upload() async {
-    final picked = await ImagePicker().pickMultiImage(imageQuality: 88);
+    final picked = await ImagePicker().pickMultiImage();
     if (picked.isEmpty) return;
 
     setState(() => _uploading = true);
     try {
+      final rejected = <String>[];
+
       for (var i = 0; i < picked.length; i++) {
         final file = picked[i];
         final bytes = await file.readAsBytes();
+        final quality = await ImageQualityService.inspect(
+          bytes: bytes,
+          folder: _folder,
+        );
+
+        if (!quality.passes) {
+          rejected.add(
+            '${file.name}: ${quality.dimensions} (${quality.sizeLabel}). '
+            'Minimum is ${quality.minWidth} × ${quality.minHeight}px.',
+          );
+          continue;
+        }
+
         final ext = file.name.contains('.') ? file.name.split('.').last.toLowerCase() : 'jpg';
         final safe = file.name
             .replaceAll(RegExp(r'[^a-zA-Z0-9._-]+'), '-')
@@ -79,9 +96,39 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
         );
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${picked.length} media file${picked.length == 1 ? '' : 's'} uploaded')),
-      );
+      final uploaded = picked.length - rejected.length;
+      if (!mounted) return;
+
+      if (rejected.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$uploaded media file${uploaded == 1 ? '' : 's'} uploaded')),
+        );
+      } else {
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(
+              uploaded == 0 ? 'Images not uploaded' : 'Some images were not uploaded',
+            ),
+            content: SizedBox(
+              width: 620,
+              child: SingleChildScrollView(
+                child: Text(
+                  '${uploaded > 0 ? '$uploaded image${uploaded == 1 ? '' : 's'} uploaded successfully.\\n\\n' : ''}'
+                  'These images are below the quality standard:\\n\\n'
+                  '${rejected.join('\\n\\n')}',
+                ),
+              ),
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
       await _load();
     } catch (e) {
       if (!mounted) return;
@@ -323,6 +370,12 @@ class _EmptyMedia extends StatelessWidget {
               const Text(
                 'Upload images here and reuse them across the Nile Tropical storefront and CMS.',
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                ImageQualityService.guidance(folder),
+                textAlign: TextAlign.center,
+                style: NileTypography.bodySmall,
               ),
             ],
           ),
