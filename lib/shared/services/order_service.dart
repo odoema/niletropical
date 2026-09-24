@@ -16,8 +16,7 @@ class OrderService {
   /// Supports:
   /// - Idempotency
   /// - Server-side delivery fee calculation
-  /// - Coupon/promo code validation and redemption
-  /// - JSONB delivery address
+  /// - Server-side delivery fee calculation
   static Future<Map<String, dynamic>> createOrder({
     required Cart cart,
     required String fullName,
@@ -69,7 +68,6 @@ class OrderService {
         'p_payment_method': paymentMethod,
         'p_items': items,
         'p_notes': notes,
-        'p_coupon_code': couponCode,
       },
     );
 
