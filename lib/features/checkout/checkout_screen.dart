@@ -11,7 +11,6 @@ import '../../core/widgets/nile_widgets.dart';
 import '../../shared/providers/cart_provider.dart';
 import '../../shared/services/order_service.dart';
 import '../../shared/services/delivery_service.dart';
-import '../../shared/services/supabase_service.dart';
 import '../../shared/models/delivery.dart';
 import '../../core/constants/payment_methods.dart';
 
@@ -154,9 +153,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cart = ref.watch(cartProvider);
 
     if (cart.isEmpty) {
-      final total = cart.subtotal + _deliveryFee;
-
-    return Scaffold(
+      return Scaffold(
         appBar: const NileAppBar(
           title: 'Checkout',
         ),
@@ -167,6 +164,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ),
       );
     }
+
+    final total = cart.subtotal + _deliveryFee;
 
     return Scaffold(
       appBar: const NileAppBar(
@@ -183,11 +182,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               'Contact',
               style: NileTypography.titleLarge,
             ),
-
             const SizedBox(
               height: NileSpacing.sm,
             ),
-
             NileTextField(
               controller: _name,
               label: 'Full name',
@@ -199,11 +196,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 return null;
               },
             ),
-
             const SizedBox(
               height: NileSpacing.sm,
             ),
-
             NileTextField(
               controller: _phone,
               label: 'Phone',
@@ -216,30 +211,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 return null;
               },
             ),
-
             const SizedBox(
               height: NileSpacing.sm,
             ),
-
             NileTextField(
               controller: _email,
               label: 'Email (optional)',
               keyboardType: TextInputType.emailAddress,
             ),
-
             const SizedBox(
               height: NileSpacing.lg,
             ),
-
             Text(
               'Delivery',
               style: NileTypography.titleLarge,
             ),
-
             const SizedBox(
               height: NileSpacing.sm,
             ),
-
             NileDropdown<String>(
               label: 'Delivery zone',
               value: _zoneId,
@@ -264,11 +253,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 return null;
               },
             ),
-
             const SizedBox(
               height: NileSpacing.sm,
             ),
-
             NileTextField(
               controller: _address,
               label: 'Delivery address',
@@ -281,30 +268,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 return null;
               },
             ),
-
             const SizedBox(
               height: NileSpacing.sm,
             ),
-
             NileTextField(
               controller: _notes,
               label: 'Notes (optional)',
               maxLines: 2,
             ),
-
             const SizedBox(
               height: NileSpacing.lg,
             ),
-
             Text(
               'Payment',
               style: NileTypography.titleLarge,
             ),
-
             const SizedBox(
               height: NileSpacing.sm,
             ),
-
             ...PaymentMethods.all
                 .map(
                   (m) => (
@@ -331,15 +312,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-
             const SizedBox(
               height: NileSpacing.lg,
             ),
-
-            const SizedBox(
-              height: NileSpacing.lg,
-            ),
-
             NileCard(
               child: Column(
                 children: [
@@ -347,22 +322,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     'Subtotal',
                     cart.subtotal,
                   ),
-
-                  if (_discount > 0)
-                    _row(
-                      'Discount',
-                      -_discount,
-                    ),
-
                   _row(
                     'Delivery',
                     _deliveryFee,
                   ),
-
                   const Divider(
                     height: 20,
                   ),
-
                   Row(
                     mainAxisAlignment:
                         MainAxisAlignment.spaceBetween,
@@ -371,7 +337,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         'Total',
                         style: NileTypography.titleLarge,
                       ),
-
                       NilePrice(
                         amount: total,
                         style:
@@ -382,11 +347,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ],
               ),
             ),
-
             const SizedBox(
               height: NileSpacing.lg,
             ),
-
             NileButton(
               label: PaymentMethods.isCod(
                 _paymentMethod,
@@ -397,7 +360,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               onPressed: _placeOrder,
               icon: Icons.lock_outline,
             ),
-
             const SizedBox(
               height: NileSpacing.xl,
             ),
