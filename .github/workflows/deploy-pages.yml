@@ -40,7 +40,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq imagemagick
-          magick assets/images/logo.png -alpha on -fill white -colorize 100 web/favicon.png
+          convert assets/images/logo.png -alpha on -fill white -colorize 100 web/favicon.png
 
       - name: Build Flutter commerce app
         run: |
