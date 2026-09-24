@@ -47,6 +47,8 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
     final title = TextEditingController();
     final link = TextEditingController();
     final sort = TextEditingController(text: '0');
+    final starts = TextEditingController();
+    final ends = TextEditingController();
     bool active = true;
     String? imagePath;
 
@@ -65,6 +67,10 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
                   TextField(controller: link, decoration: const InputDecoration(labelText: 'Link URL (optional)')),
                   const SizedBox(height: 12),
                   TextField(controller: sort, decoration: const InputDecoration(labelText: 'Display order'), keyboardType: TextInputType.number),
+                  const SizedBox(height: 12),
+                  TextField(controller: starts, decoration: const InputDecoration(labelText: 'Starts (YYYY-MM-DD HH:MM, optional)')),
+                  const SizedBox(height: 12),
+                  TextField(controller: ends, decoration: const InputDecoration(labelText: 'Ends (YYYY-MM-DD HH:MM, optional)')),
                   const SizedBox(height: 16),
                   if (imagePath != null)
                     Container(
@@ -111,7 +117,32 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
       ),
     );
 
-    if (result != true || imagePath == null) return;
+    if (result != true || imagePath == null) {
+      title.dispose(); link.dispose(); sort.dispose(); starts.dispose(); ends.dispose();
+      return;
+    }
+
+    DateTime? parseDate(String value) =>
+        value.trim().isEmpty ? null : DateTime.tryParse(value.trim());
+    final startDate = parseDate(starts.text);
+    final endDate = parseDate(ends.text);
+    if ((starts.text.trim().isNotEmpty && startDate == null) ||
+        (ends.text.trim().isNotEmpty && endDate == null) ||
+        (startDate != null && endDate != null && !endDate.isAfter(startDate))) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Use valid dates and make sure the end is after the start.'), backgroundColor: NileColors.error),
+      );
+      title.dispose(); link.dispose(); sort.dispose(); starts.dispose(); ends.dispose();
+      return;
+    }
+    final linkValue = link.text.trim();
+    if (linkValue.isNotEmpty && !(Uri.tryParse(linkValue)?.hasAbsolutePath ?? false) && !linkValue.startsWith('/')) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Link URL must be a full URL or an app route beginning with /.'), backgroundColor: NileColors.error),
+      );
+      title.dispose(); link.dispose(); sort.dispose(); starts.dispose(); ends.dispose();
+      return;
+    }
 
     try {
       await SupabaseService.client.from('banners').insert({
@@ -120,15 +151,21 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
         'link_url': link.text.trim().isEmpty ? null : link.text.trim(),
         'sort_order': int.tryParse(sort.text) ?? 0,
         'is_active': active,
+        'starts_at': startDate?.toUtc().toIso8601String(),
+        'ends_at': endDate?.toUtc().toIso8601String(),
       });
       title.dispose();
       link.dispose();
       sort.dispose();
+      starts.dispose();
+      ends.dispose();
       await _load();
     } catch (e) {
       title.dispose();
       link.dispose();
       sort.dispose();
+      starts.dispose();
+      ends.dispose();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Could not create banner: $e'), backgroundColor: NileColors.error),
