@@ -3,8 +3,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/shell/customer_shell.dart';
+import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/shell/admin_shell.dart';
 import '../../features/shell/courier_shell.dart';
 import '../../features/home/home_screen.dart';
@@ -67,7 +69,13 @@ final appRouter = GoRouter(
         loc != '/admin/login' &&
         loc != '/admin/reset-password';
     final isCourier = loc.startsWith('/courier');
-    if (!isAdmin && !isCourier) return null;
+    if (loc == '/onboarding') return null;
+    if (!isAdmin && !isCourier) {
+      final prefs = await SharedPreferences.getInstance();
+      final seen = prefs.getBool('nile_tropical_onboarding_seen') ?? false;
+      if (!seen) return '/onboarding';
+      return null;
+    }
     if (!Env.isConfigured) return '/admin/login';
     if (!AuthService.isLoggedIn) return '/admin/login';
     final roles = await AuthService.rolesForCurrentUser();
@@ -79,6 +87,12 @@ final appRouter = GoRouter(
     return null;
   },
   routes: [
+    GoRoute(
+      path: '/onboarding',
+      name: 'onboarding',
+      builder: (_, __) => const OnboardingScreen(),
+    ),
+
     // ── Customer shell ──────────────────────────────────────────────────
     ShellRoute(
       builder: (context, state, child) => CustomerShell(
