@@ -197,6 +197,45 @@ class HomeScreen extends ConsumerWidget {
 
           const SliverToBoxAdapter(child: SizedBox(height: NileSpacing.md)),
 
+          // CMS-managed active promotions.
+          ref.watch(promotionsProvider).when(
+            data: (promotions) => promotions.isEmpty
+                ? const SliverToBoxAdapter(child: SizedBox.shrink())
+                : SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Offers & promotions', style: NileTypography.titleLarge),
+                          const SizedBox(height: 8),
+                          ...promotions.take(3).map(
+                            (promotion) => Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: ListTile(
+                                leading: const CircleAvatar(
+                                  backgroundColor: NileColors.primaryContainer,
+                                  child: Icon(Icons.local_offer_outlined, color: NileColors.primary),
+                                ),
+                                title: Text(promotion['name']?.toString() ?? ''),
+                                subtitle: Text(
+                                  promotion['description']?.toString() ?? '',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: NileSpacing.md)),
+
           // Quick links
           SliverToBoxAdapter(
             child: Padding(
@@ -354,6 +393,101 @@ class HomeScreen extends ConsumerWidget {
                 loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
                 error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
               ),
+          ref.watch(videosProvider).when(
+                data: (rows) {
+                  if (rows.isEmpty) {
+                    return const SliverToBoxAdapter(child: SizedBox.shrink());
+                  }
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: NileSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
+                            child: Text('Videos', style: NileTypography.titleLarge),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            height: 190,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: rows.take(6).length,
+                              separatorBuilder: (_, __) => const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                final video = rows[index];
+                                final thumb = StorageService.resolvePublicUrl(
+                                  video['thumbnail_path']?.toString(),
+                                  bucket: StorageService.cms,
+                                );
+                                final media = StorageService.resolvePublicUrl(
+                                  video['storage_path']?.toString(),
+                                  bucket: StorageService.cms,
+                                );
+                                return SizedBox(
+                                  width: 250,
+                                  child: Card(
+                                    clipBehavior: Clip.antiAlias,
+                                    child: InkWell(
+                                      onTap: media.isEmpty
+                                          ? null
+                                          : () async {
+                                              final uri = Uri.tryParse(media);
+                                              if (uri != null) {
+                                                await launchUrl(
+                                                  uri,
+                                                  mode: LaunchMode.externalApplication,
+                                                );
+                                              }
+                                            },
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: thumb.isEmpty
+                                                ? Container(
+                                                    color: NileColors.surfaceVariant,
+                                                    child: const Center(
+                                                      child: Icon(Icons.play_circle_outline, size: 48),
+                                                    ),
+                                                  )
+                                                : Image.network(
+                                                    thumb,
+                                                    width: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (_, __, ___) => const Center(
+                                                      child: Icon(Icons.broken_image_outlined),
+                                                    ),
+                                                  ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Text(
+                                              video['title']?.toString() ?? 'Video',
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: NileTypography.titleSmall,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+              ),
+
           ref.watch(testimonialsProvider).when(
                 data: (rows) {
                   if (rows.isEmpty) {
