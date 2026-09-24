@@ -36,6 +36,14 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
+      - name: Prepare white Nile Tropical browser icon
+        run: |
+          if command -v magick >/dev/null 2>&1; then
+            magick assets/images/logo.png -alpha on -fill white -colorize 100 web/favicon.png
+          else
+            convert assets/images/logo.png -alpha on -fill white -colorize 100 web/favicon.png
+          fi
+
       - name: Build Flutter commerce app
         run: |
           flutter build web --release             --dart-define=APP_ENV=production             --dart-define=SUPABASE_URL="$SUPABASE_URL"             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
