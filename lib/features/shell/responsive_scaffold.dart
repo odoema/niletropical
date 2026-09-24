@@ -134,15 +134,39 @@ class _WebsiteBanner extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'NILE TROPICAL WEBSITE',
+                    'GO TO WEBSITE',
                     style: NileTypography.labelLarge.copyWith(
                       color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: .4,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: .6,
                     ),
                   ),
                 ),
-                const Icon(Icons.open_in_new, color: Colors.white, size: 18),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'OPEN',
+                        style: NileTypography.labelSmall.copyWith(
+                          color: NileColors.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.arrow_forward_rounded,
+                        color: NileColors.primary,
+                        size: 17,
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
