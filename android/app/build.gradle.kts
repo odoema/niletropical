@@ -44,6 +44,18 @@ kotlin {
     }
 }
 
+// Reuse the official Nile Tropical logo for the Android launcher and splash
+// without committing duplicate binary copies at every density.
+val copyNileTropicalLogo = tasks.register<Copy>("copyNileTropicalLogo") {
+    from(rootProject.file("../assets/images/logo.png"))
+    into(layout.buildDirectory.dir("generated/nile-logo/drawable-nodpi"))
+    rename { "nile_tropical_logo.png" }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(copyNileTropicalLogo)
+}
+
 flutter {
     source = "../.."
 }
