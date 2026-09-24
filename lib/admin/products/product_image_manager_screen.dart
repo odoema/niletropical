@@ -36,6 +36,14 @@ class _ProductImageManagerScreenState
     return List<Map<String, dynamic>>.from(rows);
   }
 
+  String _displayName(Map<String, dynamic> product) {
+    final raw = product['name']?.toString() ?? '';
+    // Product imports may contain embedded line breaks between characters.
+    // Collapse all whitespace so names always render as normal catalogue text.
+    final normalized = raw.replaceAll(RegExp(r'\\s+'), ' ').trim();
+    return normalized.isEmpty ? 'Unnamed product' : normalized;
+  }
+
   String _slugFor(Map<String, dynamic> product) {
     final slug = (product['slug'] as String?)?.trim();
     return slug?.isNotEmpty == true ? slug! : product['id'].toString();
@@ -77,7 +85,7 @@ class _ProductImageManagerScreenState
         await SupabaseService.client.from('product_images').insert({
           'product_id': productId,
           'storage_path': path,
-          'alt_text': product['name'],
+          'alt_text': _displayName(product),
           'sort_order': existing.length + i,
           'is_main': !hasMain && i == 0,
         });
@@ -87,7 +95,7 @@ class _ProductImageManagerScreenState
       if (!mounted) return;
       setState(() => _products = _loadProducts());
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${picked.length} image${picked.length == 1 ? '' : 's'} added to ${product['name']}')),
+        SnackBar(content: Text('${picked.length} image${picked.length == 1 ? '' : 's'} added to ' + _displayName(product))),
       );
     } catch (e) {
       if (!mounted) return;
@@ -233,7 +241,7 @@ class _ProductImageManagerScreenState
                               builder: (context, constraints) {
                                 final compact = constraints.maxWidth < 560;
                                 final title = Text(
-                                  product['name']?.toString() ?? 'Unnamed product',
+                                  _displayName(product),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
