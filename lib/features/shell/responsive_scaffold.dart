@@ -145,7 +145,7 @@ class _WebsiteBanner extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: NileColors.primaryDark,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -154,14 +154,14 @@ class _WebsiteBanner extends StatelessWidget {
                       Text(
                         'OPEN',
                         style: NileTypography.labelSmall.copyWith(
-                          color: NileColors.primary,
+                          color: Colors.white,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       const SizedBox(width: 4),
                       const Icon(
                         Icons.arrow_forward_rounded,
-                        color: NileColors.primary,
+                        color: Colors.white,
                         size: 17,
                       ),
                     ],
