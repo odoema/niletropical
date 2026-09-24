@@ -244,6 +244,25 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
       return;
     }
 
+    if (widget.table == 'promotions') {
+      final starts = controllers['starts_at']?.text.trim() ?? '';
+      final ends = controllers['ends_at']?.text.trim() ?? '';
+      if (!_validIsoDate(starts) || !_validIsoDate(ends)) {
+        _showError('Promotion dates must use a valid ISO date/time.');
+        _disposeControllers(controllers);
+        return;
+      }
+      if (starts.isNotEmpty && ends.isNotEmpty) {
+        final startDate = DateTime.parse(starts);
+        final endDate = DateTime.parse(ends);
+        if (!endDate.isAfter(startDate)) {
+          _showError('The promotion end time must be after the start time.');
+          _disposeControllers(controllers);
+          return;
+        }
+      }
+    }
+
     if (_isTestimonials &&
         payload['is_published'] == true &&
         payload['consent_given'] != true) {
@@ -275,6 +294,54 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
     for (final c in controllers.values) {
       c.dispose();
     }
+  }
+
+  Future<void> _preview(Map<String, dynamic> row) async {
+    final title = row[widget.titleField]?.toString() ?? widget.title;
+    final body = row['body']?.toString() ??
+        row['answer']?.toString() ??
+        row['description']?.toString() ??
+        row['testimonial']?.toString() ??
+        '';
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Preview: $title'),
+        content: SizedBox(
+          width: 700,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: NileTypography.headlineSmall),
+                const SizedBox(height: 12),
+                if (body.isNotEmpty) Text(body, style: NileTypography.bodyLarge),
+                if (row['question'] != null) ...[
+                  const SizedBox(height: 12),
+                  Text(row['question'].toString(),
+                      style: NileTypography.titleMedium),
+                ],
+                if (row['answer'] != null) ...[
+                  const SizedBox(height: 8),
+                  Text(row['answer'].toString()),
+                ],
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close preview'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _validIsoDate(String value) {
+    if (value.trim().isEmpty) return true;
+    return DateTime.tryParse(value.trim()) != null;
   }
 
   void _showError(String message) {
@@ -480,10 +547,13 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
                                     ),
                                     trailing: PopupMenuButton<String>(
                                       onSelected: (action) {
-                                        if (action == 'edit') _edit(row);
+                                        if (action == 'preview') _preview(row);\n                                        if (action == 'edit') _edit(row);
                                         if (action == 'delete') _delete(row);
                                       },
                                       itemBuilder: (_) => const [
+                                        PopupMenuItem(
+                                            value: 'preview',
+                                            child: Text('Preview')),
                                         PopupMenuItem(
                                             value: 'edit',
                                             child: Text('Edit')),
@@ -492,7 +562,7 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
                                             child: Text('Delete')),
                                       ],
                                     ),
-                                    onTap: () => _edit(row),
+                                    onTap: () => _preview(row),
                                   ),
                                 );
                               },
