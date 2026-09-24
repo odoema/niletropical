@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
 import 'responsive_scaffold.dart';
+import '../../shared/services/auth_service.dart';
 
 class AdminShell extends StatelessWidget {
   const AdminShell({super.key, required this.child, required this.location});
@@ -69,11 +70,33 @@ class AdminShell extends StatelessWidget {
         ),
       ),
       sideFooter: Padding(
-        padding: const EdgeInsets.all(NileSpacing.md),
-        child: TextButton.icon(
-          onPressed: () => context.go('/'),
-          icon: const Icon(Icons.storefront_outlined, size: 18),
-          label: const Text('Customer site'),
+        padding: const EdgeInsets.fromLTRB(NileSpacing.sm, 0, NileSpacing.sm, NileSpacing.sm),
+        child: Column(
+          children: [
+            ListTile(
+              dense: true,
+              leading: const CircleAvatar(child: Icon(Icons.person_outline, size: 18)),
+              title: Text(
+                AuthService.user?.email ?? 'Staff account',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: NileTypography.caption,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () => context.go('/'),
+              icon: const Icon(Icons.storefront_outlined, size: 18),
+              label: const Text('Customer site'),
+            ),
+            TextButton.icon(
+              onPressed: () async {
+                await AuthService.signOut();
+                if (context.mounted) context.go('/admin/login');
+              },
+              icon: const Icon(Icons.logout, size: 18),
+              label: const Text('Sign out'),
+            ),
+          ],
         ),
       ),
       body: child,
