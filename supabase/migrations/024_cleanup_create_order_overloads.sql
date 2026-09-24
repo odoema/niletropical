@@ -2,8 +2,8 @@
 -- Remove legacy create_order overloads that cause PostgREST PGRST203
 -- ambiguous-function errors in production.
 --
--- The supported production signature is:
--- (text, text, text, text, text, uuid, text, jsonb, text)
+-- Supported production signature:
+-- create_order(text, text, text, text, text, uuid, text, jsonb, text)
 
 DROP FUNCTION IF EXISTS public.create_order(
   text,
@@ -18,6 +18,8 @@ DROP FUNCTION IF EXISTS public.create_order(
   text
 );
 
+-- Defensive cleanup for an older JSONB-address, no-coupon variant.
+-- The supported text-address signature is not affected.
 DROP FUNCTION IF EXISTS public.create_order(
   text,
   text,
@@ -29,6 +31,3 @@ DROP FUNCTION IF EXISTS public.create_order(
   jsonb,
   text
 );
-
--- Re-assert the supported signature for clarity and future migrations.
--- 016_create_order_v2.sql owns the implementation and grant.
