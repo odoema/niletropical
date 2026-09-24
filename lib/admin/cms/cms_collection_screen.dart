@@ -547,7 +547,8 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
                                     ),
                                     trailing: PopupMenuButton<String>(
                                       onSelected: (action) {
-                                        if (action == 'preview') _preview(row);\n                                        if (action == 'edit') _edit(row);
+                                        if (action == 'preview') _preview(row);
+                                        if (action == 'edit') _edit(row);
                                         if (action == 'delete') _delete(row);
                                       },
                                       itemBuilder: (_) => const [
