@@ -45,6 +45,11 @@ final categoriesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) asyn
   return SupabaseService.fetchCategories();
 });
 
+final bannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  if (!Env.isConfigured) return const [];
+  return SupabaseService.fetchBanners();
+});
+
 final testimonialsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   if (!Env.isConfigured) return const [];
   return SupabaseService.fetchTestimonials();
