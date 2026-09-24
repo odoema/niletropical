@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
@@ -37,19 +36,23 @@ class ProductCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: imageUrl != null && imageUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: imageUrl,
+                      ? Image.network(
+                          imageUrl,
+                          key: ValueKey(imageUrl),
                           fit: BoxFit.contain,
-                          placeholder: (_, __) => Container(
-                            color: NileColors.surfaceVariant,
-                            alignment: Alignment.center,
-                            child: const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
-                          errorWidget: (_, __, ___) => Container(
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return Container(
+                              color: NileColors.surfaceVariant,
+                              alignment: Alignment.center,
+                              child: const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            );
+                          },
+                          errorBuilder: (_, __, ___) => Container(
                             color: NileColors.surfaceVariant,
                             alignment: Alignment.center,
                             child: const Icon(
