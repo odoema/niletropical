@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/widgets/nile_widgets.dart';
@@ -11,6 +12,7 @@ import '../../shared/widgets/product_card.dart';
 import '../../shared/models/product.dart';
 import '../../shared/providers/cart_provider.dart';
 import '../../shared/providers/product_provider.dart';
+import '../../shared/services/storage_service.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -115,6 +117,82 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: NileSpacing.md)),
+
+          // CMS-managed promotional banners.
+          ref.watch(bannersProvider).when(
+            data: (banners) => banners.isEmpty
+                ? const SliverToBoxAdapter(child: SizedBox.shrink())
+                : SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 190,
+                      child: PageView.builder(
+                        controller: PageController(viewportFraction: 0.94),
+                        itemCount: banners.length,
+                        itemBuilder: (context, index) {
+                          final banner = banners[index];
+                          final path = banner['image_storage_path']?.toString();
+                          final url = StorageService.resolvePublicUrl(
+                            path,
+                            bucket: StorageService.cms,
+                          );
+                          final link = banner['link_url']?.toString();
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: ClipRRect(
+                              borderRadius: NileRadius.borderLg,
+                              child: Material(
+                                color: NileColors.surfaceVariant,
+                                child: InkWell(
+                                  onTap: link == null || link.isEmpty
+                                      ? null
+                                      : () async {
+                                          final uri = Uri.tryParse(link);
+                                          if (uri == null) return;
+                                          if (uri.scheme == 'http' || uri.scheme == 'https') {
+                                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                          } else if (link.startsWith('/')) {
+                                            context.go(link);
+                                          }
+                                        },
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      if (url.isNotEmpty)
+                                        Image.network(
+                                          url,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const Center(
+                                            child: Icon(Icons.broken_image_outlined),
+                                          ),
+                                        ),
+                                      if (banner['title']?.toString().isNotEmpty == true)
+                                        Align(
+                                          alignment: Alignment.bottomLeft,
+                                          child: Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(14),
+                                            color: Colors.black.withValues(alpha: 0.55),
+                                            child: Text(
+                                              banner['title'].toString(),
+                                              style: NileTypography.titleMedium.copyWith(color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
           ),
 
           const SliverToBoxAdapter(child: SizedBox(height: NileSpacing.md)),
