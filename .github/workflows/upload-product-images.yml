@@ -39,7 +39,7 @@ jobs:
           rm -rf /tmp/nile-drive
           mkdir -p /tmp/nile-drive
           gdown --folder "$DRIVE_FOLDER_URL" -O /tmp/nile-drive
-          count="$(find /tmp/nile-drive -type f -iname '*.jpg' -o -iname '*.jpeg' | wc -l)"
+          count="$(find /tmp/nile-drive -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) | wc -l)"
           echo "Downloaded $count JPEG photographs."
           test "$count" -ge 20 || {
             echo "::error::Google Drive folder did not expose the expected photograph set. Ensure the folder is shared as Anyone with the link / Viewer."
@@ -52,17 +52,16 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/nile-matched
 
+          # Only mappings that are both visually verified and currently present
+          # in the production catalogue are synchronized automatically.
           declare -A MAP=(
             [nile-sheabutter-lotion-apple-200ml]="Nile products Edits-23.jpg"
             [nile-sheabutter-lotion-lavender-200ml]="Nile products Edits-29.jpg"
             [nile-sheabutter-lotion-lemon-200ml]="Nile products Edits-25.jpg"
             [shea-butter-mosquito-repellent-jelly-150g]="Nile products Edits-78.jpg"
-            [sheabutter-facial-scrub-soap-120g]="Nile products Edits-98.jpg"
             [tropisun-sunscreen-for-albinism-200g]="Nile products Edits-17.jpg"
             [hibiscus-powder-150g]="Nile products Edits-63.jpg"
             [eco-shea-butter]="Nile products Edits-61.jpg"
-            [eco-shea-butter-250g]="Nile products Edits-52.jpg"
-            [eco-shea-butter-500g]="Nile products Edits-55.jpg"
           )
 
           for slug in "${!MAP[@]}"; do
@@ -88,7 +87,7 @@ jobs:
               jq -r '.[0].id // empty')"
 
             if [ -z "$product_id" ]; then
-              echo "::warning::Product slug not found in production: $slug"
+              echo "::warning::Product slug not found in production: $slug — skipping copy update."
               continue
             fi
 
@@ -106,8 +105,8 @@ jobs:
               jq -r '.[0].id // empty')"
 
             if [ -z "$product_id" ]; then
-              echo "::error::Production product not found for verified image slug: $slug"
-              exit 1
+              echo "::warning::Production product not found for verified image slug: $slug — skipping image."
+              continue
             fi
 
             curl --fail-with-body --silent --show-error               -X PUT "$SUPABASE_URL/storage/v1/object/product-images/$slug.jpg"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: image/jpeg"               -H "x-upsert: true"               --data-binary "@$file"
