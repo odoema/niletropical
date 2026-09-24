@@ -49,8 +49,21 @@ class Product {
 
   String? get mainImageUrl {
     if (images.isEmpty) return null;
-    final main = images.where((i) => i.isMain).toList();
-    return main.isNotEmpty ? main.first.url : images.first.url;
+
+    // Supabase does not guarantee the order of nested product_images.
+    // Deterministically choose the newest main image, then fall back to
+    // sort order. This prevents an older duplicate is_main row from being
+    // shown on one screen and a different row on another.
+    final candidates = [...images]
+      ..sort((a, b) {
+        if (a.isMain != b.isMain) return a.isMain ? -1 : 1;
+        final aCreated = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bCreated = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final createdCompare = bCreated.compareTo(aCreated);
+        if (createdCompare != 0) return createdCompare;
+        return a.sortOrder.compareTo(b.sortOrder);
+      });
+    return candidates.first.url;
   }
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -143,6 +156,7 @@ class ProductImage {
   final String? altText;
   final int sortOrder;
   final bool isMain;
+  final DateTime? createdAt;
 
   const ProductImage({
     required this.id,
@@ -152,6 +166,7 @@ class ProductImage {
     this.altText,
     this.sortOrder = 0,
     this.isMain = false,
+    this.createdAt,
   });
 
   factory ProductImage.fromJson(Map<String, dynamic> json) {
@@ -165,6 +180,9 @@ class ProductImage {
       altText: json['alt_text'] as String?,
       sortOrder: json['sort_order'] as int? ?? 0,
       isMain: json['is_main'] as bool? ?? false,
+      createdAt: json['created_at'] == null
+          ? null
+          : DateTime.tryParse(json['created_at'].toString()),
     );
   }
 }
