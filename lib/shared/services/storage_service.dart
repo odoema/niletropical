@@ -12,7 +12,10 @@ class StorageService {
     if (path == null || path.isEmpty) return '';
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
     if (!Env.isConfigured) return path;
-    return SupabaseService.client.storage.from(bucket).getPublicUrl(path);
+    final url = SupabaseService.client.storage.from(bucket).getPublicUrl(path);
+    // Keep browser/CDN caches from serving an older object after an image
+    // has been replaced at the same storage path.
+    return url + '?v=' + Uri.encodeComponent(path);
   }
 
   static Future<List<FileObject>> list({
