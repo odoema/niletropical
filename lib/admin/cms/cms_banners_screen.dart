@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-
 import '../../core/theme/app_theme.dart';
-import '../../shared/services/media_upload.dart';
+import '../../shared/services/cms_media_upload.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
 import 'package:intl/intl.dart';
@@ -180,12 +178,15 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
                     onPressed: () async {
-                      final path = await MediaUpload.pickAndUpload(
-                        bucket: StorageService.cms,
-                        objectPath: 'banners/' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg',
+                      final result = await CmsMediaUpload.pickAndUpload(
+                        context: ctx,
+                        folder: 'banners',
+                        objectPrefix: 'banner',
                         source: ImageSource.gallery,
                       );
-                      if (path != null) setDialogState(() => imagePath = path);
+                      if (result != null) {
+                        setDialogState(() => imagePath = result.path);
+                      }
                     },
                     icon: const Icon(Icons.swap_horiz),
                     label: const Text('Replace image'),
