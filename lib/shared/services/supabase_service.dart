@@ -106,7 +106,15 @@ class SupabaseService {
         .select()
         .eq('is_active', true)
         .order('sort_order');
-    return List<Map<String, dynamic>>.from(response);
+
+    final now = DateTime.now().toUtc();
+    return List<Map<String, dynamic>>.from(response).where((row) {
+      final starts = DateTime.tryParse(row['starts_at']?.toString() ?? '');
+      final ends = DateTime.tryParse(row['ends_at']?.toString() ?? '');
+      final afterStart = starts == null || !now.isBefore(starts.toUtc());
+      final beforeEnd = ends == null || now.isBefore(ends.toUtc());
+      return afterStart && beforeEnd;
+    }).toList();
   }
 
   static Future<List<Map<String, dynamic>>> fetchPublishedFaqs() async {
