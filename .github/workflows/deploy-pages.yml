@@ -36,11 +36,11 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      - name: Prepare white Nile Tropical browser icon
+      - name: Use the official Nile Tropical logo for web branding
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq imagemagick
-          convert assets/images/logo.png -alpha on -fill white -colorize 100 web/favicon.png
+          # Use the source logo exactly as stored in assets/images/logo.png.
+          # Do not recolor, redraw, or alter the official artwork.
+          cp assets/images/logo.png web/favicon.png
 
       - name: Build Flutter commerce app
         run: |
