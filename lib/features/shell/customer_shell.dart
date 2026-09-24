@@ -38,13 +38,12 @@ class CustomerShell extends StatelessWidget {
         if (route != null) context.go(route);
       },
       sideHeader: SizedBox(
-        // Keep the header at its existing height so enlarging the logo
-        // does not push the side-menu items downward.
+        // Keep the header height fixed so enlarging the logo does not
+        // push the side-menu items downward.
         height: 68,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
-          child: Container(
+        child: Container(
           color: NileColors.primary,
+          padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -57,7 +56,10 @@ class CustomerShell extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Text('Nile Tropical', style: NileTypography.titleMedium.copyWith(color: Colors.white)),
+              Text(
+                'Nile Tropical',
+                style: NileTypography.titleMedium.copyWith(color: Colors.white),
+              ),
             ],
           ),
         ),
