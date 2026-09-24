@@ -168,6 +168,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             _action(context, 'Pricing', 'Review and approve pricing recommendations.', '/admin/pricing', Icons.price_change_outlined),
             _action(context, 'Notifications', 'Manage notification templates and delivery logs.', '/admin/notifications', Icons.notifications_outlined),
             _action(context, 'Audit Log', 'Review staff actions and administrative activity.', '/admin/audit', Icons.history_outlined),
+            _action(context, 'Management', 'Configure categories, coupons, delivery zones, partners and couriers.', '/admin/management', Icons.tune_outlined),
             _action(context, 'Settings', 'Control admin modules and project configuration.', '/admin/settings', Icons.settings_outlined),
           ],
         ),
