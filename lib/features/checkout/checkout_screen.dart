@@ -34,13 +34,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String? _zoneId;
 
   bool _loading = false;
-  bool _applyingCoupon = false;
-
-  String? _appliedCouponCode;
-  double _discount = 0;
-
-  String? _couponMessage;
-  bool _couponValid = false;
 
   List<DeliveryZone> _zones = const [];
 
@@ -119,7 +112,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       final total =
           (result['total'] as num?)?.toDouble() ??
-              (cart.subtotal - _discount + _deliveryFee);
+              (cart.subtotal + _deliveryFee);
 
       if (PaymentMethods.isCod(_paymentMethod)) {
         context.go(
@@ -172,9 +165,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ),
       );
     }
-
-    final total =
-        cart.subtotal - _discount + _deliveryFee;
 
     return Scaffold(
       appBar: const NileAppBar(
@@ -343,63 +333,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             const SizedBox(
               height: NileSpacing.lg,
             ),
-
-            Text(
-              'Coupon',
-              style: NileTypography.titleLarge,
-            ),
-
-            const SizedBox(
-              height: NileSpacing.sm,
-            ),
-
-            // IMPORTANT:
-            // The Apply button is explicitly NOT full width.
-            // It sits beside the coupon field inside a Row.
-            Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: NileTextField(
-                    controller: _coupon,
-                    label: 'Coupon code (optional)',
-                  ),
-                ),
-
-                const SizedBox(
-                  width: NileSpacing.sm,
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 4,
-                  ),
-                  child: NileOutlinedButton(
-                    label: 'Apply',
-                    loading: _applyingCoupon,
-                    onPressed: _applyCoupon,
-                    fullWidth: false,
-                  ),
-                ),
-              ],
-            ),
-
-            if (_couponMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 4,
-                ),
-                child: Text(
-                  _couponMessage!,
-                  style: NileTypography.bodyMedium
-                      .copyWith(
-                    color: _couponValid
-                        ? NileColors.success
-                        : NileColors.error,
-                  ),
-                ),
-              ),
 
             const SizedBox(
               height: NileSpacing.lg,
