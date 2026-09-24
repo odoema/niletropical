@@ -57,7 +57,6 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
         content: SizedBox(width: 620, child: SingleChildScrollView(child: Column(children: [
           TextField(controller: name, decoration: const InputDecoration(labelText: 'Name / key')),
           TextField(controller: channel, decoration: const InputDecoration(labelText: 'Channel (push, SMS, email, WhatsApp)')),
-          TextField(controller: subject, decoration: const InputDecoration(labelText: 'Subject')),
           TextField(controller: body, maxLines: 7, decoration: const InputDecoration(labelText: 'Message body')),
           SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Active'), value: active, onChanged: (v) => setDialogState(() => active = v)),
         ]))),
