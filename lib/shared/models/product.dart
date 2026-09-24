@@ -159,7 +159,9 @@ class ProductImage {
       id: json['id'] as String,
       productId: json['product_id'] as String,
       variantId: json['variant_id'] as String?,
-      url: (json['url'] ?? json['storage_path'] ?? '').toString(),
+      // storage_path is the authoritative catalogue image reference.
+      // Prefer it even if an older schema/view still exposes a stale url field.
+      url: (json['storage_path'] ?? json['url'] ?? '').toString(),
       altText: json['alt_text'] as String?,
       sortOrder: json['sort_order'] as int? ?? 0,
       isMain: json['is_main'] as bool? ?? false,
