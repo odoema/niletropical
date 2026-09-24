@@ -273,18 +273,55 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       }
 
       if (isEditing && _imagePath != null && _imagePath != _originalImagePath) {
-        await SupabaseService.client.from('product_images')
-            .update({'is_main': false}).eq('product_id', productId);
-        await SupabaseService.client.from('product_images').insert({
-          'product_id': productId,
-          'storage_path': _imagePath,
-          'alt_text': _name.text.trim(),
-          'sort_order': 0,
-          'is_main': true,
-        });
+        // Replace the existing main-image row instead of creating a second
+        // row. This keeps the catalogue reference stable and avoids ending
+        // up with a product whose image is uploaded but not reflected in the
+        // storefront.
+        final existingImages = await SupabaseService.client
+            .from('product_images')
+            .select('id,storage_path,is_main,sort_order')
+            .eq('product_id', productId)
+            .order('sort_order');
+
+        final rows = List<Map<String, dynamic>>.from(existingImages);
+        final target = rows.firstWhere(
+          (row) => row['is_main'] == true,
+          orElse: () => rows.isNotEmpty ? rows.first : <String, dynamic>{},
+        );
+
+        if (target['id'] != null) {
+          await SupabaseService.client
+              .from('product_images')
+              .update({'is_main': false})
+              .eq('product_id', productId);
+
+          await SupabaseService.client
+              .from('product_images')
+              .update({
+                'storage_path': _imagePath,
+                'alt_text': _name.text.trim(),
+                'sort_order': 0,
+                'is_main': true,
+              })
+              .eq('id', target['id']);
+        } else {
+          await SupabaseService.client.from('product_images').insert({
+            'product_id': productId,
+            'storage_path': _imagePath,
+            'alt_text': _name.text.trim(),
+            'sort_order': 0,
+            'is_main': true,
+          });
+        }
+
+        // Do not delete the old file until the database reference has been
+        // successfully updated. That prevents a broken catalogue reference.
         if (_originalImagePath != null && _originalImagePath!.isNotEmpty) {
           try {
-            await StorageService.delete(bucket: StorageService.productImages, path: _originalImagePath!);
+            await StorageService.delete(
+              bucket: StorageService.productImages,
+              path: _originalImagePath!,
+            );
           } catch (_) {}
         }
       }
