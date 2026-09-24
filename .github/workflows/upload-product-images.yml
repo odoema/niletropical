@@ -46,7 +46,7 @@ jobs:
             exit 1
           }
 
-      - name: Verify the seven high-confidence photo matches
+      - name: Verify the high-confidence photo matches
         shell: bash
         run: |
           set -euo pipefail
@@ -60,6 +60,9 @@ jobs:
             [sheabutter-facial-scrub-soap-120g]="Nile products Edits-98.jpg"
             [tropisun-sunscreen-for-albinism-200g]="Nile products Edits-17.jpg"
             [hibiscus-powder-150g]="Nile products Edits-63.jpg"
+            [eco-shea-butter]="Nile products Edits-61.jpg"
+            [eco-shea-butter-250g]="Nile products Edits-52.jpg"
+            [eco-shea-butter-500g]="Nile products Edits-55.jpg"
           )
 
           for slug in "${!MAP[@]}"; do
@@ -121,7 +124,7 @@ jobs:
             echo "Uploaded real image: $slug.jpg"
           done
 
-      - name: Verify the seven real images are reachable
+      - name: Verify the synchronized real images are reachable
         shell: bash
         run: |
           set -euo pipefail
