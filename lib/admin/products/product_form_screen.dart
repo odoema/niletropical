@@ -219,16 +219,58 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   }
                 ]);
 
-      final savedId = await SupabaseService.client.rpc(
-        'admin_upsert_product',
-        params: {
-          'p_product': product,
-          'p_variants': [variant],
-          'p_images': imagePayload,
-        },
-      );
+      // Do not depend on the legacy admin_upsert_product RPC here.
+      // Production may be running without that RPC in PostgREST's schema cache.
+      // Use the same authenticated Supabase client for direct, auditable writes.
+      String productId;
 
-      final productId = savedId.toString();
+      if (isEditing) {
+        productId = widget.productId!;
+        await SupabaseService.client
+            .from('products')
+            .update(product)
+            .eq('id', productId);
+
+        if (_defaultVariantId != null) {
+          await SupabaseService.client
+              .from('product_variants')
+              .update(variant)
+              .eq('id', _defaultVariantId!);
+        } else {
+          final insertedVariant = await SupabaseService.client
+              .from('product_variants')
+              .insert({
+                'product_id': productId,
+                ...variant,
+              })
+              .select('id')
+              .single();
+          _defaultVariantId = insertedVariant['id']?.toString();
+        }
+      } else {
+        final insertedProduct = await SupabaseService.client
+            .from('products')
+            .insert(product)
+            .select('id')
+            .single();
+        productId = insertedProduct['id'].toString();
+
+        await SupabaseService.client
+            .from('product_variants')
+            .insert({
+              'product_id': productId,
+              ...variant,
+            });
+
+        if (imagePayload.isNotEmpty) {
+          await SupabaseService.client
+              .from('product_images')
+              .insert({
+                'product_id': productId,
+                ...imagePayload.first,
+              });
+        }
+      }
 
       if (isEditing && _imagePath != null && _imagePath != _originalImagePath) {
         await SupabaseService.client.from('product_images')
