@@ -217,7 +217,14 @@ class _Gallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final urls = product.images.map((i) => i.url).where((u) => u.isNotEmpty).toList();
+    // Always put the catalogue's main image first. The database may contain
+    // older gallery images, but opening a product should show the same image
+    // the shop card marks as the main image.
+    final orderedImages = [
+      ...product.images.where((i) => i.isMain),
+      ...product.images.where((i) => !i.isMain),
+    ];
+    final urls = orderedImages.map((i) => i.url).where((u) => u.isNotEmpty).toList();
     if (urls.isEmpty && product.mainImageUrl != null) {
       urls.add(product.mainImageUrl!);
     }
