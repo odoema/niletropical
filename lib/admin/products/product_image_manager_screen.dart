@@ -40,7 +40,7 @@ class _ProductImageManagerScreenState
     final raw = product['name']?.toString() ?? '';
     // Product imports may contain embedded line breaks between characters.
     // Collapse all whitespace so names always render as normal catalogue text.
-    final normalized = raw.replaceAll(RegExp(r'\\s+'), ' ').trim();
+    final normalized = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
     return normalized.isEmpty ? 'Unnamed product' : normalized;
   }
 
