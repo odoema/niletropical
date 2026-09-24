@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="nile_tropical"
+        android:label="Nile Tropical"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@drawable/nile_tropical_logo">
         <activity
             android:name=".MainActivity"
             android:exported="true"
