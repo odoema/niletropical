@@ -114,9 +114,9 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
               width: 620,
               child: SingleChildScrollView(
                 child: Text(
-                  '${uploaded > 0 ? '$uploaded image${uploaded == 1 ? '' : 's'} uploaded successfully.\\n\\n' : ''}'
-                  'These images are below the quality standard:\\n\\n'
-                  '${rejected.join('\\n\\n')}',
+                  '${uploaded > 0 ? '$uploaded image${uploaded == 1 ? '' : 's'} uploaded successfully.\n\n' : ''}'
+                  'These images are below the quality standard:\n\n'
+                  '${rejected.join('\n\n')}',
                 ),
               ),
             ),
