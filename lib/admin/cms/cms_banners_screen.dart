@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/services/media_upload.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
+import 'package:intl/intl.dart';
 
 class CmsBannersScreen extends StatefulWidget {
   const CmsBannersScreen({super.key});
@@ -137,6 +138,133 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
     }
   }
 
+
+  Future<void> _edit(Map<String, dynamic> row) async {
+    final title = TextEditingController(text: row['title']?.toString() ?? '');
+    final link = TextEditingController(text: row['link_url']?.toString() ?? '');
+    final sort = TextEditingController(text: row['sort_order']?.toString() ?? '0');
+    final starts = TextEditingController(text: _dateValue(row['starts_at']));
+    final ends = TextEditingController(text: _dateValue(row['ends_at']));
+    bool active = row['is_active'] == true;
+    String? imagePath = row['image_storage_path']?.toString();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Edit banner'),
+          content: SizedBox(
+            width: 560,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextField(controller: title, decoration: const InputDecoration(labelText: 'Title')),
+                  const SizedBox(height: 12),
+                  TextField(controller: link, decoration: const InputDecoration(labelText: 'Link URL (optional)')),
+                  const SizedBox(height: 12),
+                  TextField(controller: sort, decoration: const InputDecoration(labelText: 'Display order'), keyboardType: TextInputType.number),
+                  const SizedBox(height: 12),
+                  TextField(controller: starts, decoration: const InputDecoration(labelText: 'Starts (YYYY-MM-DD HH:MM, optional)')),
+                  const SizedBox(height: 12),
+                  TextField(controller: ends, decoration: const InputDecoration(labelText: 'Ends (YYYY-MM-DD HH:MM, optional)')),
+                  const SizedBox(height: 12),
+                  if (imagePath != null)
+                    SizedBox(
+                      height: 150,
+                      width: double.infinity,
+                      child: Image.network(
+                        StorageService.resolvePublicUrl(imagePath, bucket: StorageService.cms),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final path = await MediaUpload.pickAndUpload(
+                        bucket: StorageService.cms,
+                        objectPath: 'banners/' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg',
+                        source: ImageSource.gallery,
+                      );
+                      if (path != null) setDialogState(() => imagePath = path);
+                    },
+                    icon: const Icon(Icons.swap_horiz),
+                    label: const Text('Replace image'),
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Active on storefront'),
+                    value: active,
+                    onChanged: (v) => setDialogState(() => active = v),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            FilledButton(onPressed: imagePath == null ? null : () => Navigator.pop(ctx, true), child: const Text('Save changes')),
+          ],
+        ),
+      ),
+    );
+
+    if (result != true || imagePath == null) {
+      title.dispose(); link.dispose(); sort.dispose(); starts.dispose(); ends.dispose();
+      return;
+    }
+
+    DateTime? parseDate(String value) =>
+        value.trim().isEmpty ? null : DateTime.tryParse(value.trim());
+    final startDate = parseDate(starts.text);
+    final endDate = parseDate(ends.text);
+    if ((starts.text.trim().isNotEmpty && startDate == null) ||
+        (ends.text.trim().isNotEmpty && endDate == null)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Use YYYY-MM-DD HH:MM for banner dates.'), backgroundColor: NileColors.error),
+        );
+      }
+      title.dispose(); link.dispose(); sort.dispose(); starts.dispose(); ends.dispose();
+      return;
+    }
+    if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('End time must be after start time.'), backgroundColor: NileColors.error),
+        );
+      }
+      title.dispose(); link.dispose(); sort.dispose(); starts.dispose(); ends.dispose();
+      return;
+    }
+
+    try {
+      await SupabaseService.client.from('banners').update({
+        'title': title.text.trim().isEmpty ? null : title.text.trim(),
+        'image_storage_path': imagePath,
+        'link_url': link.text.trim().isEmpty ? null : link.text.trim(),
+        'sort_order': int.tryParse(sort.text) ?? 0,
+        'is_active': active,
+        'starts_at': startDate?.toUtc().toIso8601String(),
+        'ends_at': endDate?.toUtc().toIso8601String(),
+      }).eq('id', row['id']);
+      await _load();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not update banner: ' + e.toString()), backgroundColor: NileColors.error),
+        );
+      }
+    } finally {
+      title.dispose(); link.dispose(); sort.dispose(); starts.dispose(); ends.dispose();
+    }
+  }
+
+  String _dateValue(dynamic value) {
+    if (value == null) return '';
+    final date = DateTime.tryParse(value.toString())?.toLocal();
+    return date == null ? '' : DateFormat('yyyy-MM-dd HH:mm').format(date);
+  }
+
   Future<void> _toggle(Map<String, dynamic> row) async {
     try {
       await SupabaseService.client
@@ -243,6 +371,11 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
                                         onSelected: (_) => _toggle(row),
                                       ),
                                       const SizedBox(width: 8),
+                                      TextButton.icon(
+                                        onPressed: () => _edit(row),
+                                        icon: const Icon(Icons.edit_outlined),
+                                        label: const Text('Edit'),
+                                      ),
                                       TextButton.icon(
                                         onPressed: () => _delete(row),
                                         icon: const Icon(Icons.delete_outline, color: NileColors.error),
