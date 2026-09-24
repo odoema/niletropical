@@ -55,6 +55,16 @@ final testimonialsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) as
   return SupabaseService.fetchTestimonials();
 });
 
+final videosProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  if (!Env.isConfigured) return const [];
+  return SupabaseService.fetchPublishedVideos();
+});
+
+final promotionsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  if (!Env.isConfigured) return const [];
+  return SupabaseService.fetchActivePromotions();
+});
+
 final flaggedProductsProvider =
     FutureProvider.family<List<Product>, String>((ref, flag) async {
   try {
