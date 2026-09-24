@@ -154,7 +154,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cart = ref.watch(cartProvider);
 
     if (cart.isEmpty) {
-      return Scaffold(
+      final total = cart.subtotal + _deliveryFee;
+
+    return Scaffold(
         appBar: const NileAppBar(
           title: 'Checkout',
         ),
