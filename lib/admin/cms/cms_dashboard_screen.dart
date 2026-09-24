@@ -17,6 +17,7 @@ class _CmsDashboardScreenState extends State<CmsDashboardScreen> {
   bool _loading = true;
   String? _error;
   final Map<String, int> _counts = {};
+  final Map<String, String> _collectionErrors = {};
 
   static const _collections = <_CmsSection>[
     _CmsSection('Pages', 'pages', Icons.article_outlined, '/admin/cms/pages'),
@@ -48,16 +49,30 @@ class _CmsDashboardScreenState extends State<CmsDashboardScreen> {
     });
 
     try {
-      final results = await Future.wait(
-        _collections.map(
-          (section) => SupabaseService.client.from(section.table).select('id'),
-        ),
-      );
+      _counts.clear();
+      _collectionErrors.clear();
+
+      for (final section in _collections) {
+        try {
+          final rows = await SupabaseService.client
+              .from(section.table)
+              .select('id');
+          _counts[section.table] = (rows as List).length;
+        } catch (e) {
+          _collectionErrors[section.table] = e.toString();
+        }
+      }
+
+      try {
+        await SupabaseService.client
+            .from('website_media_slots')
+            .select('slot_key')
+            .limit(1);
+      } catch (e) {
+        _collectionErrors['website_media_slots'] = e.toString();
+      }
 
       if (!mounted) return;
-      for (var i = 0; i < _collections.length; i++) {
-        _counts[_collections[i].table] = (results[i] as List).length;
-      }
       setState(() => _loading = false);
     } catch (e) {
       if (!mounted) return;
@@ -175,6 +190,9 @@ class _CmsDashboardScreenState extends State<CmsDashboardScreen> {
                 context,
                 section,
                 _counts[section.table] ?? 0,
+                subtitle: _collectionErrors.containsKey(section.table)
+                    ? 'Database setup needs attention.'
+                    : null,
               ),
             ),
             const SizedBox(height: 8),
@@ -189,7 +207,9 @@ class _CmsDashboardScreenState extends State<CmsDashboardScreen> {
                 '/admin/cms/website-slots',
               ),
               null,
-              subtitle: 'Choose which approved media powers key website locations.',
+              subtitle: _collectionErrors.containsKey('website_media_slots')
+                  ? 'Not connected yet — apply the website media slots migration.'
+                  : 'Choose which approved media powers key website locations.',
             ),
           ],
         ),
