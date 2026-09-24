@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-09-24",
+  "source_set": "49 original Nile Tropical product photographs supplied by user",
+  "catalogue_count": 20,
+  "verified_matches": [
+    {
+      "slug": "nile-sheabutter-lotion-apple-200ml",
+      "original": "Nile products Edits-23.jpg",
+      "confidence": "high",
+      "evidence": "OCR: APPLE PERFUMED, 200 ML"
+    },
+    {
+      "slug": "nile-sheabutter-lotion-lavender-200ml",
+      "original": "Nile products Edits-29.jpg",
+      "confidence": "high",
+      "evidence": "OCR: LAVENDER PERFUMED, 200 ML"
+    },
+    {
+      "slug": "nile-sheabutter-lotion-lemon-200ml",
+      "original": "Nile products Edits-25.jpg",
+      "confidence": "high",
+      "evidence": "Visible label: LEMON PERFUMED, 200 ML"
+    },
+    {
+      "slug": "shea-butter-mosquito-repellent-jelly-150g",
+      "original": "Nile products Edits-78.jpg",
+      "confidence": "high",
+      "evidence": "Visible/OCR label: SHEA BUTTER Mosquito Repellent"
+    },
+    {
+      "slug": "sheabutter-facial-scrub-soap-120g",
+      "original": "Nile products Edits-98.jpg",
+      "confidence": "high",
+      "evidence": "Visible product label identifies Facial scrub soap"
+    },
+    {
+      "slug": "tropisun-sunscreen-for-albinism-200g",
+      "original": "Nile products Edits-17.jpg",
+      "confidence": "high",
+      "evidence": "OCR/visual identifies Tropisun sunscreen formulation"
+    },
+    {
+      "slug": "hibiscus-powder-150g",
+      "original": "Nile products Edits-63.jpg",
+      "confidence": "high",
+      "evidence": "Visible hibiscus package; OCR reads 150g"
+    }
+  ],
+  "excluded_from_auto_match": [
+    "sanitizer catalogue records",
+    "Sweetie 200ml lotion",
+    "baby lotion 200ml",
+    "remaining soap variants",
+    "hibiscus tea 150g",
+    "E.C.O. Shea Butter 250g/500g until size is independently confirmed"
+  ]
+}
