@@ -62,11 +62,8 @@ class OrderService {
         'p_phone': phone,
         'p_email': email,
 
-        // create_order expects p_address as a JSONB object
-        // containing address_line.
-        'p_address': {
-          'address_line': address,
-        },
+        // Production create_order v2 expects p_address as text.
+        'p_address': address,
 
         'p_delivery_zone_id': deliveryZoneId,
         'p_payment_method': paymentMethod,
