@@ -30,8 +30,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _email = TextEditingController();
   final _address = TextEditingController();
   final _notes = TextEditingController();
-  final _coupon = TextEditingController();
-
   String _paymentMethod = PaymentMethods.mtnMomo;
   String? _zoneId;
 
@@ -72,58 +70,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     _email.dispose();
     _address.dispose();
     _notes.dispose();
-    _coupon.dispose();
 
     super.dispose();
-  }
-
-  Future<void> _applyCoupon() async {
-    final code = _coupon.text.trim();
-    final cart = ref.read(cartProvider);
-
-    if (code.isEmpty) return;
-
-    setState(() {
-      _applyingCoupon = true;
-      _couponMessage = null;
-    });
-
-    try {
-      final res = await SupabaseService.client.rpc(
-        'validate_coupon',
-        params: {
-          'p_code': code,
-          'p_subtotal': cart.subtotal,
-        },
-      );
-
-      final valid = res['valid'] as bool? ?? false;
-
-      setState(() {
-        _couponValid = valid;
-        _couponMessage = res['message'] as String?;
-
-        if (valid) {
-          _appliedCouponCode = code;
-          _discount =
-              (res['discount_amount'] as num?)?.toDouble() ?? 0;
-        } else {
-          _appliedCouponCode = null;
-          _discount = 0;
-        }
-      });
-    } catch (e) {
-      setState(() {
-        _couponValid = false;
-        _appliedCouponCode = null;
-        _discount = 0;
-        _couponMessage = 'Could not validate coupon';
-      });
-    } finally {
-      if (mounted) {
-        setState(() => _applyingCoupon = false);
-      }
-    }
   }
 
   Future<void> _placeOrder() async {
@@ -160,7 +108,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ? null
             : _notes.text.trim(),
         idempotencyKey: _idempotencyKey,
-        couponCode: _appliedCouponCode,
       );
 
       ref.read(cartProvider.notifier).clear();
