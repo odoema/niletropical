@@ -37,21 +37,27 @@ class CustomerShell extends StatelessWidget {
         final route = _destinations[i].route;
         if (route != null) context.go(route);
       },
-      sideHeader: Padding(
-        padding: const EdgeInsets.all(NileSpacing.md),
-        child: Row(
-          children: [
-            const ClipOval(
-              child: Image(
-                image: AssetImage('assets/images/logo.png'),
-                width: 36,
-                height: 36,
-                fit: BoxFit.cover,
+      sideHeader: SizedBox(
+        // Keep the header at its existing height so enlarging the logo
+        // does not push the side-menu items downward.
+        height: 68,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const ClipOval(
+                child: Image(
+                  image: AssetImage('assets/images/logo.png'),
+                  width: 47,
+                  height: 47,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Text('Nile Tropical', style: NileTypography.titleMedium.copyWith(color: NileColors.primary)),
-          ],
+              const SizedBox(width: 10),
+              Text('Nile Tropical', style: NileTypography.titleMedium.copyWith(color: NileColors.primary)),
+            ],
+          ),
         ),
       ),
       body: child,
