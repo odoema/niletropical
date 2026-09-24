@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../shared/services/storage_service.dart';
+import '../../shared/services/supabase_service.dart';
 
 class CmsMediaLibraryScreen extends StatefulWidget {
   const CmsMediaLibraryScreen({super.key});
@@ -113,9 +114,36 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
     if (ok != true) return;
 
     try {
+      final path = '$_folder/$name';
+
+      // Prevent deleting an image that is currently assigned to a live
+      // website slot. This avoids silently breaking the public website.
+      if (_folder == 'website') {
+        final usedBy = await SupabaseService.client
+            .from('website_media_slots')
+            .select('label')
+            .eq('storage_path', path);
+        if ((usedBy as List).isNotEmpty) {
+          final labels = usedBy
+              .map((row) => row['label']?.toString())
+              .whereType<String>()
+              .join(', ');
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'This image is in use by: ' + labels + '. Change that slot first.',
+              ),
+              backgroundColor: NileColors.error,
+            ),
+          );
+          return;
+        }
+      }
+
       await StorageService.delete(
         bucket: StorageService.cms,
-        path: '$_folder/$name',
+        path: path,
       );
       await _load();
     } catch (e) {
