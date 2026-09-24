@@ -1,123 +1,133 @@
-name: Upload Nile Tropical Product Images
+name: Sync Nile Tropical Catalogue
 
 on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/upload-product-images.yml'
+      - 'assets/products/product-image-mapping.json'
+      - 'assets/products/catalog-copy.json'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  upload:
+  sync:
     runs-on: ubuntu-latest
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      DRIVE_FOLDER_URL: https://drive.google.com/drive/folders/1nO6wELJBZvr9I302bMyRTWccFOQxpvcm
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate secrets
+      - name: Validate Supabase secrets
         shell: bash
         run: |
           set -euo pipefail
           test -n "$SUPABASE_URL" || { echo "::error::SUPABASE_URL secret is missing."; exit 1; }
           test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo "::error::SUPABASE_SERVICE_ROLE_KEY secret is missing."; exit 1; }
 
-      - name: Install SVG renderer
+      - name: Download original product photographs from Google Drive
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y imagemagick librsvg2-bin
-          command -v convert
-          command -v rsvg-convert
-
-      - name: Prepare product JPGs from the 20 committed product artworks
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          svg_count="$(find assets/products -maxdepth 1 -type f -name '*.svg' | wc -l)"
-          test "$svg_count" -eq 20 || {
-            echo "::error::Expected exactly 20 product SVG artworks, found $svg_count."
+          python3 -m pip install --disable-pip-version-check --quiet gdown
+          rm -rf /tmp/nile-drive
+          mkdir -p /tmp/nile-drive
+          gdown --folder "$DRIVE_FOLDER_URL" --output /tmp/nile-drive --remaining-ok
+          count="$(find /tmp/nile-drive -type f -iname '*.jpg' -o -iname '*.jpeg' | wc -l)"
+          echo "Downloaded $count JPEG photographs."
+          test "$count" -ge 20 || {
+            echo "::error::Google Drive folder did not expose the expected photograph set. Ensure the folder is shared as Anyone with the link / Viewer."
             exit 1
           }
 
-          rm -rf assets/generated-products
-          mkdir -p assets/generated-products
+      - name: Verify the seven high-confidence photo matches
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nile-matched
 
-          for svg in assets/products/*.svg; do
-            slug="$(basename "$svg" .svg)"
-            echo "Rendering $slug.jpg"
-            rsvg-convert -w 1200 -h 1200 "$svg" -o "assets/generated-products/$slug.png"
-            convert "assets/generated-products/$slug.png" -background white -alpha remove -alpha off -strip -interlace Plane -quality 88 "assets/generated-products/$slug.jpg"
-            rm "assets/generated-products/$slug.png"
+          declare -A MAP=(
+            [nile-sheabutter-lotion-apple-200ml]="Nile products Edits-23.jpg"
+            [nile-sheabutter-lotion-lavender-200ml]="Nile products Edits-29.jpg"
+            [nile-sheabutter-lotion-lemon-200ml]="Nile products Edits-25.jpg"
+            [shea-butter-mosquito-repellent-jelly-150g]="Nile products Edits-78.jpg"
+            [sheabutter-facial-scrub-soap-120g]="Nile products Edits-98.jpg"
+            [tropisun-sunscreen-for-albinism-200g]="Nile products Edits-17.jpg"
+            [hibiscus-powder-150g]="Nile products Edits-63.jpg"
+          )
+
+          for slug in "${!MAP[@]}"; do
+            wanted="${MAP[$slug]}"
+            found="$(find /tmp/nile-drive -type f -iname "$wanted" | head -n 1 || true)"
+            if [ -z "$found" ]; then
+              echo "::error::Mapped original photograph not found in Drive: $wanted"
+              exit 1
+            fi
+            cp "$found" "/tmp/nile-matched/$slug.jpg"
+            echo "$slug <- $wanted"
           done
 
-          jpg_count="$(find assets/generated-products -maxdepth 1 -type f -name '*.jpg' | wc -l)"
-          test "$jpg_count" -eq 20 || {
-            echo "::error::Expected 20 rendered JPGs, found $jpg_count."
-            exit 1
-          }
-
-          echo "Prepared $jpg_count JPGs from the exact 20 committed production slugs."
-
-      - name: Upload JPGs and attach them to the matching production products
+      - name: Update catalogue copy and verified real images in Supabase
         shell: bash
         run: |
           set -euo pipefail
 
-          for file in assets/generated-products/*.jpg; do
-            slug="$(basename "$file" .jpg)"
-            echo "=== $slug ==="
-
-            product_id="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               | jq -r '.[0].id // empty')"
+          echo "=== Updating product copy ==="
+          jq -r 'to_entries[] | [.key, .value.name, .value.description] | @tsv' assets/products/catalog-copy.json |
+          while IFS=$'\t' read -r slug name description; do
+            product_id="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" |
+              jq -r '.[0].id // empty')"
 
             if [ -z "$product_id" ]; then
-              echo "::error::Production product not found for slug: $slug"
+              echo "::warning::Product slug not found in production: $slug"
+              continue
+            fi
+
+            jq -n --arg name "$name" --arg description "$description"               '{name:$name,description:$description}' |
+              curl --fail-with-body --silent --show-error                 "$SUPABASE_URL/rest/v1/products?id=eq.$product_id"                 -X PATCH                 -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"                 -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"                 -H "Content-Type: application/json"                 -H "Prefer: return=minimal"                 -d @-
+
+            echo "Updated copy: $slug"
+          done
+
+          echo "=== Uploading verified original photographs ==="
+          for file in /tmp/nile-matched/*.jpg; do
+            slug="$(basename "$file" .jpg)"
+
+            product_id="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" |
+              jq -r '.[0].id // empty')"
+
+            if [ -z "$product_id" ]; then
+              echo "::error::Production product not found for verified image slug: $slug"
               exit 1
             fi
 
             curl --fail-with-body --silent --show-error               -X PUT "$SUPABASE_URL/storage/v1/object/product-images/$slug.jpg"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: image/jpeg"               -H "x-upsert: true"               --data-binary "@$file"
 
-            payload="$(jq -n               --arg path "$slug.jpg"               --arg alt "$slug product image"               '{storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}')"
+            payload="$(jq -n               --arg path "$slug.jpg"               --arg alt "$slug — original Nile Tropical product photograph"               '{storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}')"
 
             updated="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/product_images?product_id=eq.$product_id&is_main=eq.true"               -X PATCH               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: application/json"               -H "Prefer: return=representation"               -d "$payload")"
 
             if [ "$(echo "$updated" | jq 'length')" -eq 0 ]; then
-              jq -n                 --arg product_id "$product_id"                 --arg path "$slug.jpg"                 --arg alt "$slug product image"                 '{product_id:$product_id,storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}'                 | curl --fail-with-body --silent --show-error                     "$SUPABASE_URL/rest/v1/product_images"                     -X POST                     -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"                     -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"                     -H "Content-Type: application/json"                     -H "Prefer: return=minimal"                     -d @-
+              jq -n                 --arg product_id "$product_id"                 --arg path "$slug.jpg"                 --arg alt "$slug — original Nile Tropical product photograph"                 '{product_id:$product_id,storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}' |
+                curl --fail-with-body --silent --show-error                   "$SUPABASE_URL/rest/v1/product_images"                   -X POST                   -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"                   -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"                   -H "Content-Type: application/json"                   -H "Prefer: return=minimal"                   -d @-
             fi
 
-            echo "Uploaded and attached $slug.jpg -> $product_id"
+            echo "Uploaded real image: $slug.jpg"
           done
 
-      - name: Verify all 20 product images in Storage and database
+      - name: Verify the seven real images are reachable
         shell: bash
         run: |
           set -euo pipefail
-
-          expected=0
-          while IFS= read -r file; do
+          for file in /tmp/nile-matched/*.jpg; do
             slug="$(basename "$file" .jpg)"
-            expected=$((expected + 1))
-
             curl --fail-with-body --silent --show-error --head               "$SUPABASE_URL/storage/v1/object/public/product-images/$slug.jpg" >/dev/null
-
-            echo "Verified storage object: $slug.jpg"
-          done < <(find assets/generated-products -maxdepth 1 -type f -name '*.jpg' | sort)
-
-          test "$expected" -eq 20 || {
-            echo "::error::Expected 20 generated JPGs for verification, found $expected."
-            exit 1
-          }
-
-          image_ref_count="$(curl --fail-with-body --silent --show-error             "$SUPABASE_URL/rest/v1/product_images?select=id,storage_path,is_main&storage_path=like.*.jpg&is_main=eq.true"             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"             -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"             | jq 'length')"
-
-          test "$image_ref_count" -ge 20 || {
-            echo "::error::Expected at least 20 main JPG image references, found $image_ref_count."
-            exit 1
-          }
-
-          echo "VERIFIED: all 20 expected JPG storage objects are reachable and $image_ref_count main JPG references are present."
-          echo "The committed SVG artworks were only the source; no SVG placeholder was uploaded to Supabase."
+            echo "VERIFIED: $slug.jpg"
+          done
+          echo "Catalogue copy + verified original product photographs are now synchronized."
