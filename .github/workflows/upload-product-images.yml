@@ -89,7 +89,7 @@ jobs:
               continue
             fi
 
-            jq -n --arg name "$name" --arg description "$description"               '{name:$name,description:$description}' |
+            jq -n --arg name "$name" --arg description "$description"               '{name:$name,short_description:$description,full_description:$description}' |
               curl --fail-with-body --silent --show-error                 "$SUPABASE_URL/rest/v1/products?id=eq.$product_id"                 -X PATCH                 -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"                 -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"                 -H "Content-Type: application/json"                 -H "Prefer: return=minimal"                 -d @-
 
             echo "Updated copy: $slug"
