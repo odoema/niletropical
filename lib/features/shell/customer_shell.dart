@@ -43,6 +43,8 @@ class CustomerShell extends StatelessWidget {
         height: 68,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
+          child: Container(
+          color: NileColors.primary,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -55,7 +57,7 @@ class CustomerShell extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Text('Nile Tropical', style: NileTypography.titleMedium.copyWith(color: NileColors.primary)),
+              Text('Nile Tropical', style: NileTypography.titleMedium.copyWith(color: Colors.white)),
             ],
           ),
         ),
