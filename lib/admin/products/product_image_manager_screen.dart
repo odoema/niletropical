@@ -218,34 +218,60 @@ class _ProductImageManagerScreenState
                     <Map<String, dynamic>>[];
                 final busy = _busyProductId == product['id'];
 
-                return Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                return SizedBox(
+                  width: double.infinity,
+                  child: Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Expanded(
-                              child: Text(
-                                product['name']?.toString() ?? 'Unnamed product',
-                                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-                              ),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final compact = constraints.maxWidth < 560;
+                                final title = Text(
+                                  product['name']?.toString() ?? 'Unnamed product',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                );
+                                final action = FilledButton.icon(
+                                  onPressed: busy ? null : () => _addImages(product),
+                                  icon: busy
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        )
+                                      : const Icon(Icons.add_photo_alternate_outlined),
+                                  label: Text(busy ? 'Uploading…' : 'Add images'),
+                                );
+                                if (compact) {
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      title,
+                                      const SizedBox(height: 10),
+                                      action,
+                                    ],
+                                  );
+                                }
+                                return Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(child: title),
+                                    const SizedBox(width: 16),
+                                    action,
+                                  ],
+                                );
+                              },
                             ),
-                            FilledButton.icon(
-                              onPressed: busy ? null : () => _addImages(product),
-                              icon: busy
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                  : const Icon(Icons.add_photo_alternate_outlined),
-                              label: Text(busy ? 'Uploading…' : 'Add images'),
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 12),
                         if (images.isEmpty)
                           Container(
@@ -347,7 +373,9 @@ class _ProductImageManagerScreenState
                               },
                             ),
                           ),
-                      ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 );
