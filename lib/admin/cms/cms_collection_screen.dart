@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/config/env.dart';
 import '../../core/theme/app_theme.dart';
@@ -237,11 +238,41 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
       }
     }
 
-    if (widget.table == 'pages' &&
-        (payload['slug'] == null || payload['slug'].toString().isEmpty)) {
-      _showError('A URL slug is required for a page.');
-      _disposeControllers(controllers);
-      return;
+    if (widget.table == 'pages') {
+      if (payload['slug'] == null || payload['slug'].toString().isEmpty) {
+        _showError('A URL slug is required for a page.');
+        _disposeControllers(controllers);
+        return;
+      }
+      if (payload['title'] == null || payload['title'].toString().isEmpty) {
+        _showError('A page title is required.');
+        _disposeControllers(controllers);
+        return;
+      }
+      if (payload['body'] == null || payload['body'].toString().trim().isEmpty) {
+        _showError('Page content cannot be empty.');
+        _disposeControllers(controllers);
+        return;
+      }
+    }
+
+    if (widget.table == 'faqs') {
+      if (payload['question'] == null || payload['question'].toString().isEmpty ||
+          payload['answer'] == null || payload['answer'].toString().isEmpty) {
+        _showError('Both the FAQ question and answer are required.');
+        _disposeControllers(controllers);
+        return;
+      }
+    }
+
+    if (widget.table == 'videos') {
+      if (payload['title'] == null || payload['title'].toString().isEmpty ||
+          payload['storage_path'] == null ||
+          payload['storage_path'].toString().isEmpty) {
+        _showError('A video title and media path are required.');
+        _disposeControllers(controllers);
+        return;
+      }
     }
 
     if (widget.table == 'promotions') {
@@ -330,6 +361,26 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
           ),
         ),
         actions: [
+          if (widget.table == 'pages' &&
+              row['is_published'] == true &&
+              row['slug']?.toString().isNotEmpty == true)
+            TextButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.push('/pages/${row['slug']}');
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Open live page'),
+            ),
+          if (widget.table == 'faqs' && row['is_active'] == true)
+            TextButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.push('/faq');
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Open FAQs'),
+            ),
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Close preview'),
@@ -388,11 +439,21 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
   }
 
   String _statusText(Map<String, dynamic> row) {
+    final now = DateTime.now().toUtc();
+    final starts = DateTime.tryParse(row['starts_at']?.toString() ?? '');
+    final ends = DateTime.tryParse(row['ends_at']?.toString() ?? '');
+
     if (row.containsKey('is_published')) {
-      return row['is_published'] == true ? 'Published' : 'Draft';
+      if (row['is_published'] != true) return 'Draft';
+      if (starts != null && now.isBefore(starts.toUtc())) return 'Scheduled';
+      if (ends != null && !now.isBefore(ends.toUtc())) return 'Expired';
+      return 'Published';
     }
     if (row.containsKey('is_active')) {
-      return row['is_active'] == true ? 'Active' : 'Inactive';
+      if (row['is_active'] != true) return 'Inactive';
+      if (starts != null && now.isBefore(starts.toUtc())) return 'Scheduled';
+      if (ends != null && !now.isBefore(ends.toUtc())) return 'Expired';
+      return 'Active';
     }
     return '';
   }
