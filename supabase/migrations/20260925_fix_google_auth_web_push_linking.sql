@@ -74,7 +74,7 @@ begin
 
   select id into v_customer_id
   from public.customers
-  where auth_user_id is null
+  where user_id is null
     and lower(trim(email::text)) = lower(trim(v_email))
   order by created_at asc
   limit 1;
