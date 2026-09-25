@@ -27,7 +27,7 @@ class _AccountOrdersScreenState extends State<AccountOrdersScreen> {
     _load();
   }
 
-  /// Ownership chain: auth.uid() → customers.auth_user_id → customers.id
+  /// Ownership chain: auth.uid() → customers.user_id → customers.id
   /// → orders.customer_id. This is what the RLS policy in 014_rls.sql
   /// enforces server-side (orders_owner_read), and it's the join the
   /// updated create_order (016) now sets on new orders too. Matching by
@@ -47,7 +47,7 @@ class _AccountOrdersScreenState extends State<AccountOrdersScreen> {
       final customer = await SupabaseService.client
           .from('customers')
           .select('id')
-          .eq('auth_user_id', AuthService.user!.id)
+          .eq('user_id', AuthService.user!.id)
           .maybeSingle();
 
       final query = SupabaseService.client
