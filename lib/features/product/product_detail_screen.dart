@@ -43,6 +43,19 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   int _qty = 1;
 
   @override
+  void dispose() {
+    // A product may have had its images changed while this detail view was open.
+    // Invalidate catalogue caches when leaving so the next catalogue view reads
+    // the current authoritative product_images rows from Supabase.
+    ref.invalidate(featuredProductsProvider);
+    ref.invalidate(productsProvider(null));
+    ref.invalidate(flaggedProductsProvider('is_bestseller'));
+    ref.invalidate(flaggedProductsProvider('is_new'));
+    ref.invalidate(flaggedProductsProvider('is_promotional'));
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final async = ref.watch(productBySlugProvider(widget.slug));
 
