@@ -215,6 +215,145 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
     }
   }
 
+  Future<void> _confirmClear(Map<String, dynamic> slot) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Use fallback image?'),
+        content: Text(
+          'This will remove the custom image from ' +
+          slot['label'].toString() +
+          ' and restore the public website fallback.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Use fallback')),
+        ],
+      ),
+    );
+    if (ok == true) await _clear(slot);
+  }
+
+  Widget _slotCard(Map<String, dynamic> slot) {
+    final path = slot['storage_path']?.toString();
+    final active = slot['is_active'] == true && path != null && path.isNotEmpty;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 760;
+            final image = SizedBox(
+              width: compact ? double.infinity : 190,
+              height: compact ? 180 : 125,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: active
+                    ? Image.network(
+                        _url(path),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: NileColors.surfaceVariant,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.broken_image_outlined, size: 34),
+                        ),
+                      )
+                    : Container(
+                        color: NileColors.surfaceVariant,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.image_outlined, size: 38),
+                      ),
+              ),
+            );
+            final details = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  slot['label']?.toString() ?? slot['slot_key'].toString(),
+                  style: NileTypography.titleMedium,
+                ),
+                const SizedBox(height: 7),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: active ? NileColors.success.withValues(alpha: 0.10) : NileColors.surfaceVariant,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    active ? 'Active' : 'Fallback',
+                    style: NileTypography.bodySmall.copyWith(
+                      color: active ? NileColors.success : NileColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 9),
+                Text(
+                  active ? path! : 'No custom image selected. The public website will use its fallback.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: NileTypography.bodySmall,
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  slot['alt_text']?.toString().isNotEmpty == true
+                      ? 'Alt text: ' + slot['alt_text'].toString()
+                      : 'Alt text: Not set',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: NileTypography.bodySmall.copyWith(color: NileColors.textSecondary),
+                ),
+              ],
+            );
+            final actions = Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _choose(slot),
+                  icon: const Icon(Icons.photo_library_outlined, size: 18),
+                  label: Text(active ? 'Change image' : 'Choose image'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _editDetails(slot),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('Edit details'),
+                ),
+                if (active)
+                  TextButton.icon(
+                    onPressed: () => _confirmClear(slot),
+                    icon: const Icon(Icons.restore_outlined, size: 18),
+                    label: const Text('Use fallback'),
+                  ),
+              ],
+            );
+            if (compact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [image, const SizedBox(height: 14), details, const SizedBox(height: 14), actions],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                image,
+                const SizedBox(width: 18),
+                Expanded(child: details),
+                const SizedBox(width: 20),
+                SizedBox(width: 210, child: actions),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -227,7 +366,7 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
             label: const Text('Media Library'),
           ),
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: 'Refresh website slots',
             onPressed: _loading ? null : _load,
             icon: const Icon(Icons.refresh),
           ),
@@ -242,131 +381,32 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.error_outline,
-                            size: 48, color: NileColors.error),
+                        const Icon(Icons.error_outline, size: 48, color: NileColors.error),
                         const SizedBox(height: 12),
-                        Text(
-                          'Could not load website slots.',
-                          style: NileTypography.titleLarge,
-                        ),
+                        Text('Could not load website slots.', style: NileTypography.titleLarge),
                         const SizedBox(height: 8),
                         Text(
-                          _error!.contains('PGRST205') ||
-                                  _error!.contains('website_media_slots')
+                          _error!.contains('PGRST205') || _error!.contains('website_media_slots')
                               ? 'The Website Slots database module has not been installed yet. Apply the website_media_slots migration to the Nile Tropical production Supabase project, then refresh this page.'
                               : _error!,
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
-                        FilledButton.icon(
-                          onPressed: _load,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Try again'),
-                        ),
+                        FilledButton.icon(onPressed: _load, icon: const Icon(Icons.refresh), label: const Text('Try again')),
                       ],
                     ),
                   ),
                 )
               : RefreshIndicator(
                   onRefresh: _load,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _slots.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (_, i) {
-                      final slot = _slots[i];
-                      final path = slot['storage_path']?.toString();
-                      final active = slot['is_active'] == true &&
-                          path != null &&
-                          path.isNotEmpty;
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(14),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 150,
-                                height: 105,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: active
-                                      ? Image.network(
-                                          _url(path),
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              const Center(
-                                            child: Icon(
-                                              Icons.broken_image_outlined,
-                                            ),
-                                          ),
-                                        )
-                                      : Container(
-                                          color: NileColors.surfaceVariant,
-                                          child: const Icon(
-                                            Icons.image_outlined,
-                                            size: 38,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      slot['label']?.toString() ??
-                                          slot['slot_key'].toString(),
-                                      style: NileTypography.titleMedium,
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Text(
-                                      active
-                                          ? path!
-                                          : 'Using the public website fallback image',
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: NileTypography.bodySmall,
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Text(
-                                      slot['alt_text']?.toString().isNotEmpty ==
-                                              true
-                                          ? 'Alt: ' +
-                                              slot['alt_text'].toString()
-                                          : 'No alt text set',
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: NileTypography.caption,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Wrap(
-                                spacing: 4,
-                                children: [
-                                  IconButton(
-                                    tooltip: 'Edit image description',
-                                    onPressed: () => _editDetails(slot),
-                                    icon: const Icon(Icons.edit_outlined),
-                                  ),
-                                  OutlinedButton.icon(
-                                    onPressed: () => _choose(slot),
-                                    icon: const Icon(
-                                        Icons.photo_library_outlined),
-                                    label: Text(active ? 'Change' : 'Choose'),
-                                  ),
-                                  if (active)
-                                    IconButton(
-                                      tooltip: 'Use fallback image',
-                                      onPressed: () => _clear(slot),
-                                      icon: const Icon(Icons.clear),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final horizontal = constraints.maxWidth > 1000 ? 28.0 : constraints.maxWidth > 700 ? 20.0 : 12.0;
+                      return ListView.separated(
+                        padding: EdgeInsets.fromLTRB(horizontal, 20, horizontal, 32),
+                        itemCount: _slots.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 14),
+                        itemBuilder: (_, i) => _slotCard(_slots[i]),
                       );
                     },
                   ),
