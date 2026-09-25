@@ -217,17 +217,16 @@ class _Gallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Always put the catalogue's main image first. The database may contain
-    // older gallery images, but opening a product should show the same image
-    // the shop card marks as the main image.
+    // Keep the gallery's first frame identical to Product.mainImageUrl.
+    // Do not depend on the database's nested-row order.
     final orderedImages = [...product.images]
       ..sort((a, b) {
         if (a.isMain != b.isMain) return a.isMain ? -1 : 1;
+        final sortCompare = a.sortOrder.compareTo(b.sortOrder);
+        if (sortCompare != 0) return sortCompare;
         final aCreated = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         final bCreated = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final createdCompare = bCreated.compareTo(aCreated);
-        if (createdCompare != 0) return createdCompare;
-        return a.sortOrder.compareTo(b.sortOrder);
+        return aCreated.compareTo(bCreated);
       });
     final urls = orderedImages.map((i) => i.url).where((u) => u.isNotEmpty).toList();
     if (urls.isEmpty && product.mainImageUrl != null) {
