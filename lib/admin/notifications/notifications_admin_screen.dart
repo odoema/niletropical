@@ -73,8 +73,8 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
 
       if (!mounted) return;
       setState(() {
-        _templates = List<Map<String, dynamic>>.from(results[0]);
-        _logs = List<Map<String, dynamic>>.from(results[1]);
+        _templates = List<Map<String, dynamic>>.from(templates);
+        _logs = rawLogs;
         _loading = false;
       });
     } catch (e) {
