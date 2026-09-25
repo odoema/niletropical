@@ -11,6 +11,7 @@ import 'core/constants/app_constants.dart';
 import 'core/router/app_router.dart';
 import 'shared/services/supabase_service.dart';
 import 'shared/services/push_notification_service.dart';
+import 'shared/services/auth_service.dart';
 import 'shared/widgets/push_notification_prompt.dart';
 
 Future<void> main() async {
@@ -30,6 +31,7 @@ Future<void> main() async {
     SupabaseService.client.auth.onAuthStateChange.listen((data) {
       if (data.session != null) {
         PushNotificationService.syncIfGranted();
+        AuthService.linkExistingCustomer();
       }
     });
   } else if (kDebugMode) {
