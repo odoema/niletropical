@@ -30,8 +30,12 @@ Future<void> main() async {
     await PushNotificationService.syncIfGranted();
     SupabaseService.client.auth.onAuthStateChange.listen((data) {
       if (data.session != null) {
-        PushNotificationService.syncIfGranted();
-        AuthService.linkExistingCustomer();
+        // Link the authenticated Google identity to the existing commerce
+        // customer first, then synchronize the browser push subscription.
+        Future<void>(() async {
+          await AuthService.linkExistingCustomer();
+          await PushNotificationService.syncIfGranted();
+        });
       }
     });
   } else if (kDebugMode) {
