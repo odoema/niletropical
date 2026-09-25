@@ -48,6 +48,28 @@ footer a:hover{color:#fff;transform:translateX(2px)}
 @media(max-width:600px){.wrap{width:calc(100% - 24px)}.top{font-size:11px}.top .wrap{justify-content:center;text-align:center;min-height:32px}.top .loc{display:none}.nav{min-height:68px}.brand b{font-size:12px}.brand small{font-size:11px}.logo{width:46px;height:46px;flex-basis:46px}section{padding:52px 0}.hero-grid{padding:46px 0}.hero h1{font-size:clamp(38px,12vw,54px)}.hero p{font-size:16px}.buttons{flex-direction:column}.buttons .btn{width:100%}.hero-visual,.hero-visual img{min-height:330px}.hero-caption{height:70px;padding:7px 10px 6px;gap:4px}.ticker-headline{height:22px;gap:6px}.ticker-headline strong{font-size:9px;padding:4px 7px}.ticker-headline span{font-size:9px}.ticker-viewport{height:22px}.ticker-track{font-size:11px;line-height:22px}.cards,.market-list,.foot{grid-template-columns:1fr}.card{min-height:0;padding:21px}.strip .wrap{display:block;padding:15px 0}.strip .btn{margin-top:12px;width:100%}.feature>div{padding:44px 6%}.feature-side,.feature-side img{min-height:330px}.prices{flex-direction:column}.price{width:100%}.story-photo img{height:300px}.portrait{min-height:360px}.market-photo img{height:230px}.contact-grid{gap:28px}.contact-card{padding:22px}.bottom{flex-direction:column}.mobile-nav{top:68px}}
 @media(min-width:901px){.mobile-nav{display:none!important}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.product-families{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;border:0;margin-top:32px}
+.family-card{position:relative;text-align:left;border:1px solid var(--line);border-radius:18px;background:#fff;padding:22px 20px 18px;min-height:230px;cursor:pointer;box-shadow:0 5px 16px rgba(0,45,84,.06);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.family-card:hover,.family-card:focus-visible{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,45,84,.12);border-color:rgba(0,80,144,.35);outline:none}
+.family-card .num{display:block;margin-bottom:13px}
+.family-title{display:block;color:var(--deep);font-size:18px;font-weight:800;line-height:1.18;margin-bottom:9px}
+.family-copy{display:block;color:var(--muted);font-size:13px;line-height:1.55}
+.family-hint{display:flex;align-items:center;justify-content:space-between;margin-top:17px;padding-top:12px;border-top:1px solid var(--line);color:var(--blue);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.family-hint b{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:16px;line-height:1}
+.family-products{display:none;position:relative;margin-top:13px;padding:16px 4px 4px;border-top:1px solid var(--line);min-height:70px}
+.family-card.is-open{grid-column:span 2;z-index:3}
+.family-card.is-open .family-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.family-card.is-open .family-copy{max-width:560px}
+.family-card.is-open .family-hint b{transform:rotate(45deg)}
+.product-orbit{position:relative;display:flex;align-items:center;justify-content:center;min-height:92px;gap:8px;flex-wrap:wrap;padding:6px}
+.product-orbit:before{content:"CURRENT PRODUCTS";position:absolute;left:50%;top:0;transform:translate(-50%,-50%);padding:3px 8px;background:#fff;color:var(--green);font-size:8px;font-weight:800;letter-spacing:.1em;white-space:nowrap}
+.product-link{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 12px;border-radius:12px;background:#f3f7f9;border:1px solid #d9e5eb;color:var(--deep);font-size:11px;font-weight:700;text-decoration:none;box-shadow:0 3px 8px rgba(0,45,84,.06)}
+.product-link:nth-child(odd){transform:translateY(-5px)}
+.product-link:nth-child(even){transform:translateY(5px)}
+.product-link:hover{background:#e7f5ed;border-color:rgba(0,183,33,.35);color:var(--deep)}
+.family-loading,.family-empty{color:var(--muted);font-size:11px;padding:8px}
+@media(max-width:900px){.product-families{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.family-card.is-open{grid-column:1/-1}}
+@media(max-width:600px){.product-families{grid-template-columns:1fr;gap:10px}.family-card{min-height:0;padding:19px 17px}.family-card.is-open{grid-column:1}.family-card.is-open .family-products{grid-template-columns:1fr 1fr}.product-orbit{min-height:110px}}
 /* Nile Tropical rounded visual language */
 .btn,.shop{border-radius:12px}
 .card,.contact-card,.price,.market,.story-box,.jar{border-radius:16px}
@@ -68,7 +90,7 @@ input,select,textarea,button{border-radius:12px}
 <main id="home">
 <section class="hero"><div class="wrap hero-grid"><div><div class="kicker">Nile Tropical Industries · Nebbi</div><h1>Made in West Nile.<br>Made for Uganda.</h1><p>Nile Tropical Industries (U) Ltd is a locally rooted manufacturing business based in Nebbi, developing products for homes, families, traders and retailers.</p><div class="buttons"><a class="btn white" href="./app/">SHOP NILE TROPICAL</a><a class="btn outline" href="#products">VIEW PRODUCTS</a></div></div><div class="hero-visual"><img src="https://images.unsplash.com/photo-1622971592071-95f272bb6ca2?auto=format&fit=crop&fm=jpg&q=80&w=1400" data-cms-slot="hero" srcset="https://images.unsplash.com/photo-1622971592071-95f272bb6ca2?auto=format&fit=crop&fm=jpg&q=75&w=700 700w, https://images.unsplash.com/photo-1622971592071-95f272bb6ca2?auto=format&fit=crop&fm=jpg&q=80&w=1400 1400w" sizes="(max-width:900px) 100vw, 42vw" alt="Visitors at a shea butter factory in Ghana" fetchpriority="high"><div class="hero-caption"><div class="ticker-headline"><strong>NILE TROPICAL</strong><span>From natural ingredients to everyday products.</span></div><div class="ticker-viewport"><span class="ticker-track">Rooted in the story of shea and local enterprise across West Nile.</span></div></div></div></div></section>
 <div class="strip"><div class="wrap"><div><strong>Our location:</strong> Plot 27 Abindu Road, Olyeko Cell, Abindu Division, Nebbi Municipality.</div><a class="btn shop" href="#contact">CONTACT US</a></div></div>
-<section id="products" class="cream"><div class="wrap"><div class="label">Products</div><h2>Our product families.</h2><p class="lead">Nile Tropical's manufacturing portfolio covers cosmetics and cosmeceuticals, soaps and detergents, foods and beverages, and candles and repellents.</p><div class="cards"><div class="card"><div class="num">01</div><h3>Cosmetics &amp; Personal Care</h3><p>Creams, lotions, hair products, sunscreen, herbal jelly and mosquito-repellent products.</p></div><div class="card"><div class="num">02</div><h3>Soaps &amp; Detergents</h3><p>Bath soap, liquid soap, hand wash, shampoo products, bleach and hand sanitizer.</p></div><div class="card"><div class="num">03</div><h3>Foods &amp; Beverages</h3><p>Hibiscus products, tea, drinks, jam, tomato sauce and other food products.</p></div><div class="card"><div class="num">04</div><h3>Candles &amp; Repellents</h3><p>Scented candles, ordinary candles and mosquito-repellent products.</p></div></div></div></section>
+<section id="products" class="cream"><div class="wrap"><div class="label">Products</div><h2>Our product families.</h2><p class="lead">Nile Tropical's manufacturing portfolio covers cosmetics and cosmeceuticals, soaps and detergents, foods and beverages, and candles and repellents.</p><div class="cards product-families"><button class="card family-card" type="button" data-category-match="cosmetics personal care"><span class="num">01</span><span class="family-title">Cosmetics &amp; Personal Care</span><span class="family-copy">Creams, lotions, hair products, sunscreen, herbal jelly and mosquito-repellent products.</span><span class="family-hint">View current products <b>+</b></span><span class="family-products" aria-live="polite"></span></button><button class="card family-card" type="button" data-category-match="soaps detergents"><span class="num">02</span><span class="family-title">Soaps &amp; Detergents</span><span class="family-copy">Bath soap, liquid soap, hand wash, shampoo products, bleach and hand sanitizer.</span><span class="family-hint">View current products <b>+</b></span><span class="family-products" aria-live="polite"></span></button><button class="card family-card" type="button" data-category-match="foods beverages"><span class="num">03</span><span class="family-title">Foods &amp; Beverages</span><span class="family-copy">Hibiscus products, tea, drinks, jam, tomato sauce and other food products.</span><span class="family-hint">View current products <b>+</b></span><span class="family-products" aria-live="polite"></span></button><button class="card family-card" type="button" data-category-match="candles repellents"><span class="num">04</span><span class="family-title">Candles &amp; Repellents</span><span class="family-copy">Scented candles, ordinary candles and mosquito-repellent products.</span><span class="family-hint">View current products <b>+</b></span><span class="family-products" aria-live="polite"></span></button></div></div></section>
 <section><div class="wrap"><div class="label">Featured product</div><h2>Mozzie-Guard Jelly</h2><p class="lead">The current company marketing material lists Mozzie-Guard Jelly in two sizes, made in Uganda, with Shea Butter and a Lemongrass scent.</p></div><div class="feature"><div><div class="label" style="color:#a9dfbd">Current sizes &amp; prices</div><h2>Made for local markets.</h2><div class="prices"><span class="price">60g · UGX 4,000</span><span class="price">120g · UGX 5,000</span></div><p>The current marketing material states that Mozzie-Guard Jelly is available at the Matrons Office, Nebbi Municipality.</p><a class="btn white" href="./app/">SHOP MOZZIE-GUARD</a></div><div class="feature-side"><img src="assets/website/mozzie.jpg" data-cms-slot="mozzie" alt="Shea butter body butter product in a natural outdoor setting" loading="lazy"><div class="jar"><b>MOZZIE</b><strong>GUARD JELLY</strong><span>Shea Butter · Lemongrass Scent<br>Made in Uganda</span></div></div></div></section>
 <section id="story"><div class="wrap split"><div class="story-box"><div class="label">Our story</div><h2>Rooted in Nebbi and West Nile.</h2><p>Nile Tropical Industries is based on Abindu Road in Nebbi Municipality, in Uganda's West Nile region. Its manufacturing work includes products developed around locally available materials and customer needs.</p><p>Shea Butter is an important part of the company's cosmetics and cosmeceuticals work, alongside a wider range of soaps, detergents, foods, beverages, candles and repellents.</p></div><div><div class="story-photo"><img src="https://images.unsplash.com/photo-1663919402819-afebaad0849a?auto=format&fit=crop&fm=jpg&q=76&w=1000" data-cms-slot="story" alt="Traditional processing of shea ingredients" loading="lazy"></div><div class="label" style="margin-top:24px">The digital store</div><h2>One company. One online shop.</h2><p>The public website introduces the company, its products, markets and wholesale opportunities. The connected Flutter commerce app handles the customer shopping experience.</p><a class="btn shop" href="./app/">GO TO THE ONLINE SHOP</a></div></div></section>
 <section class="founder"><div class="wrap split"><div class="portrait"><img src="assets/website/founder.jpg" data-cms-slot="founder" alt="African woman using a shea butter skincare product" loading="lazy"><div class="portrait-copy"><b>Dr. Betty Udongo Pacutho</b><span>Founder &amp; Director<br>Nile Tropical Industries (U) Ltd</span></div></div><div><div class="label">Leadership</div><h2>Building from Nebbi.</h2><p>Dr. Betty Udongo Pacutho is identified in the current company marketing material as the Founder &amp; Director and as the person behind the Mozzie-Guard Jelly initiative.</p><p>The company is rooted in Nebbi and its work connects with local markets, traders and customers across West Nile.</p></div></div></section>
@@ -76,8 +98,73 @@ input,select,textarea,button{border-radius:12px}
 <section id="wholesale" class="cream"><div class="wrap split"><div><div class="label">Wholesale &amp; distribution</div><h2>For retailers, traders and distributors.</h2><p class="lead">If you buy for resale, operate in a market, distribute products or need larger quantities, contact Nile Tropical directly about availability and next steps.</p></div><div class="story-box"><h3>Start a wholesale conversation</h3><p>Tell us what you need, where you operate and the products or quantities you are looking for.</p><a class="btn shop" href="#contact">CONTACT NILE TROPICAL</a></div></div></section>
 <section id="contact" class="contact"><div class="wrap contact-grid"><div><div class="label" style="color:#a9dfbd">Contact</div><h2>Visit or contact us in Nebbi.</h2><p>For product availability, wholesale enquiries, market information or general enquiries, use the current company contact details below.</p><div class="buttons"><a class="btn white" href="tel:+256393001071">CALL US</a><a class="btn outline" href="./app/">SHOP ONLINE</a></div></div><div class="contact-card"><h3>Nile Tropical Industries (U) Ltd</h3><p>Plot 27 Abindu Road,<br>Olyeko Cell, Abindu Division,<br>Nebbi Municipality, Nebbi, Uganda.</p><div class="phones"><a href="tel:+256393001071">+256 393 001071</a><a href="tel:+256700957796">+256 700 957796</a><a href="tel:+256774103235">+256 774 103235</a><a href="tel:+256775582283">+256 775 582283</a></div></div></div></section>
 </main>
-<footer><div class="wrap foot"><div><div class="brand" style="color:#fff"><span class="logo footer-logo"><img src="assets/website/niletropical-logo.jpg" data-cms-slot="logo" alt="Nile Tropical Industries Ltd logo"></span><span><b>Nile Tropical Industries (U) Ltd</b><small style="color:#cbd9e3">Nebbi, West Nile, Uganda</small></span></div><p>Plot 27 Abindu Road, Olyeko Cell, Abindu Division, Nebbi Municipality, Nebbi, Uganda.</p></div><div><h3>Explore</h3><a href="#products">Products</a><a href="#story">Our Story</a><a href="#markets">Markets</a><a href="#wholesale">Wholesale</a></div><div><h3>Online</h3><a href="./app/">Shop Nile Tropical</a><a href="#contact">Contact</a><a href="tel:+256393001071">Call us</a></div></div><div class="wrap bottom"><span>© 2026 Nile Tropical Industries (U) Ltd. · @copyright 2026 Hon. Dr. Betty Undongo Pacutho</span><span>Official website · Nebbi, West Nile, Uganda · Context photos: Unsplash contributors</span></div></footer>
-<script src="assets/website/cms-config.js"></script>
+<footer><div class="wrap foot"><div><div class="brand" style="color:#fff"><span class="logo footer-logo"><img src="assets/website/niletropical-logo.jpg" data-cms-slot="logo" alt="Nile Tropical Industries Ltd logo"></span><span><b>Nile Tropical Industries (U) Ltd</b><small style="color:#cbd9e3">Nebbi, West Nile, Uganda</small></span></div><p>Plot 27 Abindu Road, Olyeko Cell, Abindu Division, Nebbi Municipality, Nebbi, Uganda.</p></div><div><h3>Explore</h3><a href="#products">Products</a><a href="#story">Our Story</a><a href="#markets">Markets</a><a href="#wholesale">Wholesale</a></div><div><h3>Online</h3><a href="./app/">Shop Nile Tropical</a><a href="#contact">Contact</a><a href="tel:+256393001071">Call us</a></div></div><div class="wrap bottom"><span>© 2026 Nile Tropical Industries (U) Ltd. · @copyright 2026 Hon. Dr. Betty Undongo Pacutho</span><span>Official website · Nebbi, West Nile, Uganda</span></div></footer>
+<script src="assets/website/cms-config.js"></script><script>
+(function(){
+  const cfg=window.NILE_CMS||{};
+  if(!cfg.url||!cfg.anonKey)return;
+  const base=cfg.url.replace(/\/$/,'');
+  const headers={apikey:cfg.anonKey,Authorization:'Bearer '+cfg.anonKey};
+  const cards=[...document.querySelectorAll('.family-card')];
+  let catalogue=null;
+  function norm(v){return String(v||'').toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,' ').trim();}
+  function appUrl(slug){return './app/#/product/'+encodeURIComponent(slug);}
+  async function loadCatalogue(){
+    if(catalogue)return catalogue;
+    const [cr,pr]=await Promise.all([
+      fetch(base+'/rest/v1/categories?select=id,name,slug&is_active=eq.true&order=sort_order',{cache:'no-store',headers}),
+      fetch(base+'/rest/v1/products?select=id,name,slug,category_id,is_active,deleted_at&is_active=eq.true&deleted_at=is.null&order=created_at.desc',{cache:'no-store',headers})
+    ]);
+    if(!cr.ok||!pr.ok)throw new Error('catalogue unavailable');
+    catalogue={categories:await cr.json(),products:await pr.json()};
+    return catalogue;
+  }
+  function findCategory(categories,match){
+    const wanted=norm(match).split(' ').filter(Boolean);
+    return categories.find(c=>{
+      const hay=norm((c.name||'')+' '+(c.slug||''));
+      return wanted.every(w=>hay.includes(w)) || wanted.some(w=>hay.includes(w)&&w.length>4);
+    });
+  }
+  cards.forEach(card=>{
+    card.addEventListener('click',async ()=>{
+      const wasOpen=card.classList.contains('is-open');
+      cards.forEach(c=>c.classList.remove('is-open'));
+      if(wasOpen)return;
+      card.classList.add('is-open');
+      const target=card.querySelector('.family-products');
+      target.innerHTML='<div class="family-loading">Loading current products…</div>';
+      try{
+        const data=await loadCatalogue();
+        const category=findCategory(data.categories,card.dataset.categoryMatch);
+        const products=category
+          ? data.products.filter(p=>p.category_id===category.id)
+          : [];
+        if(!products.length){
+          target.innerHTML='<div class="family-empty">No active products are currently listed in this family.</div>';
+          return;
+        }
+        const orbit=document.createElement('div');
+        orbit.className='product-orbit';
+        products.forEach(p=>{
+          const a=document.createElement('a');
+          a.className='product-link';
+          a.href=appUrl(p.slug);
+          a.textContent=p.name;
+          a.addEventListener('click',e=>e.stopPropagation());
+          orbit.appendChild(a);
+        });
+        target.replaceChildren(orbit);
+      }catch(e){
+        target.innerHTML='<div class="family-empty">Product catalogue is temporarily unavailable.</div>';
+      }
+    });
+    card.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click();}
+    });
+  });
+})();
+</script>
 <script>
 (function(){
   const cfg=window.NILE_CMS||{};
