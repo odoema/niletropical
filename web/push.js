@@ -13,7 +13,7 @@
     return Notification.permission;
   };
 
-  window.nilePushSubscribe = async function (publicKey) {
+  window.nilePushSubscribe = async function () {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       throw new Error("Web Push is not supported by this browser.");
     }
@@ -33,6 +33,12 @@
     // Flutter's generated service worker.
     const workerUrl = new URL("push_service_worker.js", document.baseURI);
     const scopeUrl = new URL("push/", document.baseURI);
+
+    const vapidResponse = await fetch(new URL("vapid-public.json", document.baseURI), { cache: "no-store" });
+    if (!vapidResponse.ok) throw new Error("Nile Tropical push configuration unavailable.");
+    const vapidConfig = await vapidResponse.json();
+    const publicKey = vapidConfig.publicKey;
+    if (!publicKey) throw new Error("Nile Tropical VAPID public key is missing.");
 
     const registration = await navigator.serviceWorker.register(workerUrl, {
       scope: scopeUrl.pathname,
