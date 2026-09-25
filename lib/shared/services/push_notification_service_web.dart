@@ -4,6 +4,8 @@
 import 'dart:convert';
 import 'dart:js_interop';
 
+import 'package:flutter/foundation.dart';
+
 import '../../core/config/env.dart';
 import 'supabase_service.dart';
 
@@ -108,4 +110,3 @@ class PushNotificationService {
   }
 }
 
-void debugPrint(String message) => print(message);
