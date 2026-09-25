@@ -30,6 +30,7 @@ declare
   v_product record;
   v_payment_method payment_method;
   v_initial_payment_status payment_status;
+  v_initial_order_status text;
   v_customer_id uuid;
 begin
   if p_idempotency_key is not null then
@@ -58,6 +59,13 @@ begin
   v_initial_payment_status := case
     when v_payment_method = 'cash_on_delivery' then 'unpaid'
     else 'pending'
+  end;
+
+  -- Non-COD orders must enter the payment-pending state so the payment
+  -- gateway can accept them. COD orders remain new_order for staff fulfilment.
+  v_initial_order_status := case
+    when v_payment_method = 'cash_on_delivery' then 'new_order'
+    else 'payment_pending'
   end;
 
   select coalesce(delivery_fee, 0)
@@ -127,7 +135,7 @@ begin
     idempotency_key
   ) values (
     v_order_number,
-    'new',
+    v_initial_order_status,
     v_initial_payment_status,
     v_payment_method,
     v_subtotal,
@@ -151,7 +159,7 @@ begin
     notes
   ) values (
     v_order_id,
-    'new',
+    v_initial_order_status,
     'Order created'
   );
 
