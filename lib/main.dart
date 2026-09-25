@@ -26,7 +26,6 @@ Future<void> main() async {
       url: Env.supabaseUrl,
       anonKey: Env.supabaseAnonKey,
     );
-    await PushNotificationService.syncIfGranted();
     SupabaseService.client.auth.onAuthStateChange.listen((data) {
       if (data.session != null) {
         // Link the authenticated Google identity to the existing commerce
