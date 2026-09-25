@@ -63,7 +63,7 @@ class PushNotificationService {
 
       await SupabaseService.client.from('push_subscriptions').upsert(
         {
-          'customer_id': user.id,
+          'auth_user_id': user.id,
           'endpoint': endpoint,
           'p256dh': p256dh,
           'auth': auth,
@@ -92,7 +92,7 @@ class PushNotificationService {
 
     await SupabaseService.client.from('push_subscriptions').upsert(
       {
-        'customer_id': customerId,
+        'auth_user_id': customerId,
         'endpoint': subscription['endpoint'],
         'p256dh': keys['p256dh'],
         'auth': keys['auth'],
