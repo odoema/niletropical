@@ -66,7 +66,17 @@
       setTimeout(function(){finish()},12000);
     })();
   </script>
-  <script src="push.js"></script>
+  <script>
+    // Web Push is intentionally disabled. Remove any previously registered
+    // Nile Tropical push worker so notifications stay inside the app.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        registrations.forEach(function(registration) {
+          if (registration.scope.indexOf('/app/push/') !== -1) registration.unregister();
+        });
+      }).catch(function(){});
+    }
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
