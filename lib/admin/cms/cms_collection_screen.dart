@@ -29,6 +29,7 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
   List<Map<String, dynamic>> _rows = const [];
   String? _error;
   String _search = '';
+  String _statusFilter = 'All';
 
   bool get _isTestimonials => widget.table == 'testimonials';
 
@@ -144,11 +145,23 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
 
   List<Map<String, dynamic>> get _filteredRows {
     final q = _search.trim().toLowerCase();
-    if (q.isEmpty) return _rows;
     return _rows.where((row) {
-      return row.values.any((value) =>
-          value != null && value.toString().toLowerCase().contains(q));
+      final matchesSearch = q.isEmpty ||
+          row.values.any((value) =>
+              value != null && value.toString().toLowerCase().contains(q));
+      final matchesStatus = _statusFilter == 'All' ||
+          _statusText(row) == _statusFilter;
+      return matchesSearch && matchesStatus;
     }).toList();
+  }
+
+  List<String> get _statusOptions {
+    final values = <String>{'All'};
+    for (final row in _rows) {
+      final status = _statusText(row);
+      if (status.isNotEmpty) values.add(status);
+    }
+    return values.toList();
   }
 
   Future<void> _edit([Map<String, dynamic>? existing]) async {
@@ -528,6 +541,36 @@ class _CmsCollectionScreenState extends State<CmsCollectionScreen> {
                                   icon: const Icon(Icons.clear),
                                 ),
                           border: const OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            const Text('Status:'),
+                            DropdownButton<String>(
+                              value: _statusOptions.contains(_statusFilter)
+                                  ? _statusFilter
+                                  : 'All',
+                              items: _statusOptions
+                                  .map((status) => DropdownMenuItem(
+                                        value: status,
+                                        child: Text(status),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() => _statusFilter = value);
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
