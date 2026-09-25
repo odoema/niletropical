@@ -109,13 +109,17 @@ declare
   v_customer_id uuid;
   v_auth_user_id uuid;
   v_recipient text;
+  v_email text;
   v_log_id uuid;
 begin
-  select o.order_number, o.customer_id, o.customer_phone, c.auth_user_id
-    into v_order_number, v_customer_id, v_recipient, v_auth_user_id
+  select o.order_number, o.customer_id, c.auth_user_id, u.email
+    into v_order_number, v_customer_id, v_auth_user_id, v_email
   from public.orders o
   left join public.customers c on c.id = o.customer_id
+  left join auth.users u on u.id = c.auth_user_id
   where o.id = p_order_id;
+
+  v_recipient := coalesce(v_email, '');
 
   if v_customer_id is null or v_auth_user_id is null then
     return null;
