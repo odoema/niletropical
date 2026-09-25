@@ -56,27 +56,23 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
   }
 
   Future<void> _applyPrice(Map<String, dynamic> row) async {
-    final variantId = row['product_variant_id']?.toString();
-    final recommendationId = row['id'];
-
-    if (variantId == null || variantId.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('This recommendation is not linked to a product variant, so its price cannot be applied automatically.')),
-        );
-      }
+    final recommendationId = row['id']?.toString();
+    if (recommendationId == null || recommendationId.isEmpty) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This recommendation has no valid ID.')),
+      );
       return;
     }
 
     final proposed = row['recommended_price'] ?? row['proposed_price'] ?? row['suggested_price'];
-    final price = proposed is num ? proposed.toDouble() : double.tryParse(proposed?.toString().replaceAll(',', '') ?? '');
+    final price = proposed is num
+        ? proposed.toDouble()
+        : double.tryParse(proposed?.toString().replaceAll(',', '') ?? '');
 
     if (price == null || price <= 0) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('The recommendation does not contain a valid price.')),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('The recommendation does not contain a valid price.')),
+      );
       return;
     }
 
@@ -89,7 +85,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
         content: Text(
           'This will change the live selling price of ' + product +
           ' to UGX ' + price.toStringAsFixed(0) +
-          ' and mark the recommendation as approved.',
+          ' and mark the recommendation as approved. The old and new prices will be recorded in the audit log.',
         ),
         actions: [
           TextButton(
@@ -108,38 +104,26 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
     if (confirmed != true) return;
 
     try {
-      await SupabaseService.client
-          .from('product_variants')
-          .update({'price': price})
-          .eq('id', variantId);
-
-      await SupabaseService.client
-          .from('pricing_recommendations')
-          .update({
-            'status': 'approved',
-            'current_price': price,
-          })
-          .eq('id', recommendationId);
+      await SupabaseService.client.rpc(
+        'apply_pricing_recommendation',
+        params: {'p_recommendation_id': recommendationId},
+      );
 
       await _load();
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Live price updated to UGX ' + price.toStringAsFixed(0) + '.'),
-            backgroundColor: NileColors.success,
-          ),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Live price updated to UGX ' + price.toStringAsFixed(0) + ' and recorded in the audit log.'),
+          backgroundColor: NileColors.success,
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Price was not applied: ' + e.toString()),
-            backgroundColor: NileColors.error,
-          ),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Price was not applied: ' + e.toString()),
+          backgroundColor: NileColors.error,
+        ),
+      );
     }
   }
 
