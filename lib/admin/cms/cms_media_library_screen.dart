@@ -26,6 +26,8 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
   String _folder = 'website';
   bool _loading = true;
   bool _uploading = false;
+  int _uploadCompleted = 0;
+  int _uploadTotal = 0;
   List<dynamic> _files = const [];
   String? _error;
 
@@ -63,60 +65,85 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
     final picked = await ImagePicker().pickMultiImage();
     if (picked.isEmpty) return;
 
-    setState(() => _uploading = true);
-    try {
-      final rejected = <String>[];
+    setState(() {
+      _uploading = true;
+      _uploadCompleted = 0;
+      _uploadTotal = picked.length;
+    });
 
+    final uploadedNames = <String>[];
+    final rejected = <String>[];
+    final failed = <String>[];
+
+    try {
+      // Process files independently so one bad file does not stop the batch.
       for (var i = 0; i < picked.length; i++) {
         final file = picked[i];
-        final bytes = await file.readAsBytes();
-        final quality = await ImageQualityService.inspect(
-          bytes: bytes,
-          folder: _folder,
-        );
-
-        if (!quality.passes) {
-          rejected.add(
-            '${file.name}: ${quality.dimensions} (${quality.sizeLabel}). '
-            'Minimum is ${quality.minWidth} × ${quality.minHeight}px.',
+        try {
+          final bytes = await file.readAsBytes();
+          final quality = await ImageQualityService.inspect(
+            bytes: bytes,
+            folder: _folder,
           );
-          continue;
+
+          if (!quality.passes) {
+            rejected.add(
+              '${file.name}: ${quality.dimensions} (${quality.sizeLabel}). '
+              'Minimum is ${quality.minWidth} × ${quality.minHeight}px.',
+            );
+          } else {
+            final ext = file.name.contains('.')
+                ? file.name.split('.').last.toLowerCase()
+                : 'jpg';
+            final safe = file.name
+                .replaceAll(RegExp(r'[^a-zA-Z0-9._-]+'), '-')
+                .replaceAll(RegExp(r'-+'), '-');
+            final path =
+                '$_folder/${DateTime.now().microsecondsSinceEpoch}-$i-$safe';
+
+            await StorageService.upload(
+              bucket: StorageService.cms,
+              objectPath: path,
+              bytes: bytes,
+              contentType: file.mimeType ?? 'image/$ext',
+            );
+            uploadedNames.add(file.name);
+          }
+        } catch (e) {
+          failed.add('${file.name}: $e');
+        } finally {
+          if (mounted) setState(() => _uploadCompleted = i + 1);
         }
-
-        final ext = file.name.contains('.') ? file.name.split('.').last.toLowerCase() : 'jpg';
-        final safe = file.name
-            .replaceAll(RegExp(r'[^a-zA-Z0-9._-]+'), '-')
-            .replaceAll(RegExp(r'-+'), '-');
-        final path = '$_folder/${DateTime.now().millisecondsSinceEpoch}-$i-$safe';
-        await StorageService.upload(
-          bucket: StorageService.cms,
-          objectPath: path,
-          bytes: bytes,
-          contentType: file.mimeType ?? 'image/$ext',
-        );
       }
-      if (!mounted) return;
-      final uploaded = picked.length - rejected.length;
-      if (!mounted) return;
 
-      if (rejected.isEmpty) {
+      if (!mounted) return;
+      final successCount = uploadedNames.length;
+      final problemCount = rejected.length + failed.length;
+
+      if (problemCount == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$uploaded media file${uploaded == 1 ? '' : 's'} uploaded')),
+          SnackBar(
+            content: Text(
+              '$successCount image${successCount == 1 ? '' : 's'} uploaded successfully',
+            ),
+          ),
         );
       } else {
         await showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text(
-              uploaded == 0 ? 'Images not uploaded' : 'Some images were not uploaded',
+              successCount == 0
+                  ? 'No images uploaded'
+                  : 'Upload completed with some issues',
             ),
             content: SizedBox(
-              width: 620,
+              width: 680,
               child: SingleChildScrollView(
                 child: Text(
-                  '${uploaded > 0 ? '$uploaded image${uploaded == 1 ? '' : 's'} uploaded successfully.\n\n' : ''}'
-                  'These images are below the quality standard:\n\n'
-                  '${rejected.join('\n\n')}',
+                  '${successCount > 0 ? '$successCount image${successCount == 1 ? '' : 's'} uploaded successfully.\n\n' : ''}'
+                  '${rejected.isNotEmpty ? 'Rejected for quality:\n\n${rejected.join('\n\n')}\n\n' : ''}'
+                  '${failed.isNotEmpty ? 'Failed during upload:\n\n${failed.join('\n\n')}' : ''}',
                 ),
               ),
             ),
@@ -129,14 +156,16 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
           ),
         );
       }
+
       await _load();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Upload failed: $e'), backgroundColor: NileColors.error),
-      );
     } finally {
-      if (mounted) setState(() => _uploading = false);
+      if (mounted) {
+        setState(() {
+          _uploading = false;
+          _uploadCompleted = 0;
+          _uploadTotal = 0;
+        });
+      }
     }
   }
 
@@ -283,7 +312,7 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.cloud_upload_outlined, size: 18),
-                      label: Text(_uploading ? 'Uploading…' : 'Upload images'),
+                      label: Text(_uploading ? 'Uploading $_uploadCompleted/$_uploadTotal…' : 'Upload images'),
                     ),
                   ],
                 ),
