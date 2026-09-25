@@ -256,6 +256,42 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
       ),
       body: Column(
         children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+            decoration: BoxDecoration(
+              color: NileColors.surface,
+              border: Border(
+                bottom: BorderSide(color: NileColors.outlineVariant),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _folders[_folder]!,
+                    style: NileTypography.titleMedium,
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _loading || _uploading ? null : _load,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Refresh'),
+                ),
+                const SizedBox(width: 10),
+                FilledButton.icon(
+                  onPressed: _uploading ? null : _upload,
+                  icon: _uploading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.cloud_upload_outlined, size: 18),
+                  label: Text(_uploading ? 'Uploading…' : 'Upload images'),
+                ),
+              ],
+            ),
+          ),
           Material(
             color: NileColors.surface,
             child: SingleChildScrollView(
@@ -367,8 +403,9 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
 }
 
 class _EmptyMedia extends StatelessWidget {
-  const _EmptyMedia({required this.folder});
+  const _EmptyMedia({required this.folder, required this.onUpload});
   final String folder;
+  final VoidCallback onUpload;
 
   @override
   Widget build(BuildContext context) {
@@ -393,6 +430,12 @@ class _EmptyMedia extends StatelessWidget {
                 ImageQualityService.guidance(folder),
                 textAlign: TextAlign.center,
                 style: NileTypography.bodySmall,
+              ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                onPressed: onUpload,
+                icon: const Icon(Icons.cloud_upload_outlined),
+                label: const Text('Upload images'),
               ),
             ],
           ),
