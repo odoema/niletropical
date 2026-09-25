@@ -74,9 +74,18 @@ async function dispatch() {
       );
       const orderNumber = orders?.[0]?.order_number || log.order_id;
 
-      const subscriptions = await supabase(
-        `push_subscriptions?auth_user_id=eq.${encodeURIComponent(log.customer_id)}&select=id,endpoint,p256dh,auth`
+      // notification_logs.customer_id is the commerce customer UUID.
+      // Web Push subscriptions are keyed by the Supabase Auth user UUID.
+      const customers = await supabase(
+        `customers?id=eq.${encodeURIComponent(log.customer_id)}&select=user_id`
       );
+      const authUserId = customers?.[0]?.user_id;
+
+      const subscriptions = authUserId
+        ? await supabase(
+            `push_subscriptions?auth_user_id=eq.${encodeURIComponent(authUserId)}&select=id,endpoint,p256dh,auth`
+          )
+        : [];
 
       if (!subscriptions.length) {
         await supabase(`notification_logs?id=eq.${encodeURIComponent(log.id)}`, {
