@@ -24,6 +24,7 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      WEB_PUSH_VAPID_PRIVATE_KEY: ${{ secrets.WEB_PUSH_VAPID_PRIVATE_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,6 +42,10 @@ jobs:
           # Use the source logo exactly as stored in assets/images/logo.png.
           # Do not recolor, redraw, or alter the official artwork.
           cp assets/images/logo.png web/favicon.png
+
+      - name: Generate Web Push public configuration
+        run: |
+          node scripts/generate_vapid_public.mjs > web/vapid-public.json
 
       - name: Build Flutter commerce app
         run: |
