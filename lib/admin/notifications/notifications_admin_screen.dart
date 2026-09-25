@@ -34,47 +34,16 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
           .select()
           .order('event_key');
 
-      // Fetch logs and notifications separately. This avoids relying on a
-      // PostgREST nested relationship that may be absent from the production
-      // schema cache even when notification_logs.notification_id exists.
       final logs = await SupabaseService.client
           .from('notification_logs')
-          .select()
+          .select('id,order_id,customer_id,channel,recipient,event_key,provider,provider_message_id,status,error_message,sent_at,created_at')
           .order('created_at', ascending: false)
           .limit(200);
-
-      final rawLogs = List<Map<String, dynamic>>.from(logs);
-      final notificationIds = rawLogs
-          .map((r) => r['notification_id']?.toString())
-          .whereType<String>()
-          .where((id) => id.isNotEmpty)
-          .toSet()
-          .toList();
-
-      final notificationMap = <String, Map<String, dynamic>>{};
-      if (notificationIds.isNotEmpty) {
-        final notifications = await SupabaseService.client
-            .from('notifications')
-            .select('id,recipient,channel,event_key,order_id,message')
-            .inFilter('id', notificationIds);
-
-        for (final n in List<Map<String, dynamic>>.from(notifications)) {
-          final id = n['id']?.toString();
-          if (id != null) notificationMap[id] = n;
-        }
-      }
-
-      for (final log in rawLogs) {
-        final notificationId = log['notification_id']?.toString();
-        log['notification'] = notificationId == null
-            ? <String, dynamic>{}
-            : (notificationMap[notificationId] ?? <String, dynamic>{});
-      }
 
       if (!mounted) return;
       setState(() {
         _templates = List<Map<String, dynamic>>.from(templates);
-        _logs = rawLogs;
+        _logs = List<Map<String, dynamic>>.from(logs);
         _loading = false;
       });
     } catch (e) {
@@ -85,16 +54,16 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
 
   Future<void> _editTemplate([Map<String, dynamic>? existing]) async {
     final name = TextEditingController(text: existing?['event_key']?.toString() ?? '');
-    final channel = TextEditingController(text: existing?['channel']?.toString() ?? 'push');
-    final body = TextEditingController(text: existing?['template_body']?.toString() ?? '');
+    final channel = TextEditingController(text: existing?['channel']?.toString() ?? 'sms');
+    final body = TextEditingController(text: existing?['body_template']?.toString() ?? '');
     bool active = existing?['is_active'] != false;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(builder: (ctx, setDialogState) => AlertDialog(
         title: Text(existing == null ? 'New notification template' : 'Edit notification template'),
         content: SizedBox(width: 620, child: SingleChildScrollView(child: Column(children: [
-          TextField(controller: name, decoration: const InputDecoration(labelText: 'Name / key')),
-          TextField(controller: channel, decoration: const InputDecoration(labelText: 'Channel (push, SMS, email, WhatsApp)')),
+          TextField(controller: name, decoration: const InputDecoration(labelText: 'Event key')),
+          TextField(controller: channel, decoration: const InputDecoration(labelText: 'Channel (sms, whatsapp, email, push)')),
           TextField(controller: body, maxLines: 7, decoration: const InputDecoration(labelText: 'Message body')),
           SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Active'), value: active, onChanged: (v) => setDialogState(() => active = v)),
         ]))),
@@ -106,7 +75,12 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
     );
     if (ok != true) { for (final c in [name, channel, body]) c.dispose(); return; }
     try {
-      final payload = {'event_key': name.text.trim(), 'channel': channel.text.trim(), 'template_body': body.text.trim(), 'is_active': active};
+      final payload = {
+        'event_key': name.text.trim(),
+        'channel': channel.text.trim().toLowerCase(),
+        'body_template': body.text.trim(),
+        'is_active': active,
+      };
       if (existing == null) {
         await SupabaseService.client.from('notification_templates').insert(payload);
       } else {
@@ -140,7 +114,7 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
         return Card(child: ListTile(
           leading: const Icon(Icons.notifications_outlined),
           title: Text((r['event_key'] ?? 'Template').toString()),
-          subtitle: Text((r['channel'] ?? '—').toString() + ' • ' + (r['is_active'] == false ? 'Inactive' : 'Active') + '\n' + (r['template_body'] ?? '').toString(), maxLines: 3, overflow: TextOverflow.ellipsis),
+          subtitle: Text((r['channel'] ?? '—').toString() + ' • ' + (r['is_active'] == false ? 'Inactive' : 'Active') + '\n' + (r['body_template'] ?? '').toString(), maxLines: 3, overflow: TextOverflow.ellipsis),
           isThreeLine: true,
           trailing: IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _editTemplate(r)),
         ));
@@ -153,12 +127,13 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (_, i) {
         final r = _logs[i];
-        final n = Map<String, dynamic>.from(r['notification'] as Map? ?? {});
         final status = r['status']?.toString() ?? 'unknown';
+        final recipient = r['recipient']?.toString() ?? '';
+        final event = r['event_key']?.toString() ?? 'notification';
         return Card(child: ListTile(
-          leading: Icon(status == 'sent' || status == 'delivered' ? Icons.check_circle_outline : Icons.error_outline),
-          title: Text((n['channel'] ?? 'notification').toString() + ' • ' + status),
-          subtitle: Text((r['recipient'] ?? r['recipient_phone'] ?? r['recipient_email'] ?? r['user_id'] ?? '').toString() + '\n' + (r['created_at'] ?? '').toString(), maxLines: 2),
+          leading: Icon(status == 'sent' || status == 'delivered' ? Icons.check_circle_outline : status == 'pending' ? Icons.schedule : Icons.error_outline),
+          title: Text(event + ' • ' + status),
+          subtitle: Text(recipient + '\n' + (r['created_at'] ?? '').toString(), maxLines: 2),
         ));
       },
     );
