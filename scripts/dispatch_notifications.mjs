@@ -1,22 +1,25 @@
-const required = [
-  'SUPABASE_URL',
-  'SUPABASE_SERVICE_ROLE_KEY',
-  'AFRICASTALKING_USERNAME',
-  'AFRICASTALKING_API_KEY',
-];
-for (const name of required) {
-  if (!process.env[name]) throw new Error(`Missing GitHub secret: ${name}`);
+// Nile Tropical — free Web Push dispatcher.
+// Runs in GitHub Actions. No SMS provider and no paid messaging API.
+import webpush from 'web-push';
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const VAPID_PRIVATE_KEY = process.env.WEB_PUSH_VAPID_PRIVATE_KEY;
+const VAPID_PUBLIC_KEY = 'BHF9yxwTcIkl7opt5_yjvXYont8di_WhN_Q5TJpQ_uha6rxQsr82q4Cbyy2jFggRGGME6Yb3-F456LR9SNTbJ30';
+
+if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !VAPID_PRIVATE_KEY) {
+  throw new Error('Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or WEB_PUSH_VAPID_PRIVATE_KEY');
 }
 
-const SUPABASE_URL = process.env.SUPABASE_URL.replace(/\/$/, '');
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const AT_USERNAME = process.env.AFRICASTALKING_USERNAME;
-const AT_API_KEY = process.env.AFRICASTALKING_API_KEY;
-const AT_SENDER_ID = process.env.AFRICASTALKING_SENDER_ID || '';
+webpush.setVapidDetails(
+  'mailto:notifications@niletropicaluganda.com',
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY,
+);
 
 const headers = {
-  apikey: SUPABASE_KEY,
-  Authorization: `Bearer ${SUPABASE_KEY}`,
+  apikey: SERVICE_ROLE_KEY,
+  Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
   'Content-Type': 'application/json',
 };
 
@@ -25,114 +28,130 @@ async function supabase(path, options = {}) {
     ...options,
     headers: { ...headers, ...(options.headers || {}) },
   });
-  const text = await response.text();
-  if (!response.ok) throw new Error(`Supabase ${response.status}: ${text}`);
-  return text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Supabase ${response.status}: ${body}`);
+  }
+  if (response.status === 204) return null;
+  return response.json();
 }
 
-function normalizeUgandaPhone(value) {
-  const raw = String(value || '').trim().replace(/[\\s()-]/g, '');
-  if (raw.startsWith('+256')) return raw;
-  if (raw.startsWith('256')) return `+${raw}`;
-  if (raw.startsWith('0')) return `+256${raw.slice(1)}`;
-  return raw;
+function templateMessage(eventKey, orderNumber) {
+  const messages = {
+    order_received: `Nile Tropical: We have received your order ${orderNumber}. Thank you.`,
+    order_confirmed: `Nile Tropical: Your order ${orderNumber} has been confirmed and is being prepared.`,
+    payment_confirmed: `Nile Tropical: Payment for order ${orderNumber} has been confirmed.`,
+    dispatched: `Nile Tropical: Your order ${orderNumber} has been dispatched and is on its way.`,
+    out_for_delivery: `Nile Tropical: Your order ${orderNumber} is now out for delivery.`,
+    delivered: `Nile Tropical: Your order ${orderNumber} has been delivered. Thank you!`,
+    order_cancelled: `Nile Tropical: Your order ${orderNumber} has been cancelled.`,
+  };
+  return messages[eventKey] || `Nile Tropical: Update on order ${orderNumber}.`;
 }
 
-function render(template, orderNumber) {
-  return String(template || '').replaceAll('{{order_number}}', orderNumber || '');
-}
+async function dispatch() {
+  const logs = await supabase(
+    'notification_logs?select=id,order_id,customer_id,event_key,status&status=eq.pending&channel=eq.push&order_id=not.is.null&order=id.asc&limit=25'
+  );
 
-async function updateLog(id, patch) {
-  await supabase(`notification_logs?id=eq.${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
-    body: JSON.stringify(patch),
-  });
-}
+  console.log(`[Push] Pending notifications: ${logs.length}`);
 
-const pending = await supabase(
-  'notification_logs?select=id,order_id,channel,recipient,event_key,status,created_at&status=eq.pending&channel=eq.sms&order_id=not.is.null&order=id.asc&limit=25'
-);
+  for (const log of logs) {
+    try {
+      await supabase(`notification_logs?id=eq.${encodeURIComponent(log.id)}&status=eq.pending`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'processing', provider: 'web_push' }),
+      });
 
-if (!pending.length) {
-  console.log('No pending SMS notifications.');
-  process.exit(0);
-}
+      const orders = await supabase(
+        `orders?id=eq.${encodeURIComponent(log.order_id)}&select=order_number`
+      );
+      const orderNumber = orders?.[0]?.order_number || log.order_id;
 
-console.log(`Found ${pending.length} pending SMS notification(s).`);
+      const subscriptions = await supabase(
+        `push_subscriptions?customer_id=eq.${encodeURIComponent(log.customer_id)}&select=id,endpoint,p256dh,auth`
+      );
 
-for (const log of pending) {
-  try {
-    await updateLog(log.id, { status: 'processing', error_message: null });
+      if (!subscriptions.length) {
+        await supabase(`notification_logs?id=eq.${encodeURIComponent(log.id)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: 'failed',
+            provider: 'web_push',
+            error_message: 'No registered push device for this customer.',
+          }),
+        });
+        continue;
+      }
 
-    const orders = await supabase(
-      `orders?select=order_number&id=eq.${encodeURIComponent(log.order_id)}&limit=1`
-    );
-    if (!orders?.length) throw new Error('Order not found.');
+      const payload = JSON.stringify({
+        title: 'Nile Tropical',
+        body: templateMessage(log.event_key, orderNumber),
+        url: '/app/',
+        tag: `nile-order-${log.order_id}`,
+      });
 
-    const templates = await supabase(
-      `notification_templates?select=body_template,is_active&event_key=eq.${encodeURIComponent(log.event_key)}&is_active=eq.true&limit=1`
-    );
+      let delivered = 0;
+      const errors = [];
 
-    const fallback = `Nile Tropical: Update for order ${orders[0].order_number}.`;
-    const message = templates?.length
-      ? render(templates[0].body_template, orders[0].order_number)
-      : fallback;
+      for (const sub of subscriptions) {
+        try {
+          await webpush.sendNotification(
+            {
+              endpoint: sub.endpoint,
+              keys: { p256dh: sub.p256dh, auth: sub.auth },
+            },
+            payload,
+            { TTL: 3600, urgency: 'high' },
+          );
+          delivered++;
+        } catch (error) {
+          const statusCode = error?.statusCode;
+          errors.push(`${statusCode || 'ERR'}: ${error?.body || error?.message || 'push failed'}`);
+          if (statusCode === 404 || statusCode === 410) {
+            await supabase(`push_subscriptions?id=eq.${encodeURIComponent(sub.id)}`, {
+              method: 'DELETE',
+            });
+          }
+        }
+      }
 
-    const to = normalizeUgandaPhone(log.recipient);
-    if (!to) throw new Error('Recipient phone number is empty.');
-
-    const form = new URLSearchParams();
-    form.set('username', AT_USERNAME);
-    form.set('to', to);
-    form.set('message', message);
-    if (AT_SENDER_ID) form.set('from', AT_SENDER_ID);
-
-    const atResponse = await fetch('https://api.africastalking.com/version1/messaging', {
-      method: 'POST',
-      headers: {
-        apiKey: AT_API_KEY,
-        Accept: 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: form.toString(),
-    });
-
-    const raw = await atResponse.text();
-    let data;
-    try { data = JSON.parse(raw); } catch { data = { raw }; }
-
-    if (!atResponse.ok) {
-      throw new Error(`Africa's Talking ${atResponse.status}: ${raw}`);
+      if (delivered > 0) {
+        await supabase(`notification_logs?id=eq.${encodeURIComponent(log.id)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: 'sent',
+            provider: 'web_push',
+            provider_message_id: `${delivered} device(s)`,
+            sent_at: new Date().toISOString(),
+            error_message: errors.length ? errors.join(' | ') : null,
+          }),
+        });
+        console.log(`[Push] Sent ${log.event_key} for order ${orderNumber} to ${delivered} device(s)`);
+      } else {
+        await supabase(`notification_logs?id=eq.${encodeURIComponent(log.id)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: 'failed',
+            provider: 'web_push',
+            error_message: errors.join(' | ') || 'Push provider rejected all subscriptions.',
+          }),
+        });
+      }
+    } catch (error) {
+      console.error(`[Push] Failed notification ${log.id}:`, error);
+      try {
+        await supabase(`notification_logs?id=eq.${encodeURIComponent(log.id)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: 'failed',
+            provider: 'web_push',
+            error_message: error?.message || String(error),
+          }),
+        });
+      } catch (_) {}
     }
-
-    const recipient = data?.SMSMessageData?.Recipients?.[0];
-    const statusCode = String(recipient?.statusCode ?? '');
-    const providerStatus = String(recipient?.status ?? '').toLowerCase();
-    const messageId = recipient?.messageId ?? null;
-
-    if (statusCode && statusCode !== '100' && statusCode !== '101') {
-      throw new Error(`Africa's Talking rejected message: ${JSON.stringify(recipient)}`);
-    }
-
-    await updateLog(log.id, {
-      status: 'sent',
-      provider: 'africas_talking',
-      provider_message_id: messageId,
-      sent_at: new Date().toISOString(),
-      error_message: providerStatus && providerStatus !== 'sent'
-        ? `Provider status: ${providerStatus}`
-        : null,
-    });
-
-    console.log(`Sent ${log.event_key} to ${to}; provider message: ${messageId || 'n/a'}`);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    await updateLog(log.id, {
-      status: 'failed',
-      provider: 'africas_talking',
-      error_message: message.slice(0, 1000),
-    });
-    console.error(`Notification ${log.id} failed: ${message}`);
   }
 }
+
+await dispatch();
