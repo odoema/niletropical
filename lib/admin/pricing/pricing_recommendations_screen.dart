@@ -55,6 +55,94 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
     }
   }
 
+  Future<void> _applyPrice(Map<String, dynamic> row) async {
+    final variantId = row['product_variant_id']?.toString();
+    final recommendationId = row['id'];
+
+    if (variantId == null || variantId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('This recommendation is not linked to a product variant, so its price cannot be applied automatically.')),
+        );
+      }
+      return;
+    }
+
+    final proposed = row['recommended_price'] ?? row['proposed_price'] ?? row['suggested_price'];
+    final price = proposed is num ? proposed.toDouble() : double.tryParse(proposed?.toString().replaceAll(',', '') ?? '');
+
+    if (price == null || price <= 0) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('The recommendation does not contain a valid price.')),
+        );
+      }
+      return;
+    }
+
+    final product = (row['product_name'] ?? row['product_variant_name'] ?? 'this product').toString();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Apply price to product?'),
+        content: Text(
+          'This will change the live selling price of ' + product +
+          ' to UGX ' + price.toStringAsFixed(0) +
+          ' and mark the recommendation as approved.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.publish_outlined),
+            label: const Text('Apply price'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await SupabaseService.client
+          .from('product_variants')
+          .update({'price': price})
+          .eq('id', variantId);
+
+      await SupabaseService.client
+          .from('pricing_recommendations')
+          .update({
+            'status': 'approved',
+            'current_price': price,
+          })
+          .eq('id', recommendationId);
+
+      await _load();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Live price updated to UGX ' + price.toStringAsFixed(0) + '.'),
+            backgroundColor: NileColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Price was not applied: ' + e.toString()),
+            backgroundColor: NileColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _editRecommendation(Map<String, dynamic> row) async {
     final priceController = TextEditingController(
       text: (row['recommended_price'] ?? row['proposed_price'] ?? row['suggested_price'] ?? '').toString(),
@@ -192,6 +280,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
                   onApprove: () => _setStatus(_visible[i], 'approved'),
                   onReject: () => _setStatus(_visible[i], 'rejected'),
                   onEdit: () => _editRecommendation(_visible[i]),
+                  onApplyPrice: () => _applyPrice(_visible[i]),
                 ),
               )),
         ]),
@@ -205,11 +294,13 @@ class _RecommendationCard extends StatelessWidget {
     required this.onApprove,
     required this.onReject,
     required this.onEdit,
+    required this.onApplyPrice,
   });
   final Map<String, dynamic> row;
   final VoidCallback onApprove;
   final VoidCallback onReject;
   final VoidCallback onEdit;
+  final VoidCallback onApplyPrice;
 
   @override
   Widget build(BuildContext context) {
@@ -235,8 +326,10 @@ class _RecommendationCard extends StatelessWidget {
         runSpacing: 8,
         children: [
           OutlinedButton.icon(onPressed: onEdit, icon: const Icon(Icons.edit_outlined), label: const Text('Edit')),
+          if (status == 'pending')
+            FilledButton.icon(onPressed: onApplyPrice, icon: const Icon(Icons.publish_outlined), label: const Text('Apply price')),
           if (status != 'approved')
-            FilledButton.icon(onPressed: onApprove, icon: const Icon(Icons.check), label: const Text('Approve')),
+            OutlinedButton.icon(onPressed: onApprove, icon: const Icon(Icons.check), label: const Text('Approve')),
           if (status != 'rejected')
             OutlinedButton.icon(onPressed: onReject, icon: const Icon(Icons.close), label: const Text('Reject')),
         ],
