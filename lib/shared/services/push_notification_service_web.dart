@@ -30,6 +30,9 @@ class PushNotificationService {
     if (user == null || permission != 'granted') return;
 
     try {
+      // Make the customer ownership link deterministic before a push
+      // subscription is relied upon by the order notification trigger.
+      await SupabaseService.client.rpc('link_current_user_customer');
       await _saveSubscription(user.id);
     } catch (error) {
       debugPrint('[Push] Existing permission sync failed: $error');
@@ -43,6 +46,7 @@ class PushNotificationService {
     if (user == null) return false;
 
     try {
+      await SupabaseService.client.rpc('link_current_user_customer');
       final raw = await nilePushSubscribe().toDart;
       if (raw == null) return false;
 
@@ -80,7 +84,7 @@ class PushNotificationService {
     }
   }
 
-  static Future<void> _saveSubscription(String customerId) async {
+  static Future<void> _saveSubscription(String authUserId) async {
     final raw = await nilePushSubscribe().toDart;
     if (raw == null) return;
 
@@ -92,7 +96,7 @@ class PushNotificationService {
 
     await SupabaseService.client.from('push_subscriptions').upsert(
       {
-        'auth_user_id': customerId,
+        'auth_user_id': authUserId,
         'endpoint': subscription['endpoint'],
         'p256dh': keys['p256dh'],
         'auth': keys['auth'],
