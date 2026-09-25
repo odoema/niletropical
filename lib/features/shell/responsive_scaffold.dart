@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
+import 'package:go_router/go_router.dart';
+import '../../shared/services/auth_service.dart';
+import '../../shared/services/notification_inbox_service.dart';
 
 class ResponsiveScaffold extends StatelessWidget {
   const ResponsiveScaffold({
@@ -142,6 +145,8 @@ class _WebsiteBanner extends StatelessWidget {
                     ),
                   ),
                 ),
+                const _NotificationBell(),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
                   decoration: BoxDecoration(
@@ -246,6 +251,52 @@ class _MobileAdminNavigation extends StatelessWidget {
           label: 'More',
         ),
       ],
+    );
+  }
+}
+
+class _NotificationBell extends StatefulWidget {
+  const _NotificationBell();
+  @override State<_NotificationBell> createState() => _NotificationBellState();
+}
+class _NotificationBellState extends State<_NotificationBell> {
+  Future<int> _count() async {
+    if (AuthService.user == null) return 0;
+    final rows = await NotificationInboxService.fetch(limit: 20);
+    return rows.length;
+  }
+  @override
+  Widget build(BuildContext context) {
+    if (AuthService.user == null) return const SizedBox.shrink();
+    return FutureBuilder<int>(
+      future: _count(),
+      builder: (context, snapshot) {
+        final count = snapshot.data ?? 0;
+        return IconButton(
+          tooltip: 'Notifications',
+          onPressed: () => context.push('/notifications'),
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 23),
+              if (count > 0)
+                Positioned(
+                  right: -5, top: -5,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(color: Colors.red.shade600, borderRadius: BorderRadius.circular(10)),
+                    constraints: const BoxConstraints(minWidth: 16),
+                    child: Text(
+                      count > 9 ? '9+' : count.toString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
