@@ -12,7 +12,6 @@ import 'core/router/app_router.dart';
 import 'shared/services/supabase_service.dart';
 import 'shared/services/push_notification_service.dart';
 import 'shared/services/auth_service.dart';
-import 'shared/widgets/push_notification_prompt.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,9 +70,7 @@ class NileTropicalApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       routerConfig: appRouter,
-      builder: (context, child) => PushNotificationPrompt(
-        child: child ?? const SizedBox.shrink(),
-      ),
+      builder: (context, child) => child ?? const SizedBox.shrink(),
     );
   }
 }
