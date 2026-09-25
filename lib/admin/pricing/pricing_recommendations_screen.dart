@@ -43,10 +43,126 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
     try {
       await SupabaseService.client.from('pricing_recommendations').update({'status': status}).eq('id', row['id']);
       await _load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Recommendation ' + (status == 'approved' ? 'approved.' : 'rejected.'))),
+        );
+      }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Could not update recommendation: ' + e.toString()), backgroundColor: NileColors.error),
       );
+    }
+  }
+
+  Future<void> _editRecommendation(Map<String, dynamic> row) async {
+    final priceController = TextEditingController(
+      text: (row['recommended_price'] ?? row['proposed_price'] ?? row['suggested_price'] ?? '').toString(),
+    );
+    final reasonController = TextEditingController(
+      text: (row['reason'] ?? row['rationale'] ?? row['explanation'] ?? '').toString(),
+    );
+    String status = row['status']?.toString() ?? 'pending';
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Edit Recommendation'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  (row['product_name'] ?? row['product_variant_name'] ?? row['product_variant_id'] ?? 'Product').toString(),
+                  style: NileTypography.titleMedium,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: priceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Recommended price (UGX)',
+                    prefixText: 'UGX ',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                DropdownButtonFormField<String>(
+                  value: status,
+                  decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
+                  items: const [
+                    DropdownMenuItem(value: 'pending', child: Text('Pending approval')),
+                    DropdownMenuItem(value: 'approved', child: Text('Approved')),
+                    DropdownMenuItem(value: 'rejected', child: Text('Rejected')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) setDialogState(() => status = value);
+                  },
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: reasonController,
+                  minLines: 3,
+                  maxLines: 6,
+                  decoration: const InputDecoration(
+                    labelText: 'Recommendation rationale',
+                    alignLabelWithHint: true,
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
+            FilledButton.icon(
+              onPressed: () {
+                if (priceController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a recommended price.')));
+                  return;
+                }
+                Navigator.pop(dialogContext, true);
+              },
+              icon: const Icon(Icons.save_outlined),
+              label: const Text('Save changes'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != true) {
+      priceController.dispose();
+      reasonController.dispose();
+      return;
+    }
+
+    final price = num.tryParse(priceController.text.replaceAll(',', '').trim());
+    final reason = reasonController.text.trim();
+    if (price == null || price <= 0) {
+      priceController.dispose();
+      reasonController.dispose();
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid positive price.')));
+      return;
+    }
+
+    try {
+      await SupabaseService.client.from('pricing_recommendations').update({
+        'status': status,
+        'recommended_price': price,
+        'reason': reason,
+      }).eq('id', row['id']);
+      await _load();
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Recommendation updated successfully.')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save changes: ' + e.toString()), backgroundColor: NileColors.error),
+      );
+    } finally {
+      priceController.dispose();
+      reasonController.dispose();
     }
   }
 
@@ -75,6 +191,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
                   row: _visible[i],
                   onApprove: () => _setStatus(_visible[i], 'approved'),
                   onReject: () => _setStatus(_visible[i], 'rejected'),
+                  onEdit: () => _editRecommendation(_visible[i]),
                 ),
               )),
         ]),
@@ -83,10 +200,16 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
 }
 
 class _RecommendationCard extends StatelessWidget {
-  const _RecommendationCard({required this.row, required this.onApprove, required this.onReject});
+  const _RecommendationCard({
+    required this.row,
+    required this.onApprove,
+    required this.onReject,
+    required this.onEdit,
+  });
   final Map<String, dynamic> row;
   final VoidCallback onApprove;
   final VoidCallback onReject;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -106,13 +229,18 @@ class _RecommendationCard extends StatelessWidget {
         if (proposed != null) Text('Proposed: UGX ' + proposed.toString(), style: const TextStyle(fontWeight: FontWeight.w700)),
       ]),
       if (reason != null) ...[const SizedBox(height: 8), Text(reason.toString(), style: NileTypography.bodySmall)],
-      if (status == 'pending') ...[
-        const SizedBox(height: 12),
-        Wrap(spacing: 8, children: [
-          FilledButton.icon(onPressed: onApprove, icon: const Icon(Icons.check), label: const Text('Approve')),
-          OutlinedButton.icon(onPressed: onReject, icon: const Icon(Icons.close), label: const Text('Reject')),
-        ]),
-      ],
+      const SizedBox(height: 12),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          OutlinedButton.icon(onPressed: onEdit, icon: const Icon(Icons.edit_outlined), label: const Text('Edit')),
+          if (status != 'approved')
+            FilledButton.icon(onPressed: onApprove, icon: const Icon(Icons.check), label: const Text('Approve')),
+          if (status != 'rejected')
+            OutlinedButton.icon(onPressed: onReject, icon: const Icon(Icons.close), label: const Text('Reject')),
+        ],
+      ),
     ]));
   }
 }
