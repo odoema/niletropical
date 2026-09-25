@@ -26,14 +26,13 @@ class _AccountAddressesScreenState extends State<AccountAddressesScreen> {
     _load();
   }
 
-  /// Look up the customers row by auth_user_id (the correct join per
-  /// 005_customers.sql), NOT by email — email is optional on customers
+  /// Look up the customers row by user_id (the live production customer identity), NOT by email — email is optional on customers
   /// and unindexed, and matching on auth_user_id makes RLS work.
   Future<Map<String, dynamic>?> _findCustomer() async {
     return await SupabaseService.client
         .from('customers')
         .select('id, full_name, phone, email')
-        .eq('auth_user_id', AuthService.user!.id)
+        .eq('user_id', AuthService.user!.id)
         .maybeSingle();
   }
 
@@ -157,8 +156,8 @@ class _AccountAddressesScreenState extends State<AccountAddressesScreen> {
     if (ok != true) return;
 
     try {
-      // Insert a customer row if needed. Setting auth_user_id is essential
-      // — RLS on customer_addresses joins on customers.auth_user_id, so a
+      // Insert a customer row if needed. Setting user_id is essential
+      // — RLS on customer_addresses joins on customers.user_id, so a
       // row without it is invisible on the next page load. We NEVER
       // fabricate a phone number: the dialog validation above already
       // required a real one when creating the profile.
@@ -166,7 +165,7 @@ class _AccountAddressesScreenState extends State<AccountAddressesScreen> {
       customer ??= await SupabaseService.client
           .from('customers')
           .insert({
-            'auth_user_id': AuthService.user!.id,
+            'user_id': AuthService.user!.id,
             'full_name': fullName.text.trim(),
             'phone': phone.text.trim(),
             'email': AuthService.user!.email,
