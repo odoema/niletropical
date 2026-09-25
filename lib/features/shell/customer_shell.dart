@@ -41,26 +41,31 @@ class CustomerShell extends StatelessWidget {
         // Keep the header height fixed so enlarging the logo does not
         // push the side-menu items downward.
         height: 68,
-        child: Container(
+        child: Material(
           color: NileColors.primary,
-          padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const ClipOval(
-                child: Image(
-                  image: AssetImage('assets/images/logo.png'),
-                  width: 47,
-                  height: 47,
-                  fit: BoxFit.cover,
-                ),
+          child: InkWell(
+            onTap: () => context.go('/'),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: NileSpacing.md),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const ClipOval(
+                    child: Image(
+                      image: AssetImage('assets/images/logo.png'),
+                      width: 47,
+                      height: 47,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Nile Tropical',
+                    style: NileTypography.titleMedium.copyWith(color: Colors.white),
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              Text(
-                'Nile Tropical',
-                style: NileTypography.titleMedium.copyWith(color: Colors.white),
-              ),
-            ],
+            ),
           ),
         ),
       ),
