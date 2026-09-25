@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
 import '../../core/constants/app_constants.dart';
 import '../../shared/services/auth_service.dart';
+import '../../shared/services/supabase_service.dart';
 import '../../shared/services/push_notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
