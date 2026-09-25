@@ -250,7 +250,13 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
                           style: NileTypography.titleLarge,
                         ),
                         const SizedBox(height: 8),
-                        Text(_error!, textAlign: TextAlign.center),
+                        Text(
+                          _error!.contains('PGRST205') ||
+                                  _error!.contains('website_media_slots')
+                              ? 'The Website Slots database module has not been installed yet. Apply the website_media_slots migration to the Nile Tropical production Supabase project, then refresh this page.'
+                              : _error!,
+                          textAlign: TextAlign.center,
+                        ),
                         const SizedBox(height: 16),
                         FilledButton.icon(
                           onPressed: _load,
