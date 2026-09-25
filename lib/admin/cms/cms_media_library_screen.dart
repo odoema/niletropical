@@ -255,6 +255,7 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
