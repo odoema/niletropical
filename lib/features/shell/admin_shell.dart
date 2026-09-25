@@ -59,14 +59,36 @@ class AdminShell extends StatelessWidget {
         final route = _destinations[i].route;
         if (route != null) context.go(route);
       },
-      sideHeader: Padding(
-        padding: const EdgeInsets.all(NileSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Nile Admin', style: NileTypography.titleLarge.copyWith(color: NileColors.primary)),
-            Text('Operations console', style: NileTypography.caption),
-          ],
+      sideHeader: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.go('/'),
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.all(NileSpacing.md),
+            child: Row(
+              children: [
+                const ClipOval(
+                  child: Image(
+                    image: AssetImage('assets/images/logo.png'),
+                    width: 42,
+                    height: 42,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Nile Admin', style: NileTypography.titleLarge.copyWith(color: NileColors.primary)),
+                      Text('Operations console', style: NileTypography.caption),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
       sideFooter: Padding(
