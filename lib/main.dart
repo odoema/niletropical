@@ -50,6 +50,15 @@ Future<void> main() async {
       child: NileTropicalApp(),
     ),
   );
+
+  // Never block Flutter's first frame on Web Push synchronization.
+  // Push registration is background work and must not prevent the app UI
+  // from starting if the browser, service worker, RPC, or network is slow.
+  if (Env.isConfigured) {
+    Future<void>(() async {
+      await PushNotificationService.syncIfGranted();
+    });
+  }
 }
 
 class NileTropicalApp extends StatelessWidget {
