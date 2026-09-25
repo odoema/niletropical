@@ -29,7 +29,7 @@ class ImageQualityResult {
 
 class ImageQualityService {
   static const profiles = <String, ({int minWidth, int minHeight, String label})>{
-    'website': (minWidth: 1200, minHeight: 800, label: 'Website image'),
+    'website': (minWidth: 600, minHeight: 600, label: 'Website image'),
     'banners': (minWidth: 1600, minHeight: 600, label: 'Banner'),
     'testimonials': (minWidth: 600, minHeight: 600, label: 'Testimonial photo'),
     'videos': (minWidth: 600, minHeight: 600, label: 'CMS media image'),
