@@ -256,7 +256,6 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
                   ),
                 ),
                 OutlinedButton.icon(
-                  tooltip: 'Refresh media',
                   onPressed: _loading ? null : _load,
                   icon: const Icon(Icons.refresh, size: 18),
                   label: const Text('Refresh'),
@@ -282,76 +281,6 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-              child: Row(
-                children: _folders.entries.map((entry) {
-                  final selected = entry.key == _folder;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      selected: selected,
-                      label: Text(entry.value),
-                      avatar: Icon(
-                        entry.key == 'website'
-                            ? Icons.language
-                            : entry.key == 'banners'
-                                ? Icons.view_carousel_outlined
-                                : entry.key == 'testimonials'
-                                    ? Icons.people_outline
-                                    : Icons.perm_media_outlined,
-                        size: 18,
-                      ),
-                      onSelected: (_) {
-                        if (selected) return;
-                        setState(() => _folder = entry.key);
-                        _load();
-                      },
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          Expanded(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-            decoration: const BoxDecoration(
-              color: NileColors.surface,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _folders[_folder]!,
-                    style: NileTypography.titleMedium,
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _loading || _uploading ? null : _load,
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Refresh'),
-                ),
-                const SizedBox(width: 10),
-                FilledButton.icon(
-                  onPressed: _uploading ? null : _upload,
-                  icon: _uploading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.cloud_upload_outlined, size: 18),
-                  label: Text(_uploading ? 'Uploading…' : 'Upload images'),
-                ),
-              ],
-            ),
-          ),
-          Material(
-            color: NileColors.surface,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.all(12),
               child: Row(
                 children: _folders.entries.map((entry) {
                   final selected = entry.key == _folder;
