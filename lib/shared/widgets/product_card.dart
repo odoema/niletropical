@@ -35,32 +35,14 @@ class ProductCard extends StatelessWidget {
                 padding: const EdgeInsets.all(6),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: imageUrl != null && imageUrl.isNotEmpty
-                      ? Image.network(
-                          imageUrl,
-                          key: ValueKey(imageUrl),
-                          fit: BoxFit.contain,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return Container(
-                              color: NileColors.surfaceVariant,
-                              alignment: Alignment.center,
-                              child: const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            );
-                          },
-                          errorBuilder: (_, __, ___) => Container(
-                            color: NileColors.surfaceVariant,
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.image_not_supported_outlined,
-                              color: NileColors.textTertiary,
-                              size: 28,
-                            ),
-                          ),
+                  child: imageUrl.isNotEmpty
+                      ? _ResilientProductImage(
+                          urls: [
+                            ...product.images
+                                .where((image) => image.url.isNotEmpty)
+                                .map((image) => StorageService.resolvePublicUrl(image.url)),
+                          ],
+                          fallbackUrl: imageUrl,
                         )
                       : Container(
                           color: NileColors.surfaceVariant,
@@ -96,6 +78,89 @@ class ProductCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ResilientProductImage extends StatefulWidget {
+  const _ResilientProductImage({
+    required this.urls,
+    required this.fallbackUrl,
+  });
+
+  final List<String> urls;
+  final String fallbackUrl;
+
+  @override
+  State<_ResilientProductImage> createState() => _ResilientProductImageState();
+}
+
+class _ResilientProductImageState extends State<_ResilientProductImage> {
+  late List<String> _urls;
+  int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _resetUrls();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ResilientProductImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fallbackUrl != widget.fallbackUrl ||
+        oldWidget.urls.length != widget.urls.length) {
+      _resetUrls();
+    }
+  }
+
+  void _resetUrls() {
+    _urls = [
+      ...widget.urls,
+      if (!widget.urls.contains(widget.fallbackUrl)) widget.fallbackUrl,
+    ];
+    _index = 0;
+  }
+
+  void _failed() {
+    if (_index + 1 < _urls.length && mounted) {
+      setState(() => _index++);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final url = _urls.isNotEmpty ? _urls[_index] : widget.fallbackUrl;
+    return Image.network(
+      url,
+      key: ValueKey(url),
+      fit: BoxFit.contain,
+      gaplessPlayback: true,
+      filterQuality: FilterQuality.medium,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          color: NileColors.surfaceVariant,
+          alignment: Alignment.center,
+          child: const SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      },
+      errorBuilder: (_, __, ___) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _failed());
+        return Container(
+          color: NileColors.surfaceVariant,
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.image_not_supported_outlined,
+            color: NileColors.textTertiary,
+            size: 28,
+          ),
+        );
+      },
     );
   }
 }
