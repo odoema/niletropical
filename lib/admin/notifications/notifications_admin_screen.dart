@@ -29,10 +29,48 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
     }
     setState(() { _loading = true; _error = null; });
     try {
-      final results = await Future.wait([
-        SupabaseService.client.from('notification_templates').select().order('event_key'),
-        SupabaseService.client.from('notification_logs').select('*, notifications(recipient, channel, event_key, order_id)').order('created_at', ascending: false).limit(200),
-      ]);
+      final templates = await SupabaseService.client
+          .from('notification_templates')
+          .select()
+          .order('event_key');
+
+      // Fetch logs and notifications separately. This avoids relying on a
+      // PostgREST nested relationship that may be absent from the production
+      // schema cache even when notification_logs.notification_id exists.
+      final logs = await SupabaseService.client
+          .from('notification_logs')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(200);
+
+      final rawLogs = List<Map<String, dynamic>>.from(logs);
+      final notificationIds = rawLogs
+          .map((r) => r['notification_id']?.toString())
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+
+      final notificationMap = <String, Map<String, dynamic>>{};
+      if (notificationIds.isNotEmpty) {
+        final notifications = await SupabaseService.client
+            .from('notifications')
+            .select('id,recipient,channel,event_key,order_id,message')
+            .inFilter('id', notificationIds);
+
+        for (final n in List<Map<String, dynamic>>.from(notifications)) {
+          final id = n['id']?.toString();
+          if (id != null) notificationMap[id] = n;
+        }
+      }
+
+      for (final log in rawLogs) {
+        final notificationId = log['notification_id']?.toString();
+        log['notification'] = notificationId == null
+            ? <String, dynamic>{}
+            : (notificationMap[notificationId] ?? <String, dynamic>{});
+      }
+
       if (!mounted) return;
       setState(() {
         _templates = List<Map<String, dynamic>>.from(results[0]);
@@ -115,7 +153,7 @@ class _NotificationsAdminScreenState extends State<NotificationsAdminScreen> wit
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (_, i) {
         final r = _logs[i];
-        final n = Map<String, dynamic>.from(r['notifications'] as Map? ?? {});
+        final n = Map<String, dynamic>.from(r['notification'] as Map? ?? {});
         final status = r['status']?.toString() ?? 'unknown';
         return Card(child: ListTile(
           leading: Icon(status == 'sent' || status == 'delivered' ? Icons.check_circle_outline : Icons.error_outline),
