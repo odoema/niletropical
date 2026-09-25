@@ -7,6 +7,9 @@
 <meta name="description" content="Nile Tropical Industries (U) Ltd — locally rooted manufacturing from Nebbi, West Nile, Uganda. Explore our products, market presence, wholesale opportunities and online shop.">
 <meta name="theme-color" content="#005090">
 <style>
+.skip-link{position:fixed;left:12px;top:12px;z-index:1000;transform:translateY(-160%);background:#fff;color:var(--deep);padding:10px 14px;border-radius:10px;font-weight:800;box-shadow:0 8px 24px rgba(0,45,84,.18);transition:transform .2s ease}.skip-link:focus{transform:translateY(0)}
+nav a[aria-current="page"]{color:var(--blue);font-weight:800}nav a[aria-current="page"]:not(.shop){position:relative}nav a[aria-current="page"]:not(.shop):after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:3px;border-radius:3px;background:var(--green)}.mobile-nav a[aria-current="page"]{background:#f1f6f8;border-radius:10px;padding-left:13px}.to-top{position:fixed;right:18px;bottom:18px;z-index:45;width:44px;height:44px;border:1px solid rgba(0,80,144,.18);border-radius:50%;background:#fff;color:var(--blue);box-shadow:0 8px 24px rgba(0,45,84,.16);font-size:18px;font-weight:800;cursor:pointer;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease,visibility .2s ease}.to-top.show{opacity:1;visibility:visible;transform:none}@media(max-width:600px){.to-top{right:12px;bottom:14px;width:42px;height:42px}}
+
 :root{--blue:#005090;--deep:#003d70;--green:#08783d;--ink:#17212b;--muted:#66717c;--line:#dfe5e9;--soft:#f4f7f8;--cream:#faf9f4;--max:1160px}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:92px}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);line-height:1.65;overflow-x:hidden}img{display:block;max-width:100%;height:auto}a{color:inherit;text-decoration:none}.wrap{width:min(var(--max),calc(100% - 32px));margin-inline:auto}
 .top{background:var(--blue);color:#fff;font-size:12px}.top .wrap{min-height:34px;display:flex;justify-content:space-between;align-items:center;gap:15px}.top a{text-decoration:underline}
@@ -85,9 +88,10 @@ input,select,textarea,button{border-radius:12px}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
 <div class="top"><div class="wrap"><span class="loc">Nebbi Municipality · West Nile · Uganda</span><span>Shop online through the Nile Tropical store: <a href="./app/">niletropicaluganda.com/app/</a></span></div></div>
-<header><div class="wrap nav"><a class="brand" href="#home" aria-label="Nile Tropical Industries home"><span class="logo"><img src="assets/website/niletropical-logo.jpg" data-cms-slot="logo" alt="Nile Tropical Industries Ltd logo"></span><span><b>Nile Tropical Industries (U) Ltd</b><small>Nebbi, West Nile, Uganda</small></span></a><nav aria-label="Primary navigation"><a href="#products">Products</a><a href="#story">Our Story</a><a href="#markets">Markets</a><a href="#wholesale">Wholesale</a><a href="#contact">Contact</a><a class="shop" href="./app/">SHOP ONLINE</a></nav><button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰</button><div class="mobile-nav" id="mobileNav"><a href="#products" onclick="closeMenu()">Products</a><a href="#story" onclick="closeMenu()">Our Story</a><a href="#markets" onclick="closeMenu()">Markets</a><a href="#wholesale" onclick="closeMenu()">Wholesale</a><a href="#contact" onclick="closeMenu()">Contact</a><a class="shop" href="./app/">SHOP ONLINE</a></div></div></header>
-<main id="home">
+<header><div class="wrap nav"><a class="brand" href="#home" aria-label="Nile Tropical Industries home"><span class="logo"><img src="assets/website/niletropical-logo.jpg" data-cms-slot="logo" alt="Nile Tropical Industries Ltd logo"></span><span><b>Nile Tropical Industries (U) Ltd</b><small>Nebbi, West Nile, Uganda</small></span></a><nav aria-label="Primary navigation"><a href="#main-content" data-nav="home">Home</a><a href="#products" data-nav="products">Products</a><a href="#story" data-nav="story">Our Story</a><a href="#markets" data-nav="markets">Markets</a><a href="#wholesale" data-nav="wholesale">Wholesale</a><a href="#contact" data-nav="contact">Contact</a><a class="shop" href="./app/">SHOP ONLINE</a></nav><button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">☰</button><div class="mobile-nav" id="mobileNav"><a href="#main-content" data-nav="home" onclick="closeMenu()">Home</a><a href="#products" data-nav="products" onclick="closeMenu()">Products</a><a href="#story" data-nav="story" onclick="closeMenu()">Our Story</a><a href="#markets" data-nav="markets" onclick="closeMenu()">Markets</a><a href="#wholesale" data-nav="wholesale" onclick="closeMenu()">Wholesale</a><a href="#contact" data-nav="contact" onclick="closeMenu()">Contact</a><a class="shop" href="./app/">SHOP ONLINE</a></div></div></header>
+<main id="main-content">
 <section class="hero"><div class="wrap hero-grid"><div><div class="kicker">Nile Tropical Industries · Nebbi</div><h1>Made in West Nile.<br>Made for Uganda.</h1><p>Nile Tropical Industries (U) Ltd is a locally rooted manufacturing business based in Nebbi, developing products for homes, families, traders and retailers.</p><div class="buttons"><a class="btn white" href="./app/">SHOP NILE TROPICAL</a><a class="btn outline" href="#products">VIEW PRODUCTS</a></div></div><div class="hero-visual"><img src="https://images.unsplash.com/photo-1622971592071-95f272bb6ca2?auto=format&fit=crop&fm=jpg&q=80&w=1400" data-cms-slot="hero" srcset="https://images.unsplash.com/photo-1622971592071-95f272bb6ca2?auto=format&fit=crop&fm=jpg&q=75&w=700 700w, https://images.unsplash.com/photo-1622971592071-95f272bb6ca2?auto=format&fit=crop&fm=jpg&q=80&w=1400 1400w" sizes="(max-width:900px) 100vw, 42vw" alt="Visitors at a shea butter factory in Ghana" fetchpriority="high"><div class="hero-caption"><div class="ticker-headline"><strong>NILE TROPICAL</strong><span>From natural ingredients to everyday products.</span></div><div class="ticker-viewport"><span class="ticker-track">Rooted in the story of shea and local enterprise across West Nile.</span></div></div></div></div></section>
 <div class="strip"><div class="wrap"><div><strong>Our location:</strong> Plot 27 Abindu Road, Olyeko Cell, Abindu Division, Nebbi Municipality.</div><a class="btn shop" href="#contact">CONTACT US</a></div></div>
 <section id="products" class="cream"><div class="wrap"><div class="label">Products</div><h2>Our product families.</h2><p class="lead">Nile Tropical's manufacturing portfolio covers cosmetics and cosmeceuticals, soaps and detergents, foods and beverages, and candles and repellents.</p><div class="cards product-families"><button class="card family-card" type="button" data-category-match="cosmetics personal care"><span class="num">01</span><span class="family-title">Cosmetics &amp; Personal Care</span><span class="family-copy">Creams, lotions, hair products, sunscreen, herbal jelly and mosquito-repellent products.</span><span class="family-hint">View current products <b>+</b></span><span class="family-products" aria-live="polite"></span></button><button class="card family-card" type="button" data-category-match="soaps detergents"><span class="num">02</span><span class="family-title">Soaps &amp; Detergents</span><span class="family-copy">Bath soap, liquid soap, hand wash, shampoo products, bleach and hand sanitizer.</span><span class="family-hint">View current products <b>+</b></span><span class="family-products" aria-live="polite"></span></button><button class="card family-card" type="button" data-category-match="foods beverages"><span class="num">03</span><span class="family-title">Foods &amp; Beverages</span><span class="family-copy">Hibiscus products, tea, drinks, jam, tomato sauce and other food products.</span><span class="family-hint">View current products <b>+</b></span><span class="family-products" aria-live="polite"></span></button><button class="card family-card" type="button" data-category-match="candles repellents"><span class="num">04</span><span class="family-title">Candles &amp; Repellents</span><span class="family-copy">Scented candles, ordinary candles and mosquito-repellent products.</span><span class="family-hint">View current products <b>+</b></span><span class="family-products" aria-live="polite"></span></button></div></div></section>
@@ -99,6 +103,7 @@ input,select,textarea,button{border-radius:12px}
 <section id="contact" class="contact"><div class="wrap contact-grid"><div><div class="label" style="color:#a9dfbd">Contact</div><h2>Visit or contact us in Nebbi.</h2><p>For product availability, wholesale enquiries, market information or general enquiries, use the current company contact details below.</p><div class="buttons"><a class="btn white" href="tel:+256393001071">CALL US</a><a class="btn outline" href="./app/">SHOP ONLINE</a></div></div><div class="contact-card"><h3>Nile Tropical Industries (U) Ltd</h3><p>Plot 27 Abindu Road,<br>Olyeko Cell, Abindu Division,<br>Nebbi Municipality, Nebbi, Uganda.</p><div class="phones"><a href="tel:+256393001071">+256 393 001071</a><a href="tel:+256700957796">+256 700 957796</a><a href="tel:+256774103235">+256 774 103235</a><a href="tel:+256775582283">+256 775 582283</a></div></div></div></section>
 </main>
 <footer><div class="wrap foot"><div><div class="brand" style="color:#fff"><span class="logo footer-logo"><img src="assets/website/niletropical-logo.jpg" data-cms-slot="logo" alt="Nile Tropical Industries Ltd logo"></span><span><b>Nile Tropical Industries (U) Ltd</b><small style="color:#cbd9e3">Nebbi, West Nile, Uganda</small></span></div><p>Plot 27 Abindu Road, Olyeko Cell, Abindu Division, Nebbi Municipality, Nebbi, Uganda.</p></div><div><h3>Explore</h3><a href="#products">Products</a><a href="#story">Our Story</a><a href="#markets">Markets</a><a href="#wholesale">Wholesale</a></div><div><h3>Online</h3><a href="./app/">Shop Nile Tropical</a><a href="#contact">Contact</a><a href="tel:+256393001071">Call us</a></div></div><div class="wrap bottom"><span>© 2026 Nile Tropical Industries (U) Ltd. · @copyright 2026 Hon. Dr. Betty Undongo Pacutho</span><span>Official website · Nebbi, West Nile, Uganda</span></div></footer>
+<button class="to-top" id="toTop" type="button" aria-label="Back to top" title="Back to top">↑</button>
 <script src="assets/website/cms-config.js"></script><script>
 (function(){
   const cfg=window.NILE_CMS||{};
@@ -181,6 +186,44 @@ input,select,textarea,button{border-radius:12px}
 function toggleMenu(){const n=document.getElementById('mobileNav'),b=document.querySelector('.menu-btn');const open=n.classList.toggle('open');b.setAttribute('aria-expanded',String(open));b.setAttribute('aria-label',open?'Close menu':'Open menu');b.textContent=open?'×':'☰'}
 function closeMenu(){const n=document.getElementById('mobileNav'),b=document.querySelector('.menu-btn');n.classList.remove('open');b.setAttribute('aria-expanded','false');b.setAttribute('aria-label','Open menu');b.textContent='☰'}
 window.addEventListener('resize',()=>{if(window.innerWidth>900)closeMenu()});
+(function(){
+  const links=[...document.querySelectorAll('[data-nav]')];
+  const sections=[
+    {id:'main-content',key:'home'},
+    {id:'products',key:'products'},
+    {id:'story',key:'story'},
+    {id:'markets',key:'markets'},
+    {id:'wholesale',key:'wholesale'},
+    {id:'contact',key:'contact'}
+  ].map(x=>({...x,el:document.getElementById(x.id)})).filter(x=>x.el);
+  function setActive(key){
+    links.forEach(a=>{
+      if(a.dataset.nav===key)a.setAttribute('aria-current','page');
+      else a.removeAttribute('aria-current');
+    });
+  }
+  if('IntersectionObserver' in window){
+    const observer=new IntersectionObserver(entries=>{
+      const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+      if(visible){
+        const item=sections.find(x=>x.el===visible.target);
+        if(item)setActive(item.key);
+      }
+    },{rootMargin:'-18% 0px -65% 0px',threshold:[0,.15,.35,.6]});
+    sections.forEach(x=>observer.observe(x.el));
+  }
+  const top=document.getElementById('toTop');
+  const updateTop=()=>{if(top)top.classList.toggle('show',window.scrollY>520)};
+  window.addEventListener('scroll',updateTop,{passive:true});
+  updateTop();
+  if(top)top.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
+  document.addEventListener('click',e=>{
+    const menu=document.getElementById('mobileNav'),button=document.querySelector('.menu-btn');
+    if(menu&&menu.classList.contains('open')&&!menu.contains(e.target)&&button&&!button.contains(e.target))closeMenu();
+  });
+  setActive(location.hash ? ((sections.find(x=>('#'+x.id)===location.hash)||{}).key||'home') : 'home');
+})();
 </script>
 <script>
 document.querySelectorAll('img[src*="assets/website/"]').forEach(img=>{
