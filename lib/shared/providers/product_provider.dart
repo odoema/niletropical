@@ -7,7 +7,7 @@ import '../models/product.dart';
 import '../services/supabase_service.dart';
 
 /// Featured products for Home screen
-final featuredProductsProvider = FutureProvider<List<Product>>((ref) async {
+final featuredProductsProvider = FutureProvider.autoDispose<List<Product>>((ref) async {
   try {
     final data = await SupabaseService.fetchFeaturedProducts();
     return data.map((json) => Product.fromJson(json)).toList();
@@ -24,7 +24,7 @@ final featuredProductsProvider = FutureProvider<List<Product>>((ref) async {
 
 /// All products (with optional search)
 final productsProvider =
-    FutureProvider.family<List<Product>, String?>((ref, search) async {
+    FutureProvider.autoDispose.family<List<Product>, String?>((ref, search) async {
   try {
     final data = await SupabaseService.fetchProducts(search: search);
     return data.map((json) => Product.fromJson(json)).toList();
@@ -66,7 +66,7 @@ final promotionsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) asyn
 });
 
 final flaggedProductsProvider =
-    FutureProvider.family<List<Product>, String>((ref, flag) async {
+    FutureProvider.autoDispose.family<List<Product>, String>((ref, flag) async {
   try {
     final data = await SupabaseService.fetchFlaggedProducts(flag);
     return data.map(Product.fromJson).toList();
@@ -89,7 +89,7 @@ final flaggedProductsProvider =
 
 /// Single product by slug
 final productBySlugProvider =
-    FutureProvider.family<Product?, String>((ref, slug) async {
+    FutureProvider.autoDispose.family<Product?, String>((ref, slug) async {
   try {
     final data = await SupabaseService.fetchProductBySlug(slug);
     if (data == null) return null;
