@@ -1,46 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Nile Tropical Industries — quality products and convenient online shopping.">
-
-  <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Nile Tropical">
   <link rel="apple-touch-icon" href="favicon.png?v=4">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png?v=4"/>
-
   <title>Nile Tropical</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    :root{--nile:#005090;--deep:#003d70;--green:#08783d;--white:#fff}
+    html,body{margin:0;width:100%;height:100%;background:var(--nile);font-family:Arial,Helvetica,sans-serif}
+    body{overflow:hidden}
+    #nile-loader{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:linear-gradient(145deg,#003d70 0%,#005090 52%,#0066a6 100%);color:#fff;transition:opacity .55s ease,visibility .55s ease}
+    #nile-loader.done{opacity:0;visibility:hidden;pointer-events:none}
+    .loader-scene{position:relative;width:min(390px,88vw);text-align:center}
+    .loader-glow{position:absolute;left:50%;top:76px;width:190px;height:190px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(255,255,255,.10);filter:blur(18px);animation:nileGlow 2.8s ease-in-out infinite}
+    .loader-logo-wrap{position:relative;width:132px;height:132px;margin:0 auto 30px;display:grid;place-items:center}
+    .loader-ring{position:absolute;inset:0;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-right-color:#9fe3b5;border-radius:50%;animation:nileSpin 1.35s linear infinite}
+    .loader-ring:after{content:"";position:absolute;inset:8px;border:1px solid rgba(159,227,181,.28);border-bottom-color:#fff;border-radius:50%;animation:nileSpinReverse 2.2s linear infinite}
+    .loader-logo{position:relative;width:88px;height:88px;border-radius:50%;object-fit:contain;background:#fff;padding:5px;box-shadow:0 14px 38px rgba(0,0,0,.22)}
+    .loader-title{margin:0;color:#fff;font-size:22px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .loader-subtitle{margin:8px 0 0;color:#dcecf5;font-size:11px;letter-spacing:.22em;text-transform:uppercase}
+    .loader-line{width:180px;height:3px;margin:25px auto 0;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden}
+    .loader-line span{display:block;width:42%;height:100%;border-radius:99px;background:linear-gradient(90deg,#9fe3b5,#fff);animation:nileProgress 1.55s ease-in-out infinite}
+    .loader-status{margin:13px 0 0;min-height:17px;color:rgba(255,255,255,.72);font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+    .loader-dots:after{content:"";animation:nileDots 1.4s steps(4,end) infinite}
+    @keyframes nileSpin{to{transform:rotate(360deg)}}
+    @keyframes nileSpinReverse{to{transform:rotate(-360deg)}}
+    @keyframes nileGlow{0%,100%{opacity:.55;transform:translate(-50%,-50%) scale(.92)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
+    @keyframes nileProgress{0%{transform:translateX(-140%)}100%{transform:translateX(360%)}}
+    @keyframes nileDots{0%{content:""}25%{content:"."}50%{content:".."}75%,100%{content:"..."}}
+    @media(prefers-reduced-motion:reduce){.loader-ring,.loader-ring:after,.loader-glow,.loader-line span,.loader-dots:after{animation:none}.loader-line span{width:100%}}
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <div id="nile-loader" role="status" aria-label="Opening Nile Tropical">
+    <div class="loader-scene">
+      <div class="loader-glow"></div>
+      <div class="loader-logo-wrap">
+        <div class="loader-ring"></div>
+        <img class="loader-logo" src="favicon.png?v=4" alt="">
+      </div>
+      <h1 class="loader-title">Nile Tropical</h1>
+      <p class="loader-subtitle">Quality · Local · Uganda</p>
+      <div class="loader-line" aria-hidden="true"><span></span></div>
+      <p class="loader-status">Opening your store<span class="loader-dots"></span></p>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var loader=document.getElementById('nile-loader');
+      var started=false;
+      function finish(){
+        if(started)return;
+        started=true;
+        loader.classList.add('done');
+        setTimeout(function(){if(loader.parentNode)loader.parentNode.removeChild(loader)},650);
+      }
+      window.addEventListener('flutter-first-frame',finish,{once:true});
+      setTimeout(function(){finish()},12000);
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
