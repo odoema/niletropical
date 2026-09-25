@@ -1,11 +1,7 @@
 /// Nile Tropical - Notification Service
 /// Copyright © Hon. Dr. Betty Udongo Pacutho
 /// Provider-agnostic notification queue for SMS, WhatsApp, Email and Push.
-///
-/// Order lifecycle events are queued by the database trigger in
-/// supabase/migrations/20260925_notifications_production_wiring.sql.
-/// This client service also exposes an explicit queue method for workflows
-/// that need to create a notification outside the order trigger.
+/// Order lifecycle notifications are persisted in notification_logs.
 
 import '../../core/config/env.dart';
 import 'supabase_service.dart';
@@ -13,10 +9,9 @@ import 'supabase_service.dart';
 enum NotificationChannel { sms, whatsapp, email, push }
 
 class NotificationService {
-  /// Queue an order-related notification in the production notification
-  /// tables. Delivery is intentionally provider-agnostic: a dispatcher
-  /// consumes notification_logs with status = 'queued' and updates the log
-  /// after the external provider accepts/delivers the message.
+  /// Queue an order-related notification in the production notification log.
+  /// Delivery is provider-agnostic: a dispatcher consumes pending records and
+  /// updates notification_logs after the external provider accepts/delivers.
   static Future<String?> queueOrderNotification({
     required String orderId,
     required String recipient,
@@ -36,19 +31,13 @@ class NotificationService {
         'p_recipient': recipient,
         'p_channel': channel.name,
         'p_event_key': event,
-        'p_fallback_message':
-            fallbackMessage ?? _buildMessage('', event, null),
+        'p_fallback_message': fallbackMessage ?? _buildMessage('', event, null),
       },
     );
 
     return result?.toString();
   }
 
-  /// Backward-compatible helper for order notification callers.
-  ///
-  /// If [orderId] is supplied, the notification is persisted to the
-  /// production queue. Without an order id there is no safe public insert
-  /// path, so the message is logged locally rather than bypassing RLS.
   static Future<void> sendOrderNotification({
     required String phone,
     required String orderNumber,
@@ -94,10 +83,6 @@ class NotificationService {
     }
   }
 
-  /// Staff alert helper.
-  ///
-  /// Staff alerts remain provider-agnostic until an approved staff channel
-  /// (email, WhatsApp, Slack, or push) is configured.
   static Future<void> notifyStaff({
     required String event,
     required String orderNumber,
