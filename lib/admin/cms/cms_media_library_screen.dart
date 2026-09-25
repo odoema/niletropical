@@ -414,7 +414,9 @@ class _EmptyMedia extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 520),
         child: Padding(
           padding: const EdgeInsets.all(32),
-          child: Column(
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.perm_media_outlined, size: 64, color: NileColors.textTertiary),
