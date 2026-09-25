@@ -9,9 +9,6 @@ import 'supabase_service.dart';
 enum NotificationChannel { sms, whatsapp, email, push }
 
 class NotificationService {
-  /// Queue an order-related notification in the production notification log.
-  /// Delivery is provider-agnostic: a dispatcher consumes pending records and
-  /// updates notification_logs after the external provider accepts/delivers.
   static Future<String?> queueOrderNotification({
     required String orderId,
     required String recipient,
