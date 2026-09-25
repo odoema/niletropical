@@ -1,30 +1,34 @@
-name: Dispatch Nile Tropical Notifications
+name: Dispatch Free Web Push Notifications
 
 on:
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 concurrency:
-  group: nile-notification-dispatch
+  group: nile-web-push-dispatch
   cancel-in-progress: false
 
 jobs:
   dispatch:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    permissions:
+      contents: read
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      AFRICASTALKING_USERNAME: ${{ secrets.AFRICASTALKING_USERNAME }}
-      AFRICASTALKING_API_KEY: ${{ secrets.AFRICASTALKING_API_KEY }}
-      AFRICASTALKING_SENDER_ID: ${{ secrets.AFRICASTALKING_SENDER_ID }}
+      WEB_PUSH_VAPID_PRIVATE_KEY: ${{ secrets.WEB_PUSH_VAPID_PRIVATE_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Dispatch pending SMS notifications
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Web Push library
+        run: npm install --no-save web-push@3.6.7
+
+      - name: Dispatch pending push notifications
         run: node scripts/dispatch_notifications.mjs
