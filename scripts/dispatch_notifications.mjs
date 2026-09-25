@@ -5,11 +5,17 @@ import webpush from 'web-push';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const VAPID_PRIVATE_KEY = process.env.WEB_PUSH_VAPID_PRIVATE_KEY;
-const VAPID_PUBLIC_KEY = 'BHF9yxwTcIkl7opt5_yjvXYont8di_WhN_Q5TJpQ_uha6rxQsr82q4Cbyy2jFggRGGME6Yb3-F456LR9SNTbJ30';
+const VAPID_PUBLIC_KEY_URL = 'https://niletropicaluganda.com/app/vapid-public.json';
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !VAPID_PRIVATE_KEY) {
   throw new Error('Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or WEB_PUSH_VAPID_PRIVATE_KEY');
 }
+
+const vapidResponse = await fetch(VAPID_PUBLIC_KEY_URL, { cache: 'no-store' });
+if (!vapidResponse.ok) throw new Error(`Unable to load VAPID public key: ${vapidResponse.status}`);
+const vapidConfig = await vapidResponse.json();
+const VAPID_PUBLIC_KEY = vapidConfig.publicKey;
+if (!VAPID_PUBLIC_KEY) throw new Error('VAPID public key is missing from production config.');
 
 webpush.setVapidDetails(
   'mailto:notifications@niletropicaluganda.com',
@@ -69,7 +75,7 @@ async function dispatch() {
       const orderNumber = orders?.[0]?.order_number || log.order_id;
 
       const subscriptions = await supabase(
-        `push_subscriptions?customer_id=eq.${encodeURIComponent(log.customer_id)}&select=id,endpoint,p256dh,auth`
+        `push_subscriptions?auth_user_id=eq.${encodeURIComponent(log.customer_id)}&select=id,endpoint,p256dh,auth`
       );
 
       if (!subscriptions.length) {
