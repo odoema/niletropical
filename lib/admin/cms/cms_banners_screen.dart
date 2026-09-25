@@ -86,12 +86,15 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
                   const SizedBox(height: 10),
                   OutlinedButton.icon(
                     onPressed: () async {
-                      final path = await MediaUpload.pickAndUpload(
-                        bucket: StorageService.cms,
-                        objectPath: 'banners/${DateTime.now().millisecondsSinceEpoch}.jpg',
+                      final result = await CmsMediaUpload.pickAndUpload(
+                        context: ctx,
+                        folder: 'banners',
+                        objectPrefix: 'banner',
                         source: ImageSource.gallery,
                       );
-                      if (path != null) setDialogState(() => imagePath = path);
+                      if (result != null) {
+                        setDialogState(() => imagePath = result.path);
+                      }
                     },
                     icon: const Icon(Icons.upload_outlined),
                     label: const Text('Upload banner image'),
@@ -136,7 +139,9 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
       return;
     }
     final linkValue = link.text.trim();
-    if (linkValue.isNotEmpty && !(Uri.tryParse(linkValue)?.hasAbsolutePath ?? false) && !linkValue.startsWith('/')) {
+    final parsedLink = Uri.tryParse(linkValue);
+    final validLink = linkValue.isEmpty || linkValue.startsWith('/') || (parsedLink != null && (parsedLink.scheme == 'http' || parsedLink.scheme == 'https') && parsedLink.host.isNotEmpty);
+    if (!validLink) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Link URL must be a full URL or an app route beginning with /.'), backgroundColor: NileColors.error),
       );
