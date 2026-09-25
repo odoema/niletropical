@@ -16,7 +16,7 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
   bool _loading = true;
   String? _error;
   List<Map<String, dynamic>> _slots = [];
-  List<dynamic> _files = [];
+  List<Map<String, dynamic>> _files = [];
 
   @override
   void initState() {
@@ -34,13 +34,26 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
           .from('website_media_slots')
           .select('slot_key,label,storage_path,alt_text,is_active,updated_at')
           .order('slot_key');
-      final files =
-          await StorageService.list(bucket: StorageService.cms, path: 'website');
+      const folders = ['website', 'banners', 'testimonials', 'videos'];
+      final allFiles = <Map<String, dynamic>>[];
+      for (final folder in folders) {
+        final files = await StorageService.list(
+          bucket: StorageService.cms,
+          path: folder,
+        );
+        for (final file in files) {
+          if (file.name == '.emptyFolderPlaceholder') continue;
+          allFiles.add({
+            'name': file.name.toString(),
+            'path': '$folder/${file.name}',
+            'folder': folder,
+          });
+        }
+      }
       if (!mounted) return;
       setState(() {
         _slots = List<Map<String, dynamic>>.from(slots);
-        _files =
-            files.where((f) => f.name != '.emptyFolderPlaceholder').toList();
+        _files = allFiles;
         _loading = false;
       });
     } catch (e) {
@@ -111,7 +124,7 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
     if (_files.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Upload website images in Media Library first.'),
+          content: Text('Upload at least one image in Media Library first.'),
         ),
       );
       return;
@@ -135,8 +148,9 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
             itemCount: _files.length,
             itemBuilder: (_, i) {
               final file = _files[i];
-              final name = file.name.toString();
-              final path = 'website/' + name;
+              final name = file['name'].toString();
+              final path = file['path'].toString();
+              final folder = file['folder'].toString();
               return InkWell(
                 onTap: () => Navigator.pop(ctx, path),
                 child: Card(
@@ -155,10 +169,21 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
                       ),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text(
-                          name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              folder,
+                              style: NileTypography.bodySmall.copyWith(
+                                color: NileColors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
