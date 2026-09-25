@@ -9,7 +9,7 @@ alter table public.push_subscriptions
   alter column customer_id drop not null;
 
 update public.push_subscriptions ps
-set auth_user_id = c.auth_user_id
+set auth_user_id = c.user_id
 from public.customers c
 where ps.customer_id = c.id
   and ps.auth_user_id is null;
@@ -61,7 +61,7 @@ begin
 
   select id into v_customer_id
   from public.customers
-  where auth_user_id = v_uid
+  where user_id = v_uid
   limit 1;
 
   if v_customer_id is not null then
@@ -81,10 +81,10 @@ begin
 
   if v_customer_id is not null then
     update public.customers
-    set auth_user_id = v_uid,
+    set user_id = v_uid,
         updated_at = now()
     where id = v_customer_id
-      and auth_user_id is null;
+      and user_id is null;
   end if;
 
   return v_customer_id;
@@ -112,11 +112,11 @@ declare
   v_email text;
   v_log_id uuid;
 begin
-  select o.order_number, o.customer_id, c.auth_user_id, u.email
+  select o.order_number, o.customer_id, c.user_id, u.email
     into v_order_number, v_customer_id, v_auth_user_id, v_email
   from public.orders o
   left join public.customers c on c.id = o.customer_id
-  left join auth.users u on u.id = c.auth_user_id
+  left join auth.users u on u.id = c.user_id
   where o.id = p_order_id;
 
   v_recipient := coalesce(v_email, '');
