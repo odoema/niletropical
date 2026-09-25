@@ -16,7 +16,9 @@ class ImageQualityResult {
   final int minWidth;
   final int minHeight;
 
-  bool get passes => width >= minWidth && height >= minHeight;
+  // Temporary CMS policy: quality checks are advisory, not blocking.
+  // We will tighten these rules again after the media library is fully populated.
+  bool get passes => width > 0 && height > 0;
   String get dimensions => '${width} × ${height}';
 
   String get sizeLabel {
@@ -56,7 +58,7 @@ class ImageQualityService {
 
   static String guidance(String folder) {
     final profile = profiles[folder] ?? profiles['website']!;
-    return '${profile.label}: minimum ${profile.minWidth} × ${profile.minHeight}px. '
-        'Original files are uploaded without forced compression.';
+    return '${profile.label}: quality guidance is currently advisory. '
+        'Uploads are not blocked by dimensions. Original files are uploaded without forced compression.';
   }
 }
