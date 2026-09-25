@@ -10,6 +10,8 @@ import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'core/router/app_router.dart';
 import 'shared/services/supabase_service.dart';
+import 'shared/services/push_notification_service.dart';
+import 'shared/widgets/push_notification_prompt.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +26,12 @@ Future<void> main() async {
       url: Env.supabaseUrl,
       anonKey: Env.supabaseAnonKey,
     );
+    await PushNotificationService.syncIfGranted();
+    SupabaseService.client.auth.onAuthStateChange.listen((data) {
+      if (data.session != null) {
+        PushNotificationService.syncIfGranted();
+      }
+    });
   } else if (kDebugMode) {
     debugPrint(
       '[Nile Tropical] SUPABASE_URL/SUPABASE_ANON_KEY not set — running '
@@ -48,6 +56,9 @@ class NileTropicalApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       routerConfig: appRouter,
+      builder: (context, child) => PushNotificationPrompt(
+        child: child ?? const SizedBox.shrink(),
+      ),
     );
   }
 }
