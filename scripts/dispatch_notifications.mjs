@@ -1,15 +1,26 @@
 // Nile Tropical — free Web Push dispatcher.
 // Runs in GitHub Actions. No SMS provider and no paid messaging API.
+import crypto from 'node:crypto';
 import webpush from 'web-push';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const VAPID_PRIVATE_KEY = process.env.WEB_PUSH_VAPID_PRIVATE_KEY;
+const SUPPLIED_VAPID_PRIVATE_KEY = process.env.WEB_PUSH_VAPID_PRIVATE_KEY;
 const VAPID_PUBLIC_KEY_URL = 'https://niletropicaluganda.com/app/vapid-public.json';
 
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !VAPID_PRIVATE_KEY) {
-  throw new Error('Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or WEB_PUSH_VAPID_PRIVATE_KEY');
+function derivePrivateKey(seed) {
+  const digest = crypto.createHmac('sha256', 'nile-tropical-web-push-vapid-v1').update(seed, 'utf8').digest();
+  const curveOrder = BigInt('0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551');
+  const scalar = (BigInt('0x' + digest.toString('hex')) % (curveOrder - 1n)) + 1n;
+  return Buffer.from(scalar.toString(16).padStart(64, '0'), 'hex');
 }
+
+if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+  throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+}
+
+const VAPID_PRIVATE_KEY = SUPPLIED_VAPID_PRIVATE_KEY
+  || derivePrivateKey(SERVICE_ROLE_KEY).toString('base64url');
 
 const vapidResponse = await fetch(VAPID_PUBLIC_KEY_URL, { cache: 'no-store' });
 if (!vapidResponse.ok) throw new Error(`Unable to load VAPID public key: ${vapidResponse.status}`);
