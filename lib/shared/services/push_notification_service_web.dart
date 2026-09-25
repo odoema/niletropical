@@ -14,7 +14,7 @@ const _publicVapidKey =
 external JSString nilePushPermission();
 
 @JS('nilePushSubscribe')
-external JSPromise<JSString?> nilePushSubscribe(JSString publicKey);
+external JSPromise<JSString?> nilePushSubscribe();
 
 class PushNotificationService {
   static const bool isSupported = true;
@@ -46,7 +46,7 @@ class PushNotificationService {
     if (user == null) return false;
 
     try {
-      final raw = await nilePushSubscribe(_publicVapidKey.toJS).toDart;
+      final raw = await nilePushSubscribe().toDart;
       if (raw == null) return false;
 
       final subscription =
