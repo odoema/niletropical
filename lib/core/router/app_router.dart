@@ -22,6 +22,7 @@ import '../../features/tracking/tracking_screen.dart';
 import '../../features/account/account_screen.dart';
 import '../../features/account/orders_screen.dart';
 import '../../features/account/addresses_screen.dart';
+import '../../features/account/notifications_screen.dart';
 import '../../features/payments/payment_page.dart';
 import '../../features/courier/courier_dashboard_screen.dart';
 import '../../features/courier/shipment_detail_screen.dart';
@@ -146,6 +147,7 @@ final appRouter = GoRouter(
         GoRoute(path: '/account', name: 'account', builder: (_, __) => const AccountScreen()),
         GoRoute(path: '/account/orders', name: 'account-orders', builder: (_, __) => const AccountOrdersScreen()),
         GoRoute(path: '/account/addresses', name: 'account-addresses', builder: (_, __) => const AccountAddressesScreen()),
+        GoRoute(path: '/notifications', name: 'notifications', builder: (_, __) => const NotificationsScreen()),
         GoRoute(
           path: '/pay/:orderId',
           name: 'payment',
