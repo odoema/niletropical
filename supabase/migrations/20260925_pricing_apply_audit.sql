@@ -1,6 +1,6 @@
 -- 20260925_pricing_apply_audit.sql
 -- Atomically apply a pricing recommendation to the live catalogue and
--- record the change in audit_logs.
+-- record the change using the production audit_logs schema.
 
 create or replace function public.apply_pricing_recommendation(
   p_recommendation_id uuid
@@ -14,7 +14,6 @@ declare
   rec record;
   old_price numeric;
   new_price numeric;
-  result jsonb;
 begin
   if not (
     has_role('manager')
@@ -24,12 +23,7 @@ begin
     raise exception 'Not authorised to apply pricing recommendations';
   end if;
 
-  select
-    id,
-    product_variant_id,
-    recommended_price,
-    current_price,
-    status
+  select id, product_variant_id, recommended_price
   into rec
   from public.pricing_recommendations
   where id = p_recommendation_id
@@ -47,7 +41,8 @@ begin
     raise exception 'Pricing recommendation has an invalid recommended price';
   end if;
 
-  select price into old_price
+  select price
+  into old_price
   from public.product_variants
   where id = rec.product_variant_id
   for update;
@@ -63,55 +58,52 @@ begin
   where id = rec.product_variant_id;
 
   update public.pricing_recommendations
-  set
-    status = 'approved',
-    current_price = new_price
+  set status = 'approved',
+      current_price = new_price
   where id = rec.id;
 
   insert into public.audit_logs (
-    actor,
+    user_id,
     action,
     entity_type,
     entity_id,
-    old_value,
-    new_value
+    previous_data,
+    new_data
   )
   values (
     auth.uid(),
     'product.price_changed',
     'product_variants',
-    rec.product_variant_id,
+    rec.product_variant_id::text,
     jsonb_build_object(
       'price', old_price,
       'pricing_recommendation_id', rec.id
     ),
     jsonb_build_object(
       'price', new_price,
-      'pricing_recommendation_id', rec.id,
-      'reason', 'Pricing recommendation applied'
+      'pricing_recommendation_id', rec.id
     )
   );
 
-  result := jsonb_build_object(
+  return jsonb_build_object(
     'recommendation_id', rec.id,
     'product_variant_id', rec.product_variant_id,
     'old_price', old_price,
     'new_price', new_price,
     'status', 'approved'
   );
-
-  return result;
 end;
 $$;
 
 revoke all on function public.apply_pricing_recommendation(uuid) from public;
 grant execute on function public.apply_pricing_recommendation(uuid) to authenticated;
 
+grant insert on public.audit_logs to authenticated;
+
 drop policy if exists audit_logs_staff_insert on public.audit_logs;
+
 create policy audit_logs_staff_insert
 on public.audit_logs
 for insert
 to authenticated
-with check (actor = auth.uid());
-
-grant insert on public.audit_logs to authenticated;
+with check (user_id = auth.uid());
