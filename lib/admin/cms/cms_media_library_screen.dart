@@ -264,6 +264,26 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _uploading ? null : _upload,
+        backgroundColor: NileColors.primary,
+        foregroundColor: Colors.white,
+        icon: _uploading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Icon(Icons.cloud_upload_outlined),
+        label: Text(
+          _uploading
+              ? 'Uploading $_uploadCompleted/$_uploadTotal'
+              : 'Upload images',
+        ),
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
