@@ -404,6 +404,7 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
 
 class _EmptyMedia extends StatelessWidget {
   const _EmptyMedia({required this.folder, required this.onUpload});
+
   final String folder;
   final VoidCallback onUpload;
 
@@ -417,29 +418,38 @@ class _EmptyMedia extends StatelessWidget {
           child: SizedBox(
             width: double.infinity,
             child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.perm_media_outlined, size: 64, color: NileColors.textTertiary),
-              const SizedBox(height: 16),
-              Text(folder, style: NileTypography.headlineSmall, textAlign: TextAlign.center),
-              const SizedBox(height: 8),
-              const Text(
-                'Upload images here and reuse them across the Nile Tropical storefront and CMS.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                ImageQualityService.guidance(folder),
-                textAlign: TextAlign.center,
-                style: NileTypography.bodySmall,
-              ),
-              const SizedBox(height: 18),
-              FilledButton.icon(
-                onPressed: onUpload,
-                icon: const Icon(Icons.cloud_upload_outlined),
-                label: const Text('Upload images'),
-              ),
-            ],
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.perm_media_outlined,
+                  size: 64,
+                  color: NileColors.textTertiary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  folder,
+                  style: NileTypography.headlineSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Upload images here and reuse them across the Nile Tropical storefront and CMS.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  ImageQualityService.guidance(folder),
+                  textAlign: TextAlign.center,
+                  style: NileTypography.bodySmall,
+                ),
+                const SizedBox(height: 18),
+                FilledButton.icon(
+                  onPressed: onUpload,
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  label: const Text('Upload images'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
