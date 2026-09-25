@@ -13,7 +13,7 @@ class NotificationService {
     required String orderId,
     required String recipient,
     required String event,
-    NotificationChannel channel = NotificationChannel.sms,
+    NotificationChannel channel = NotificationChannel.push,
     String? fallbackMessage,
   }) async {
     if (!Env.isConfigured) {
@@ -49,6 +49,7 @@ class NotificationService {
         orderId: orderId,
         recipient: phone,
         event: event,
+        channel: NotificationChannel.push,
         fallbackMessage: message,
       );
       return;
