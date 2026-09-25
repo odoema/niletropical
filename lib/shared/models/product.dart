@@ -50,18 +50,18 @@ class Product {
   String? get mainImageUrl {
     if (images.isEmpty) return null;
 
-    // Supabase does not guarantee the order of nested product_images.
-    // Deterministically choose the newest main image, then fall back to
-    // sort order. This prevents an older duplicate is_main row from being
-    // shown on one screen and a different row on another.
+    // The main-image invariant is: exactly one image is main for a product.
+    // Sort order is the canonical catalogue order; creation time is only a
+    // deterministic tie-breaker. This makes the shop card and product detail
+    // resolve the same image independently of Supabase nested-row ordering.
     final candidates = [...images]
       ..sort((a, b) {
         if (a.isMain != b.isMain) return a.isMain ? -1 : 1;
+        final sortCompare = a.sortOrder.compareTo(b.sortOrder);
+        if (sortCompare != 0) return sortCompare;
         final aCreated = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         final bCreated = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final createdCompare = bCreated.compareTo(aCreated);
-        if (createdCompare != 0) return createdCompare;
-        return a.sortOrder.compareTo(b.sortOrder);
+        return aCreated.compareTo(bCreated);
       });
     return candidates.first.url;
   }
