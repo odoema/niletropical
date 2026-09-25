@@ -258,11 +258,8 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
         children: [
           Container(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: NileColors.surface,
-              border: Border(
-                bottom: BorderSide(color: NileColors.outlineVariant),
-              ),
             ),
             child: Row(
               children: [
@@ -332,7 +329,10 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
                 : _error != null
                     ? Center(child: Text('Could not load media: $_error'))
                     : _files.isEmpty
-                        ? _EmptyMedia(folder: _folders[_folder]!)
+                        ? _EmptyMedia(
+                          folder: _folders[_folder]!,
+                          onUpload: _upload,
+                        )
                         : GridView.builder(
                             padding: const EdgeInsets.all(16),
                             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
