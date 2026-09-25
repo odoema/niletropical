@@ -90,7 +90,6 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
                         context: ctx,
                         folder: 'banners',
                         objectPrefix: 'banner',
-                        source: ImageSource.gallery,
                       );
                       if (result != null) {
                         setDialogState(() => imagePath = result.path);
@@ -224,7 +223,6 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
                         context: ctx,
                         folder: 'banners',
                         objectPrefix: 'banner',
-                        source: ImageSource.gallery,
                       );
                       if (result != null) {
                         setDialogState(() => imagePath = result.path);
