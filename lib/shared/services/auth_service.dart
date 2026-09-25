@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/config/env.dart';
 import 'supabase_service.dart';
@@ -12,6 +13,29 @@ class AuthService {
       Env.isConfigured ? SupabaseService.client.auth.currentUser : null;
 
   static bool get isLoggedIn => user != null;
+
+  static Future<void> signInWithGoogle() async {
+    if (!Env.isConfigured) {
+      throw StateError('Supabase is not configured. Cannot authenticate.');
+    }
+
+    await SupabaseService.client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: kIsWeb ? 'https://niletropicaluganda.com/app/' : null,
+    );
+  }
+
+  /// After OAuth sign-in, attach this Auth user to an existing guest
+  /// customer record with the same email, when one exists.
+  static Future<void> linkExistingCustomer() async {
+    if (!Env.isConfigured || user == null) return;
+    try {
+      await SupabaseService.client.rpc('link_current_user_customer');
+    } catch (_) {
+      // Linking is best-effort. A new customer can still use the account;
+      // checkout/address flows can create the commerce profile later.
+    }
+  }
 
   static Future<AuthResponse> signIn({
     required String email,
@@ -117,4 +141,3 @@ class AuthService {
     return row?['id']?.toString();
   }
 }
-
