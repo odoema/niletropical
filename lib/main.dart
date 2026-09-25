@@ -10,15 +10,10 @@ import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'core/router/app_router.dart';
 import 'shared/services/supabase_service.dart';
-import 'shared/services/push_notification_service.dart';
 import 'shared/services/auth_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Fails fast in staging/production if credentials are missing rather than
-  // silently running the whole app on mock data. Development may proceed
-  // unconfigured while no Supabase project exists yet.
   Env.assertConfiguredOrThrow();
 
   if (Env.isConfigured) {
@@ -28,11 +23,8 @@ Future<void> main() async {
     );
     SupabaseService.client.auth.onAuthStateChange.listen((data) {
       if (data.session != null) {
-        // Link the authenticated Google identity to the existing commerce
-        // customer first, then synchronize the browser push subscription.
         Future<void>(() async {
           await AuthService.linkExistingCustomer();
-          await PushNotificationService.syncIfGranted();
         });
       }
     });
@@ -48,15 +40,6 @@ Future<void> main() async {
       child: NileTropicalApp(),
     ),
   );
-
-  // Never block Flutter's first frame on Web Push synchronization.
-  // Push registration is background work and must not prevent the app UI
-  // from starting if the browser, service worker, RPC, or network is slow.
-  if (Env.isConfigured) {
-    Future<void>(() async {
-      await PushNotificationService.syncIfGranted();
-    });
-  }
 }
 
 class NileTropicalApp extends StatelessWidget {
