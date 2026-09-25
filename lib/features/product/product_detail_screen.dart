@@ -262,7 +262,7 @@ class _Gallery extends StatelessWidget {
       itemBuilder: (_, i) {
         final u = StorageService.resolvePublicUrl(urls[i]);
         if (u.startsWith('http')) {
-          return Image.network(u, fit: BoxFit.cover);
+          return _GalleryImage(url: u);
         }
         return Container(
           color: NileColors.primaryContainer,
@@ -270,6 +270,60 @@ class _Gallery extends StatelessWidget {
           child: Text(u, style: NileTypography.bodySmall),
         );
       },
+    );
+  }
+}
+
+class _GalleryImage extends StatelessWidget {
+  const _GalleryImage({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      alignment: Alignment.center,
+      child: Image.network(
+        url,
+        key: ValueKey(url),
+        fit: BoxFit.contain,
+        gaplessPlayback: true,
+        filterQuality: FilterQuality.medium,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return const Center(
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        },
+        errorBuilder: (_, __, ___) => Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: NileColors.surfaceVariant,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.image_not_supported_outlined,
+                color: NileColors.primary,
+                size: 52,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Product image unavailable',
+                style: NileTypography.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
