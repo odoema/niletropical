@@ -7,9 +7,6 @@ import 'dart:js_interop';
 import '../../core/config/env.dart';
 import 'supabase_service.dart';
 
-const _publicVapidKey =
-    'BHF9yxwTcIkl7opt5_yjvXYont8di_WhN_Q5TJpQ_uha6rxQsr82q4Cbyy2jFggRGGME6Yb3-F456LR9SNTbJ30';
-
 @JS('nilePushPermission')
 external JSString nilePushPermission();
 
@@ -84,7 +81,7 @@ class PushNotificationService {
   }
 
   static Future<void> _saveSubscription(String customerId) async {
-    final raw = await nilePushSubscribe(_publicVapidKey.toJS).toDart;
+    final raw = await nilePushSubscribe().toDart;
     if (raw == null) return;
 
     final subscription =
