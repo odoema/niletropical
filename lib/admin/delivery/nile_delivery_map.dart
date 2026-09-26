@@ -44,6 +44,13 @@ class NileDeliveryMap extends StatelessWidget {
               options: MapOptions(
                 initialCenter: _center(points),
                 initialZoom: _zoom(points),
+                initialCameraFit: points.length >= 2
+                    ? CameraFit.coordinates(
+                        coordinates: points,
+                        padding: const EdgeInsets.all(42),
+                        maxZoom: 16,
+                      )
+                    : null,
                 interactionOptions: const InteractionOptions(
                   flags: InteractiveFlag.all,
                 ),
