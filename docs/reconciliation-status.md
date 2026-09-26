@@ -65,7 +65,7 @@ Confirmed/reconciled:
 - Admin analytics calls the deployed `analytics-dashboard` Edge Function and also reads order aggregates directly.
 
 ## 2026-09-27 Auth/RLS audit — important finding
-The live role helper `is_staff()` currently returns true for any user who has any row in `user_roles`. Several broad policies use `is_staff()` for ALL/SELECT access, including:
+The live role helper `is_staff()` currently returns true for any user who has any row in `user_roles`. A live policy inventory found **20 policies** using `is_staff()` in SELECT/ALL/UPDATE/ownership checks. This includes:
 - orders and order_items
 - order_status_history
 - customers and customer_addresses
@@ -74,8 +74,10 @@ The live role helper `is_staff()` currently returns true for any user who has an
 - stock/warehouse read paths
 - notification log reads
 - profile staff reads
+- coupon-redemption reads
+- website-media staff reads
 
-The frontend router separately distinguishes admin and courier access, but database policy boundaries are broader than the intended screen-by-role model. This is a SECURITY REVIEW ITEM, not a production change.
+This means a user assigned a narrower role (for example courier, inventory_officer, content_manager or finance) may receive database access broader than the intended screen-by-role model. The frontend router does not substitute for database authorization.
 
 More granular live policies already exist for:
 - content management: content_manager / manager / super_admin
@@ -85,17 +87,18 @@ More granular live policies already exist for:
 - app error logs: manager / finance / super_admin
 - courier shipment/event read: assigned courier or manager/super_admin
 
-No RLS policy was changed during this audit.
+**Decision:** KEEP the current live policies unchanged for now. Do **not** redefine `is_staff()` or bulk-replace policies until the screen/action matrix proves the minimum required role for every operation. This avoids locking the production backend into an incorrect authorization model.
 
-## Required next step
-1. Build and document the authoritative screen-by-screen role matrix:
+## Required next step — execution order
+1. Complete the authoritative screen-by-screen role matrix:
    `Page → Component → Button → Flutter action → Supabase table/RPC/Edge Function → required role → live RLS policy`.
-2. Resolve intended boundaries for `manager`, `finance`, `inventory_officer`, `content_manager`, `courier`, `admin`, `super_admin` before changing RLS.
-3. Explicitly audit CMS, reports, analytics, notifications, audit/error logs, management and courier screens against that matrix.
-4. Inspect the complete reconciliation-branch payment Edge Function source before any deployment decision.
-5. Re-run Flutter validation after any code/documentation changes that affect the branch.
-6. Review/approve/merge only after the above evidence is green.
-7. Deployment and production payment/tracking tests remain later steps.
+2. Audit exact operations for Orders, Inventory, Delivery, Customers, COD/Finance, Products, Pricing, CMS, Reports, Analytics, Notifications, Audit/Error logs, Courier and Management/Settings.
+3. Classify each broad `is_staff()` policy as KEEP / REPAIR / REPLACE / REMOVE / NEW.
+4. Only then prepare a narrow, rollback-safe RLS migration on the reconciliation branch.
+5. Verify the resulting SQL and role coverage; run Supabase security/performance advisors.
+6. Re-run Flutter validation.
+7. Review/approve/merge only after evidence is green.
+8. Deployment and real payment/tracking tests remain later steps.
 
 ## Safety rule
 No destructive database reset, broad migration replay, automatic production migration push, payment-function replacement, or fabricated production data may be used to make repository history appear consistent.
