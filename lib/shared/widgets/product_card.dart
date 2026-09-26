@@ -5,8 +5,17 @@ import '../../core/widgets/nile_widgets.dart';
 import '../models/product.dart';
 import '../services/storage_service.dart';
 
+/// Standard Nile Tropical product card.
+///
+/// Card contract:
+/// - one consistent surface, radius and spacing across shop/home/category grids
+/// - image is edge-to-edge inside the clipped card
+/// - image fills the allocated area with BoxFit.cover
+/// - image loading/failure states never change the card geometry
+/// - product name and price use a fixed content rhythm
 class ProductCard extends StatelessWidget {
   const ProductCard({super.key, required this.product});
+
   final Product product;
 
   @override
@@ -20,63 +29,92 @@ class ProductCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       elevation: 1.5,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: NileColors.border.withOpacity(.55)),
+        borderRadius: NileRadius.borderLg,
+        side: BorderSide(color: NileColors.border.withValues(alpha: 0.55)),
       ),
       child: InkWell(
         onTap: () => context.push('/product/${product.slug}'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AspectRatio(
-              aspectRatio: 1.75,
-              child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.all(6),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: imageUrl.isNotEmpty
-                      ? _ResilientProductImage(
-                          urls: [
-                            ...product.images
-                                .where((image) => image.url.isNotEmpty)
-                                .map((image) => StorageService.resolvePublicUrl(image.url)),
-                          ],
-                          fallbackUrl: imageUrl,
-                        )
-                      : Container(
-                          color: NileColors.surfaceVariant,
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.spa_outlined,
-                            color: NileColors.primary,
-                            size: 34,
-                          ),
-                        ),
-                ),
+            // The grid gives the card a finite height. Expanded makes the
+            // image consume all remaining space, so every card has the same
+            // image footprint regardless of screen width.
+            Expanded(
+              child: _ProductImageFrame(
+                imageUrl: imageUrl,
+                product: product,
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(9, 2, 9, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: NileTypography.titleSmall.copyWith(
-                      fontWeight: FontWeight.w700,
-                      height: 1.15,
+              padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+              child: SizedBox(
+                height: 58,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      style: NileTypography.titleSmall.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  NilePrice(amount: price),
-                ],
+                    const Spacer(),
+                    NilePrice(amount: price),
+                  ],
+                ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProductImageFrame extends StatelessWidget {
+  const _ProductImageFrame({
+    required this.imageUrl,
+    required this.product,
+  });
+
+  final String imageUrl;
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl.isEmpty) {
+      return _ImagePlaceholder(icon: Icons.spa_outlined);
+    }
+
+    return _ResilientProductImage(
+      urls: [
+        ...product.images
+            .where((image) => image.url.isNotEmpty)
+            .map((image) => StorageService.resolvePublicUrl(image.url)),
+      ],
+      fallbackUrl: imageUrl,
+    );
+  }
+}
+
+class _ImagePlaceholder extends StatelessWidget {
+  const _ImagePlaceholder({this.icon = Icons.image_not_supported_outlined});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: NileColors.surfaceVariant,
+      alignment: Alignment.center,
+      child: Icon(
+        icon,
+        color: NileColors.primary,
+        size: 34,
       ),
     );
   }
@@ -131,36 +169,36 @@ class _ResilientProductImageState extends State<_ResilientProductImage> {
   @override
   Widget build(BuildContext context) {
     final url = _urls.isNotEmpty ? _urls[_index] : widget.fallbackUrl;
-    return Image.network(
-      url,
-      key: ValueKey(url),
-      fit: BoxFit.contain,
-      gaplessPlayback: true,
-      filterQuality: FilterQuality.medium,
-      loadingBuilder: (context, child, progress) {
-        if (progress == null) return child;
-        return Container(
-          color: NileColors.surfaceVariant,
-          alignment: Alignment.center,
-          child: const SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        );
-      },
-      errorBuilder: (_, __, ___) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _failed());
-        return Container(
-          color: NileColors.surfaceVariant,
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.image_not_supported_outlined,
-            color: NileColors.textTertiary,
-            size: 28,
-          ),
-        );
-      },
+
+    return ColoredBox(
+      color: Colors.white,
+      child: Image.network(
+        url,
+        key: ValueKey(url),
+        // Product photography should fill the card rather than float inside
+        // a padded white box. The card itself supplies the clipping boundary.
+        fit: BoxFit.cover,
+        alignment: Alignment.center,
+        gaplessPlayback: true,
+        filterQuality: FilterQuality.medium,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return const ColoredBox(
+            color: NileColors.surfaceVariant,
+            child: Center(
+              child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+        errorBuilder: (_, __, ___) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _failed());
+          return const _ImagePlaceholder();
+        },
+      ),
     );
   }
 }
