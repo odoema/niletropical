@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/errors/error_reporter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/services/supabase_service.dart';
@@ -68,13 +69,14 @@ class _SeoHealthScreenState extends State<SeoHealthScreen> {
 }
 
 class _SeoProduct {
-  final String name, slug;
+  final String id, name, slug;
   final String? description, brand;
   final List<_Variant> variants;
   final List<_Image> images;
-  _SeoProduct({required this.name, required this.slug, this.description, this.brand, required this.variants, required this.images});
+  _SeoProduct({required this.id, required this.name, required this.slug, this.description, this.brand, required this.variants, required this.images});
 
   factory _SeoProduct.fromMap(Map<String, dynamic> m) => _SeoProduct(
+    id: m['id']?.toString() ?? '',
     name: m['name']?.toString() ?? 'Unnamed product',
     slug: m['slug']?.toString() ?? '',
     description: (m['short_description'] ?? m['full_description'])?.toString(),
@@ -130,6 +132,8 @@ class _ProductCard extends StatelessWidget {
   @override Widget build(BuildContext context) {
     final ok = product.issues.isEmpty;
     return Card(margin: const EdgeInsets.only(bottom: 10), child: ListTile(
+      onTap: () => product.id.isEmpty ? null : context.push('/admin/products/${product.id}'),
+      mouseCursor: SystemMouseCursors.click,
       leading: CircleAvatar(
         backgroundColor: (ok ? NileColors.success : NileColors.warning).withOpacity(.12),
         child: Icon(ok ? Icons.check : Icons.warning_amber_rounded, color: ok ? NileColors.success : NileColors.warning)),
