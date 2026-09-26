@@ -1,0 +1,74 @@
+name: Apply Production Error Logs Fix
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "supabase/migrations/20260926_fix_admin_error_log_access.sql"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ououfhsswyqutcczdtnb
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v2
+        with:
+          version: latest
+
+      - name: Verify access
+        run: |
+          test -n "${SUPABASE_ACCESS_TOKEN}" || {
+            echo "::error::SUPABASE_ACCESS_TOKEN is missing."
+            exit 1
+          }
+          echo "Target Supabase project: ${SUPABASE_PROJECT_ID}"
+
+      - name: Inspect remote migration history
+        run: |
+          supabase link --project-ref "${SUPABASE_PROJECT_ID}"
+          supabase migration list --linked
+
+      - name: Apply idempotent Error Logs SQL
+        run: |
+          SQL="$(cat supabase/migrations/20260926_fix_admin_error_log_access.sql)"
+          supabase db query --linked "${SQL}"
+
+      - name: Verify Error Logs objects
+        run: |
+          supabase db query --linked "
+            select
+              to_regclass('public.app_error_logs') as error_logs_table,
+              exists (
+                select 1
+                from pg_policies
+                where schemaname = 'public'
+                  and tablename = 'app_error_logs'
+                  and policyname = 'app_error_logs_staff_read'
+              ) as staff_read_policy,
+              exists (
+                select 1
+                from pg_policies
+                where schemaname = 'public'
+                  and tablename = 'app_error_logs'
+                  and policyname = 'app_error_logs_staff_update'
+              ) as staff_update_policy,
+              exists (
+                select 1
+                from pg_proc p
+                join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public'
+                  and p.proname = 'record_app_error'
+              ) as record_error_function;
+          "
