@@ -94,12 +94,21 @@ class _ProductImageFrame extends StatelessWidget {
       return _ImagePlaceholder(icon: Icons.spa_outlined);
     }
 
+    final orderedImages = [...product.images]
+      ..sort((a, b) {
+        if (a.isMain != b.isMain) return a.isMain ? -1 : 1;
+        final sortCompare = a.sortOrder.compareTo(b.sortOrder);
+        if (sortCompare != 0) return sortCompare;
+        final aCreated = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bCreated = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return aCreated.compareTo(bCreated);
+      });
+
     return _ResilientProductImage(
-      urls: [
-        ...product.images
-            .where((image) => image.url.isNotEmpty)
-            .map((image) => StorageService.resolvePublicUrl(image.url)),
-      ],
+      urls: orderedImages
+          .where((image) => image.url.isNotEmpty)
+          .map((image) => StorageService.resolvePublicUrl(image.url))
+          .toList(),
       fallbackUrl: imageUrl,
     );
   }
