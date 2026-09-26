@@ -50,17 +50,14 @@ class _ErrorLogsScreenState extends State<ErrorLogsScreen> {
         _rows = List<Map<String, dynamic>>.from(rows);
         _loading = false;
       });
-    } catch (e, stack) {
-      ErrorReporter.report(
-        e,
-        stackTrace: stack,
-        source: 'admin_error_logs',
-        action: 'load_error_logs',
-      );
+    } catch (e) {
+      // Do not send an Error Logs failure back into Error Logs. If the
+      // diagnostics table or its RLS policy is unavailable, reporting the
+      // read failure through the same pipeline creates a recursive failure.
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = ErrorReporter.friendlyMessage(e);
+        _error = 'Could not load application error logs: ' + e.toString();
       });
     }
   }
