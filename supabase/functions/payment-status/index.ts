@@ -170,6 +170,7 @@ serve(async (req) => {
       status: newPaymentStatus,
       order_id: order.id,
       order_number: order.order_number,
+      total: order.total,
       method: "mtn_momo",
       gateway_status: upstreamStatus,
       financial_transaction_id:
