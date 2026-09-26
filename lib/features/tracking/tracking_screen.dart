@@ -37,22 +37,41 @@ class _TrackingScreenState extends State<TrackingScreen> {
   Future<void> _track() async {
     final order = _orderController.text.trim();
     final phone = _phoneController.text.trim();
+
     if (order.isEmpty || phone.isEmpty) {
-      setState(() => _error = 'Enter your order number and the phone number used at checkout.');
+      setState(() {
+        _error = 'Enter your order number and the phone number used at checkout.';
+      });
       return;
     }
-    setState(() { _loading = true; _error = null; _result = null; });
+
+    setState(() {
+      _loading = true;
+      _error = null;
+      _result = null;
+    });
+
     try {
-      final data = await OrderService.trackOrder(orderNumber: order, phone: phone);
+      final data = await OrderService.trackOrder(
+        orderNumber: order,
+        phone: phone,
+      );
+
       if (!mounted) return;
+
       if (data == null || data['found'] != true) {
         setState(() {
           _loading = false;
-          _error = 'We could not find that order. Check the order number and phone number.';
+          _error =
+              'We could not find that order. Check the order number and phone number.';
         });
         return;
       }
-      setState(() { _loading = false; _result = data; });
+
+      setState(() {
+        _loading = false;
+        _result = data;
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -66,17 +85,27 @@ class _TrackingScreenState extends State<TrackingScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final shipment = _result?['shipment'];
-    final timeline = _result?['timeline'] is List ? _result!['timeline'] as List : const [];
+    final timeline =
+        _result?['timeline'] is List ? _result!['timeline'] as List : const [];
+
+    final status = _result?['status']?.toString() ?? 'unknown';
+    final paymentStatus =
+        _result?['payment_status']?.toString() ?? 'unknown';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Track order')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text('Track your Nile Tropical order', style: theme.textTheme.headlineSmall),
+          Text(
+            'Track your Nile Tropical order',
+            style: theme.textTheme.headlineSmall,
+          ),
           const SizedBox(height: 8),
-          Text('Enter the order number and the phone number used at checkout.',
-              style: theme.textTheme.bodyMedium),
+          Text(
+            'Enter the order number and the phone number used at checkout.',
+            style: theme.textTheme.bodyMedium,
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _orderController,
@@ -102,7 +131,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
             child: FilledButton.icon(
               onPressed: _loading ? null : _track,
               icon: _loading
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : const Icon(Icons.search),
               label: Text(_loading ? 'Loading…' : 'Track order'),
             ),
@@ -112,7 +145,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+                child: Text(
+                  _error!,
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
               ),
             ),
           ],
@@ -124,16 +160,21 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_result!['order_number']?.toString() ?? 'Order',
-                        style: theme.textTheme.titleLarge),
+                    Text(
+                      _result!['order_number']?.toString() ?? 'Order',
+                      style: theme.textTheme.titleLarge,
+                    ),
                     const SizedBox(height: 8),
-                    Text('Status: \${_result!['status']?.toString() ?? 'unknown'}'),
+                    Text('Status: ' + status),
                     const SizedBox(height: 4),
-                    Text('Payment: \${_result!['payment_status']?.toString() ?? 'unknown'}'),
+                    Text('Payment: ' + paymentStatus),
                     if (_result!['total'] is num)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: Text('Total: UGX \${(_result!['total'] as num).toStringAsFixed(0)}'),
+                        child: Text(
+                          'Total: UGX ' +
+                              (_result!['total'] as num).toStringAsFixed(0),
+                        ),
                       ),
                   ],
                 ),
@@ -145,7 +186,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 child: ListTile(
                   leading: const Icon(Icons.local_shipping),
                   title: const Text('Delivery'),
-                  subtitle: Text(shipment['status']?.toString() ?? 'Shipment created'),
+                  subtitle: Text(
+                    shipment['status']?.toString() ?? 'Shipment created',
+                  ),
                 ),
               ),
             ],
@@ -156,11 +199,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
               const Text('No status updates have been recorded yet.')
             else
               ...timeline.map((entry) {
-                final m = entry is Map ? Map<String, dynamic>.from(entry) : <String, dynamic>{};
+                final m = entry is Map
+                    ? Map<String, dynamic>.from(entry)
+                    : <String, dynamic>{};
                 final lines = [
                   m['note']?.toString() ?? '',
                   m['created_at']?.toString() ?? '',
                 ].where((s) => s.isNotEmpty).join('\n');
+
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.check_circle_outline),
