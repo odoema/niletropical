@@ -37,14 +37,22 @@ class PaymentService {
     throw StateError('payment-initiate returned unexpected payload');
   }
 
-  static Future<Map<String, dynamic>> status(String reference) async {
+  static Future<Map<String, dynamic>> status(
+    String reference, {
+    String? orderId,
+    String? orderNumber,
+  }) async {
     if (!Env.isConfigured) {
       // Stay pending in mock so the UI can exercise the waiting path.
       return {'reference': reference, 'status': 'pending'};
     }
     final res = await SupabaseService.client.functions.invoke(
       'payment-status',
-      body: {'reference': reference},
+      body: {
+        'reference': reference,
+        'order_id': orderId,
+        'order_number': orderNumber,
+      },
     );
     final data = res.data;
     if (data is Map) return Map<String, dynamic>.from(data);
