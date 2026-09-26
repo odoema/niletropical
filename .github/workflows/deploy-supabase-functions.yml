@@ -22,7 +22,7 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-      SUPABASE_PROJECT_ID: tyhqwngqxbcivfphgxck
+      SUPABASE_PROJECT_ID: ououfhsswyqutcczdtnb
 
     steps:
       - name: Checkout repository
@@ -44,37 +44,13 @@ jobs:
           fi
           echo "Supabase project: ${SUPABASE_PROJECT_ID}"
 
-      - name: Apply pending production database migrations safely
+      - name: Verify live production database target (read-only)
         shell: bash
         run: |
           set -euo pipefail
-          echo "Checking live migration history before applying anything..."
-
-          # Prefer the raw database password so special characters are encoded
-          # safely instead of relying on a manually edited connection URI.
-          if [ -n "${SUPABASE_DB_PASSWORD}" ]; then
-            export DB_URL="$(
-              python3 -c 'import os, urllib.parse; p=os.environ["SUPABASE_DB_PASSWORD"]; print("postgresql://postgres." + os.environ["SUPABASE_PROJECT_ID"] + ":" + urllib.parse.quote(p, safe="") + "@aws-0-eu-central-1.pooler.supabase.com:5432/postgres")'
-            )"
-            echo "Using Supabase Session Pooler with the GitHub database-password secret."
-          elif [ -n "${SUPABASE_DB_URL}" ]; then
-            DB_URL="${SUPABASE_DB_URL}"
-            echo "Using SUPABASE_DB_URL."
-          else
-            echo "::error::Neither SUPABASE_DB_PASSWORD nor SUPABASE_DB_URL is configured."
-            exit 1
-          fi
-
-          echo "Listing live migration history..."
-          supabase migration list --db-url "${DB_URL}"
-
-          # Do not baseline or repair migration history automatically here.
-          # This workflow targets the current production project and must first
-          # observe that project's real migration history. Older project-specific
-          # assumptions are intentionally not carried forward.
-
-          echo "Applying only the dated production migrations..."
-          supabase db push --db-url "${DB_URL}"
+          echo "Production Supabase project: ${SUPABASE_PROJECT_ID}"
+          echo "Database migrations are intentionally NOT applied by CI."
+          echo "Live database schema/migration reconciliation must be performed separately and explicitly."
 
       - name: Deploy track-order
         run: supabase functions deploy track-order --project-ref "${SUPABASE_PROJECT_ID}"
