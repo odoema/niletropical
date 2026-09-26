@@ -45,6 +45,9 @@ jobs:
       - name: Deploy track-order
         run: supabase functions deploy track-order --project-ref "${SUPABASE_PROJECT_ID}"
 
+      - name: Deploy notification-dispatch
+        run: supabase functions deploy notification-dispatch --project-ref "${SUPABASE_PROJECT_ID}"
+
       - name: Deploy payment-initiate
         run: supabase functions deploy payment-initiate --project-ref "${SUPABASE_PROJECT_ID}"
 
