@@ -6,7 +6,8 @@ import '../../shared/services/order_service.dart';
 
 class TrackingScreen extends StatefulWidget {
   final String? orderNumber;
-  const TrackingScreen({super.key, this.orderNumber});
+  final String? phone;
+  const TrackingScreen({super.key, this.orderNumber, this.phone});
 
   @override
   State<TrackingScreen> createState() => _TrackingScreenState();
@@ -24,6 +25,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
     super.initState();
     if (widget.orderNumber != null) {
       _orderController.text = widget.orderNumber!;
+    }
+    if (widget.phone != null) {
+      _phoneController.text = widget.phone!;
     }
   }
 
