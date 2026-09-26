@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       SUPABASE_PROJECT_REF: ououfhsswyqutcczdtnb
     steps:
       - name: Checkout Nile Tropical
@@ -63,5 +65,3 @@ jobs:
           grep -RhoE "functions\\.invoke\(['\"][A-Za-z0-9_-]+" lib web-store 2>/dev/null \
             | sed -E "s/.*invoke\(['\"]//" | sort -u || true
 
-          echo "=== LIVE BACKEND AUDIT JSON ==="
-          cat /tmp/live_backend.json
