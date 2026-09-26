@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../shared/services/pod_upload_service.dart';
+import '../../shared/services/storage_service.dart';
+import '../widgets/admin_image_frame.dart';
 
 class _Nile {
   static const primary = Color(0xFF233E85);
@@ -44,6 +46,7 @@ class _ProofOfDeliveryScreenState
   final _amountCtrl = TextEditingController();
 
   String? _photoPath;
+  String? _photoUrl;
   bool _uploading = false;
   bool _submitting = false;
 
@@ -72,7 +75,16 @@ class _ProofOfDeliveryScreenState
           .read(_podUploadProvider)
           .captureAndUpload(widget.shipmentId);
       if (path != null) {
-        setState(() => _photoPath = path);
+        final signedUrl = await StorageService.signedUrl(
+          path,
+          bucket: StorageService.pod,
+          expires: 600,
+        );
+        if (!mounted) return;
+        setState(() {
+          _photoPath = path;
+          _photoUrl = signedUrl;
+        });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Photo uploaded')),
@@ -198,22 +210,36 @@ class _ProofOfDeliveryScreenState
           if (_photoPath != null)
             Card(
               elevation: 0,
+              clipBehavior: Clip.antiAlias,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(color: Colors.grey.shade200),
               ),
-              child: ListTile(
-                leading: const Icon(Icons.check_circle, color: _Nile.success),
-                title: const Text('Photo attached'),
-                subtitle: Text(
-                  _photoPath!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: _uploading ? null : _capturePhoto,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_photoUrl != null)
+                    AdminImageFrame(
+                      url: _photoUrl,
+                      aspectRatio: 16 / 9,
+                      fit: BoxFit.cover,
+                      borderRadius: 0,
+                      label: 'Proof of delivery photo',
+                    ),
+                  ListTile(
+                    leading: const Icon(Icons.check_circle, color: _Nile.success),
+                    title: const Text('Photo attached'),
+                    subtitle: Text(
+                      _photoPath!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: _uploading ? null : _capturePhoto,
+                    ),
+                  ),
+                ],
               ),
             )
           else
