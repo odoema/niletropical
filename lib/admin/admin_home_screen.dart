@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../core/config/env.dart';
 import '../core/theme/app_theme.dart';
 import '../core/widgets/nile_widgets.dart';
+import '../core/errors/error_reporter.dart';
 import '../shared/services/supabase_service.dart';
 
 class AdminHomeScreen extends StatefulWidget {
@@ -78,11 +79,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         _loading = false;
         _error = null;
       });
-    } catch (e) {
+    } catch (e, stack) {
+      ErrorReporter.report(
+        e,
+        stackTrace: stack,
+        source: 'admin_dashboard',
+        action: 'load_kpis',
+      );
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = e.toString();
+        _error = ErrorReporter.friendlyMessage(e);
       });
     }
   }
