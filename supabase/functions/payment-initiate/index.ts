@@ -61,7 +61,7 @@ serve(async (req) => {
       const byId = await supabase
         .from("orders")
         .select(
-          "id, order_number, total, payment_status, status, payment_method, guest_phone",
+          "id, order_number, total, payment_status, status, payment_method, customer_phone_snapshot",
         )
         .eq("id", order_id)
         .maybeSingle();
@@ -73,7 +73,7 @@ serve(async (req) => {
       const byNumber = await supabase
         .from("orders")
         .select(
-          "id, order_number, total, payment_status, status, payment_method, guest_phone",
+          "id, order_number, total, payment_status, status, payment_method, customer_phone_snapshot",
         )
         .eq("order_number", order_number)
         .maybeSingle();
