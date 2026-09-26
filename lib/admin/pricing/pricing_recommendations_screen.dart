@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/config/env.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
+import '../../core/errors/error_reporter.dart';
 import '../../shared/services/supabase_service.dart';
 
 class PricingRecommendationsScreen extends StatefulWidget {
@@ -29,9 +30,18 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
       final rows = await SupabaseService.client.from('pricing_recommendations').select().order('created_at', ascending: false);
       if (!mounted) return;
       setState(() { _rows = List<Map<String, dynamic>>.from(rows); _loading = false; });
-    } catch (e) {
+    } catch (e, stack) {
+      ErrorReporter.report(
+        e,
+        stackTrace: stack,
+        source: 'admin_pricing',
+        action: 'load_recommendations',
+      );
       if (!mounted) return;
-      setState(() { _loading = false; _error = e.toString(); });
+      setState(() {
+        _loading = false;
+        _error = ErrorReporter.friendlyMessage(e);
+      });
     }
   }
 
@@ -58,7 +68,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not update recommendation: ' + e.toString()), backgroundColor: NileColors.error),
+        SnackBar(content: Text(ErrorReporter.friendlyMessage(e)), backgroundColor: NileColors.error),
       );
     }
   }
@@ -125,10 +135,17 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
           backgroundColor: NileColors.success,
         ),
       );
-    } catch (e) {
+    } catch (e, stack) {
+      ErrorReporter.report(
+        e,
+        stackTrace: stack,
+        source: 'admin_pricing',
+        action: 'apply_price',
+        context: {'recommendation_id': recommendationId},
+      );
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Price was not applied: ' + e.toString()),
+          content: Text(ErrorReporter.friendlyMessage(e)),
           backgroundColor: NileColors.error,
         ),
       );
@@ -255,9 +272,16 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
           .eq('id', row['id']);
       await _load();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Recommendation updated successfully.')));
-    } catch (e) {
+    } catch (e, stack) {
+      ErrorReporter.report(
+        e,
+        stackTrace: stack,
+        source: 'admin_pricing',
+        action: 'edit_recommendation',
+        context: {'recommendation_id': row['id']},
+      );
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not save changes: ' + e.toString()), backgroundColor: NileColors.error),
+        SnackBar(content: Text(ErrorReporter.friendlyMessage(e)), backgroundColor: NileColors.error),
       );
     } finally {
       priceController.dispose();
