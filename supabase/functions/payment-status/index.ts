@@ -169,7 +169,8 @@ serve(async (req) => {
       );
     }
 
-    let newPaymentStatus = order.payment_status ?? "pending";
+    const previousPaymentStatus = order.payment_status ?? "pending";
+    let newPaymentStatus = previousPaymentStatus;
 
     if (upstreamStatus === "SUCCESSFUL") {
       newPaymentStatus = "paid";
@@ -217,9 +218,16 @@ serve(async (req) => {
 
     // Payment is authoritative. Email is a secondary notification and can
     // never make a successful payment fail.
+    //
+    // Only send the confirmation email on the transition to paid.
+    // Repeated polling of an already-paid MTN transaction must not
+    // repeatedly invoke the notification service.
+    const paymentJustBecamePaid =
+      newPaymentStatus === "paid" && previousPaymentStatus !== "paid";
+
     let notification: unknown = null;
 
-    if (newPaymentStatus === "paid") {
+    if (paymentJustBecamePaid) {
       const functionBaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
       const serviceRoleKey =
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
