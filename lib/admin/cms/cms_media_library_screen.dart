@@ -7,6 +7,7 @@ import '../../shared/services/image_quality_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
+import '../widgets/admin_image_frame.dart';
 
 class CmsMediaLibraryScreen extends StatefulWidget {
   const CmsMediaLibraryScreen({super.key});
@@ -408,11 +409,12 @@ class _CmsMediaLibraryScreenState extends State<CmsMediaLibraryScreen> {
                                     Expanded(
                                       child: Container(
                                         color: NileColors.surfaceVariant,
-                                        child: Image.network(
-                                          url,
+                                        child: AdminImageFrame(
+                                          url: url,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              const Center(child: Icon(Icons.broken_image_outlined, size: 44)),
+                                          expand: true,
+                                          borderRadius: 0,
+                                          label: 'Media preview',
                                         ),
                                       ),
                                     ),
