@@ -11,6 +11,7 @@ import '../../features/shell/admin_shell.dart';
 import '../../features/shell/courier_shell.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/shop/shop_screen.dart';
+import '../../features/sales/sales_concierge_screen.dart';
 import '../../features/shop/category_screen.dart';
 import '../../features/content/faq_screen.dart';
 import '../../features/content/cms_page_screen.dart';
@@ -108,6 +109,7 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(path: '/', name: 'home', builder: (_, __) => const HomeScreen()),
         GoRoute(path: '/shop', name: 'shop', builder: (_, __) => const ShopScreen()),
+        GoRoute(path: '/concierge', name: 'concierge', builder: (_, __) => const SalesConciergeScreen()),
         GoRoute(
           path: '/category/:slug',
           name: 'category',
