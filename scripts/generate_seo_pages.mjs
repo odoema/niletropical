@@ -92,36 +92,63 @@ function productPage(product) {
   const categoryName = product.category_name || '';
   const categorySlug = product.category_slug || '';
   const categoryUrl = categorySlug ? site + '/categories/' + encodeURIComponent(categorySlug) + '/' : '';
-  const schema = {
-    '@context': 'https://schema.org',
-    '@graph': [{
-    '@type': 'Product',
-    '@id': canonical + '#product',
+  const variantSchemas = variants.map(v => {
+    const variantInStock = Number(v.stock_quantity || 0) > 0;
+    const variantPrice = Number(v.price);
+    return {
+      '@type': 'Product',
+      '@id': canonical + '#variant-' + (v.id || v.sku),
+      name: v.name ? product.name + ' - ' + v.name : product.name,
+      description,
+      sku: v.sku || v.id || product.id,
+      brand: { '@type': 'Brand', name: product.brand || 'Nile Tropical' },
+      category: categoryName || undefined,
+      image: images,
+      url: canonical,
+      isVariantOf: { '@id': canonical + '#product-group' },
+      offers: Number.isFinite(variantPrice) && variantPrice > 0 ? {
+        '@type': 'Offer',
+        url: canonical,
+        priceCurrency: 'UGX',
+        price: variantPrice.toFixed(0),
+        availability: variantInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        seller: { '@type': 'Organization', name: 'Nile Tropical Industries (U) Ltd', url: site + '/' }
+      } : undefined
+    };
+  });
+
+  const productSchema = variants.length > 1 ? {
+    '@type': 'ProductGroup',
+    '@id': canonical + '#product-group',
     name: product.name,
     description,
-    sku: first?.sku || product.id,
     brand: { '@type': 'Brand', name: product.brand || 'Nile Tropical' },
     category: categoryName || undefined,
-    image: images,
     url: canonical,
-    offers: first && price != null ? {
-      '@type': 'Offer',
-      url: canonical,
-      priceCurrency: 'UGX',
-      price: price.toFixed(0),
-      availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      seller: { '@type': 'Organization', name: 'Nile Tropical Industries (U) Ltd', url: site + '/' }
-    } : undefined
-  },
-  {
-    '@type':'BreadcrumbList',
-    itemListElement:[
-      {'@type':'ListItem','position':1,'name':'Home','item':site+'/'},
-      ...(categoryName && categoryUrl ? [{'@type':'ListItem','position':2,'name':categoryName,'item':categoryUrl}] : []),
-      {'@type':'ListItem','position':categoryName && categoryUrl ? 3 : 2,'name':product.name,'item':canonical}
+    image: images,
+    variesBy: ['https://schema.org/size'],
+    hasVariant: variantSchemas
+  } : {
+    ...variantSchemas[0],
+    '@type': 'Product',
+    '@id': canonical + '#product'
+  };
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      productSchema,
+      ...(variants.length > 1 ? variantSchemas : []),
+      {
+        '@type':'BreadcrumbList',
+        itemListElement:[
+          {'@type':'ListItem','position':1,'name':'Home','item':site+'/'},
+          ...(categoryName && categoryUrl ? [{'@type':'ListItem','position':2,'name':categoryName,'item':categoryUrl}] : []),
+          {'@type':'ListItem','position':categoryName && categoryUrl ? 3 : 2,'name':product.name,'item':canonical}
+        ]
+      }
     ]
-  }
-  ]};
+  };
   const variantHtml = variants.length
     ? '<div class="variants"><h2>Available sizes and prices</h2><div class="variant-grid">' +
       variants.map(v => '<div class="variant"><strong>' + esc(v.name || v.sku || 'Size') + '</strong><span>UGX ' + money(v.price) + '</span><small>' +
@@ -197,35 +224,41 @@ const xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sit
   '</urlset>';
 await fs.writeFile(path.join(out, 'sitemap.xml'), xml, 'utf8');
 
-const feedItems = products.filter(p => p.slug).map(p => {
+const feedItems = products.filter(p => p.slug).flatMap(p => {
   const activeVariants = (p.product_variants || []).filter(v => v.is_active !== false);
-  const variant = activeVariants[0];
   const images = (p.product_images || []).map(productImage).filter(Boolean);
-  if (!variant || Number(variant.price) <= 0 || !images[0]) return '';
+  if (!activeVariants.length || !images[0]) return [];
+
   const description = strip([
     p.short_description,
     p.full_description,
     p.benefits,
     p.how_to_use
   ].filter(Boolean).join(' ')).slice(0, 5000);
-  const availability = Number(variant.stock_quantity || 0) > 0 ? 'in_stock' : 'out_of_stock';
-  const lines = [
-    '<item>',
-    '<g:id>' + xml(variant.sku || p.id) + '</g:id>',
-    '<g:title>' + xml(p.name) + '</g:title>',
-    '<g:description>' + xml(description || ('Shop ' + p.name + ' from Nile Tropical Uganda.')) + '</g:description>',
-    '<g:link>' + xml(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:link>',
-    '<g:canonical_link>' + xml(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:canonical_link>',
-    '<g:image_link>' + xml(images[0]) + '</g:image_link>',
-    ...images.slice(1, 11).map(src => '<g:additional_image_link>' + xml(src) + '</g:additional_image_link>'),
-    '<g:availability>' + availability + '</g:availability>',
-    '<g:condition>new</g:condition>',
-    '<g:price>' + Number(variant.price).toFixed(2) + ' UGX</g:price>',
-    '<g:brand>' + xml(p.brand || 'Nile Tropical') + '</g:brand>',
-    '<g:item_group_id>' + xml(p.id) + '</g:item_group_id>',
-    '</item>'
-  ];
-  return lines.join('');
+
+  return activeVariants
+    .filter(v => Number(v.price) > 0)
+    .map(variant => {
+      const availability = Number(variant.stock_quantity || 0) > 0 ? 'in_stock' : 'out_of_stock';
+      const title = variant.name ? p.name + ' - ' + variant.name : p.name;
+      const lines = [
+        '<item>',
+        '<g:id>' + xml(variant.sku || variant.id || p.id) + '</g:id>',
+        '<g:title>' + xml(title) + '</g:title>',
+        '<g:description>' + xml(description || ('Shop ' + title + ' from Nile Tropical Uganda.')) + '</g:description>',
+        '<g:link>' + xml(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:link>',
+        '<g:canonical_link>' + xml(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:canonical_link>',
+        '<g:image_link>' + xml(images[0]) + '</g:image_link>',
+        ...images.slice(1, 11).map(src => '<g:additional_image_link>' + xml(src) + '</g:additional_image_link>'),
+        '<g:availability>' + availability + '</g:availability>',
+        '<g:condition>new</g:condition>',
+        '<g:price>' + Number(variant.price).toFixed(2) + ' UGX</g:price>',
+        '<g:brand>' + xml(p.brand || 'Nile Tropical') + '</g:brand>',
+        '<g:item_group_id>' + xml(p.id) + '</g:item_group_id>',
+        '</item>'
+      ];
+      return lines.join('');
+    });
 }).filter(Boolean).join('');
 const merchantFeed = '<?xml version="1.0" encoding="UTF-8"?>' +
   '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0"><channel>' +
