@@ -11,12 +11,10 @@ class ProductImageManagerScreen extends ConsumerStatefulWidget {
   const ProductImageManagerScreen({super.key});
 
   @override
-  ConsumerState<ProductImageManagerScreen> createState() =>
-      _ProductImageManagerScreenState();
+  ConsumerState<ProductImageManagerScreen> createState() => _ProductImageManagerScreenState();
 }
 
-class _ProductImageManagerScreenState
-    extends ConsumerState<ProductImageManagerScreen> {
+class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerScreen> {
   late Future<List<Map<String, dynamic>>> _products;
   final _picker = ImagePicker();
   String? _busyProductId;
@@ -37,10 +35,7 @@ class _ProductImageManagerScreenState
   }
 
   String _displayName(Map<String, dynamic> product) {
-    final raw = product['name']?.toString() ?? '';
-    // Product imports may contain embedded line breaks between characters.
-    // Collapse all whitespace so names always render as normal catalogue text.
-    final normalized = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+    final normalized = (product['name']?.toString() ?? '').replaceAll(RegExp(r'\s+'), ' ').trim();
     return normalized.isEmpty ? 'Unnamed product' : normalized;
   }
 
@@ -56,32 +51,16 @@ class _ProductImageManagerScreenState
 
     setState(() => _busyProductId = productId);
     try {
-      final existing = await SupabaseService.client
-          .from('product_images')
-          .select('id,is_main')
-          .eq('product_id', productId);
-
-      var hasMain = (existing as List).any(
-        (row) => (row as Map<String, dynamic>)['is_main'] == true,
-      );
+      final existing = await SupabaseService.client.from('product_images').select('id,is_main').eq('product_id', productId);
+      var hasMain = (existing as List).any((row) => (row as Map<String, dynamic>)['is_main'] == true);
 
       for (var i = 0; i < picked.length; i++) {
         final file = picked[i];
         final bytes = await file.readAsBytes();
         final ext = file.name.contains('.') ? file.name.split('.').last.toLowerCase() : 'jpg';
-        final safeName = file.name
-            .replaceAll(RegExp(r'[^a-zA-Z0-9._-]+'), '-')
-            .replaceAll(RegExp(r'-+'), '-');
-        final path =
-            'products/${_slugFor(product)}/${DateTime.now().millisecondsSinceEpoch}-$i-$safeName';
-
-        await StorageService.upload(
-          bucket: StorageService.productImages,
-          objectPath: path,
-          bytes: bytes,
-          contentType: file.mimeType ?? 'image/$ext',
-        );
-
+        final safeName = file.name.replaceAll(RegExp(r'[^a-zA-Z0-9._-]+'), '-').replaceAll(RegExp(r'-+'), '-');
+        final path = 'products/${_slugFor(product)}/${DateTime.now().millisecondsSinceEpoch}-$i-$safeName';
+        await StorageService.upload(bucket: StorageService.productImages, objectPath: path, bytes: bytes, contentType: file.mimeType ?? 'image/$ext');
         await SupabaseService.client.from('product_images').insert({
           'product_id': productId,
           'storage_path': path,
@@ -91,17 +70,14 @@ class _ProductImageManagerScreenState
         });
         if (!hasMain && i == 0) hasMain = true;
       }
-
       if (!mounted) return;
       setState(() => _products = _loadProducts());
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${picked.length} image${picked.length == 1 ? '' : 's'} added to ' + _displayName(product))),
+        SnackBar(content: Text('${picked.length} image${picked.length == 1 ? '' : 's'} added to ${_displayName(product)}')),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Upload failed: $e'), backgroundColor: NileColors.error),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e'), backgroundColor: NileColors.error));
     } finally {
       if (mounted) setState(() => _busyProductId = null);
     }
@@ -109,24 +85,14 @@ class _ProductImageManagerScreenState
 
   Future<void> _setMain(String productId, String imageId) async {
     try {
-      await SupabaseService.client
-          .from('product_images')
-          .update({'is_main': false})
-          .eq('product_id', productId);
-      await SupabaseService.client
-          .from('product_images')
-          .update({'is_main': true, 'sort_order': 0})
-          .eq('id', imageId);
+      await SupabaseService.client.from('product_images').update({'is_main': false}).eq('product_id', productId);
+      await SupabaseService.client.from('product_images').update({'is_main': true, 'sort_order': 0}).eq('id', imageId);
       if (!mounted) return;
       setState(() => _products = _loadProducts());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Main product image updated')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Main product image updated')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not set main image: $e'), backgroundColor: NileColors.error),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not set main image: $e'), backgroundColor: NileColors.error));
     }
   }
 
@@ -142,11 +108,7 @@ class _ProductImageManagerScreenState
         content: const Text('The image file and its catalogue reference will be removed.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: NileColors.error),
-            child: const Text('Delete'),
-          ),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), style: FilledButton.styleFrom(backgroundColor: NileColors.error), child: const Text('Delete')),
         ],
       ),
     );
@@ -156,236 +118,164 @@ class _ProductImageManagerScreenState
       await StorageService.delete(bucket: StorageService.productImages, path: path);
       await SupabaseService.client.from('product_images').delete().eq('id', imageId);
       if (image['is_main'] == true) {
-        final remaining = await SupabaseService.client
-            .from('product_images')
-            .select('id')
-            .eq('product_id', productId)
-            .order('sort_order')
-            .limit(1);
+        final remaining = await SupabaseService.client.from('product_images').select('id').eq('product_id', productId).order('sort_order').limit(1);
         if ((remaining as List).isNotEmpty) {
-          await SupabaseService.client
-              .from('product_images')
-              .update({'is_main': true, 'sort_order': 0})
-              .eq('id', remaining.first['id']);
+          await SupabaseService.client.from('product_images').update({'is_main': true, 'sort_order': 0}).eq('id', remaining.first['id']);
         }
       }
       if (!mounted) return;
       setState(() => _products = _loadProducts());
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Delete failed: $e'), backgroundColor: NileColors.error),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e'), backgroundColor: NileColors.error));
     }
+  }
+
+  Widget _imageTile(Map<String, dynamic> product, Map<String, dynamic> image) {
+    final path = image['storage_path']?.toString();
+    final url = StorageService.resolvePublicUrl(path);
+    final isMain = image['is_main'] == true;
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: Colors.grey.shade200)),
+      child: Stack(
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: url.isEmpty
+                ? const Center(child: Icon(Icons.broken_image_outlined, size: 32))
+                : Image.network(url, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined, size: 32))),
+          ),
+          if (isMain)
+            Positioned(left: 7, top: 7, child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              decoration: BoxDecoration(color: NileColors.primary, borderRadius: BorderRadius.circular(6)),
+              child: const Text('MAIN', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
+            )),
+          Positioned(
+            right: 4, top: 4,
+            child: IconButton(
+              tooltip: 'Delete image',
+              style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: .92), padding: const EdgeInsets.all(7), minimumSize: const Size(34, 34)),
+              onPressed: () => _deleteImage(product['id'].toString(), image),
+              icon: const Icon(Icons.delete_outline, color: NileColors.error, size: 18),
+            ),
+          ),
+          Positioned(
+            left: 5, right: 5, bottom: 5,
+            child: SizedBox(
+              height: 32,
+              child: isMain
+                  ? const DecoratedBox(
+                      decoration: BoxDecoration(color: Colors.white70),
+                      child: Center(child: Text('Main image', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
+                    )
+                  : TextButton(
+                      style: TextButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: .92), padding: EdgeInsets.zero),
+                      onPressed: () => _setMain(product['id'].toString(), image['id'].toString()),
+                      child: const Text('Set as main', style: TextStyle(fontSize: 11)),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Image Manager'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/admin/products'),
-        ),
+        title: const Text('Product Image Manager', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        foregroundColor: Colors.white,
+        backgroundColor: NileColors.primary,
+        iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/admin/products')),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _products,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text('Could not load products: ${snapshot.error}'),
-              ),
-            );
-          }
-
+          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Could not load products: ${snapshot.error}')));
           final products = snapshot.data ?? const [];
-          if (products.isEmpty) {
-            return const Center(child: Text('No products found.'));
-          }
+          if (products.isEmpty) return const Center(child: Text('No products found.'));
 
           return RefreshIndicator(
             onRefresh: () async {
               setState(() => _products = _loadProducts());
               await _products;
             },
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: products.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final product = products[index];
-                final images = (product['product_images'] as List?)
-                        ?.map((x) => Map<String, dynamic>.from(x as Map))
-                        .toList() ??
-                    <Map<String, dynamic>>[];
-                final busy = _busyProductId == product['id'];
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 1300 ? 3 : constraints.maxWidth >= 820 ? 2 : 1;
+                return GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    mainAxisExtent: columns == 1 ? 320 : 300,
+                  ),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    final images = (product['product_images'] as List?)
+                            ?.map((x) => Map<String, dynamic>.from(x as Map))
+                            .toList() ?? <Map<String, dynamic>>[];
+                    final busy = _busyProductId == product['id'];
 
-                return SizedBox(
-                  width: double.infinity,
-                  child: Card(
-                    clipBehavior: Clip.antiAlias,
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: SizedBox(
-                        width: double.infinity,
+                    return Card(
+                      margin: EdgeInsets.zero,
+                      clipBehavior: Clip.antiAlias,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final compact = constraints.maxWidth < 560;
-                                final title = Text(
-                                  _displayName(product),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                );
-                                final action = FilledButton.icon(
-                                  onPressed: busy ? null : () => _addImages(product),
-                                  icon: busy
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        )
-                                      : const Icon(Icons.add_photo_alternate_outlined),
-                                  label: Text(busy ? 'Uploading…' : 'Add images'),
-                                );
-                                if (compact) {
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      title,
-                                      const SizedBox(height: 10),
-                                      action,
-                                    ],
-                                  );
-                                }
-                                return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Expanded(child: title),
-                                    const SizedBox(width: 16),
-                                    action,
-                                  ],
-                                );
-                              },
-                            ),
-                        const SizedBox(height: 12),
-                        if (images.isEmpty)
-                          Container(
-                            height: 130,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: NileColors.surfaceVariant,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            Row(
                               children: [
-                                Icon(Icons.image_not_supported_outlined, size: 40),
-                                SizedBox(height: 6),
-                                Text('No product images yet'),
+                                Expanded(child: Text(_displayName(product), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800))),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  tooltip: 'Add images',
+                                  onPressed: busy ? null : () => _addImages(product),
+                                  icon: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.add_photo_alternate_outlined),
+                                ),
                               ],
                             ),
-                          )
-                        else
-                          SizedBox(
-                            height: 190,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: images.length,
-                              separatorBuilder: (_, __) => const SizedBox(width: 12),
-                              itemBuilder: (_, imageIndex) {
-                                final image = images[imageIndex];
-                                final path = image['storage_path']?.toString();
-                                final url = StorageService.resolvePublicUrl(path);
-                                final isMain = image['is_main'] == true;
-                                return SizedBox(
-                                  width: 155,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      Expanded(
-                                        child: Stack(
-                                          children: [
-                                            Positioned.fill(
-                                              child: ClipRRect(
-                                                borderRadius: BorderRadius.circular(10),
-                                                child: url.isEmpty
-                                                    ? const Icon(Icons.broken_image_outlined, size: 40)
-                                                    : Image.network(
-                                                        url,
-                                                        fit: BoxFit.cover,
-                                                        errorBuilder: (_, __, ___) => const Center(
-                                                          child: Icon(Icons.broken_image_outlined, size: 40),
-                                                        ),
-                                                      ),
-                                              ),
-                                            ),
-                                            if (isMain)
-                                              Positioned(
-                                                left: 6,
-                                                top: 6,
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                                                  decoration: BoxDecoration(
-                                                    color: NileColors.primary,
-                                                    borderRadius: BorderRadius.circular(6),
-                                                  ),
-                                                  child: const Text(
-                                                    'MAIN',
-                                                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
-                                                  ),
-                                                ),
-                                              ),
-                                            Positioned(
-                                              right: 4,
-                                              top: 4,
-                                              child: IconButton(
-                                                tooltip: 'Delete',
-                                                style: IconButton.styleFrom(
-                                                  backgroundColor: Colors.white.withValues(alpha: .9),
-                                                ),
-                                                onPressed: () => _deleteImage(product['id'].toString(), image),
-                                                icon: const Icon(Icons.delete_outline, color: NileColors.error),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                            const SizedBox(height: 9),
+                            Expanded(
+                              child: images.isEmpty
+                                  ? Container(
+                                      decoration: BoxDecoration(color: NileColors.surfaceVariant, borderRadius: BorderRadius.circular(10)),
+                                      child: const Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.image_not_supported_outlined, size: 34), SizedBox(height: 6), Text('No images yet')]),
+                                    )
+                                  : GridView.builder(
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: images.length == 1 ? 1 : images.length == 2 ? 2 : 3,
+                                        crossAxisSpacing: 7,
+                                        mainAxisSpacing: 7,
                                       ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        image['alt_text']?.toString() ?? '',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      TextButton(
-                                        onPressed: isMain
-                                            ? null
-                                            : () => _setMain(product['id'].toString(), image['id'].toString()),
-                                        child: Text(isMain ? 'Main image' : 'Set as main'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                      itemCount: images.length.clamp(0, 6),
+                                      itemBuilder: (_, i) => _imageTile(product, images[i]),
+                                    ),
                             ),
-                          ),
+                            const SizedBox(height: 7),
+                            Row(
+                              children: [
+                                Text('${images.length} image${images.length == 1 ? '' : 's'}', style: Theme.of(context).textTheme.bodySmall),
+                                const Spacer(),
+                                if (product['is_active'] == true) const Text('ACTIVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: NileColors.success)),
+                              ],
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 );
               },
             ),
