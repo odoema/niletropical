@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_PROJECT_ID: ououfhsswyqutcczdtnb
 
     steps:
@@ -46,10 +48,20 @@ jobs:
       - name: Apply pending production database migrations safely
         run: |
           echo "Checking live migration history before applying anything..."
-          supabase link --project-ref "${SUPABASE_PROJECT_ID}"
-          supabase migration list --linked
+          if [ -n "${SUPABASE_DB_URL}" ]; then
+            DB_URL="${SUPABASE_DB_URL}"
+          elif [ -n "${SUPABASE_DB_PASSWORD}" ]; then
+            DB_URL="postgresql://postgres:${SUPABASE_DB_PASSWORD}@db.${SUPABASE_PROJECT_ID}.supabase.co:5432/postgres?sslmode=require"
+          else
+            echo "::error::Neither SUPABASE_DB_URL nor SUPABASE_DB_PASSWORD is configured."
+            echo "The GitHub Supabase access token cannot perform database migration operations with its current permissions."
+            exit 1
+          fi
+
+          echo "Listing live migration history..."
+          supabase migration list --db-url "${DB_URL}"
           echo "Applying only migrations not already recorded on the live project..."
-          supabase db push --linked
+          supabase db push --db-url "${DB_URL}"
 
       - name: Deploy track-order
         run: supabase functions deploy track-order --project-ref "${SUPABASE_PROJECT_ID}"
