@@ -7,9 +7,9 @@ Backend authority: `ououfhsswyqutcczdtnb`
 |---|---|---|
 | Checkout | `create_order()` | RECONCILED |
 | Delivery quote | `quote_delivery()` | RECONCILED |
-| Tracking | `track-order` Edge Function | RECONCILED |
+| Tracking | `track-order` Edge Function | RECONCILED IN BRANCH — public phone-verified path; deployed v7 currently has JWT verification enabled |
 | MTN initiation | `payment-initiate` + `payment_transactions` | RECONCILED IN BRANCH |
-| MTN status | `payment-status` + `payment_transactions` | RECONCILED IN BRANCH |
+| MTN status | `payment-status` + `payment_transactions` | RECONCILED IN BRANCH — local transaction binding + lifecycle corrected |
 | Payment confirmation email | `notification-dispatch` | IMPLEMENTED / DEPLOYMENT PENDING |
 | Pricing admin | `pricing_recommendations` + `apply_pricing_recommendation()` | RECONCILED IN BRANCH |
 | App errors | `record_app_error()` / `app_error_logs` | RECONCILED |
@@ -35,7 +35,10 @@ MTN Mobile Money uses `payment_transactions` and the MTN gateway.
 Airtel/card are explicitly not configured until their real providers are integrated.
 
 ## Tracking
-The Flutter client should treat `track-order` as the canonical public tracking interface rather than duplicating tracking business logic locally.
+The Flutter client should treat `track-order` as the canonical public tracking interface rather than duplicating tracking business logic locally. Because guest checkout is supported, the production endpoint must be reachable without a user session; the handler itself verifies the checkout phone before returning order data.
+
+## Payment integrity
+MTN status reconciliation must first bind the supplied reference to a local `payment_transactions` row for the same order, provider, method, amount and currency before changing `orders.payment_status` or order status.
 
 ## Audit rule
 Every mapping must eventually be classified as LIVE VERIFIED, REPOSITORY, RECONCILED, TESTED, DEPLOYED, or UNVERIFIED.
