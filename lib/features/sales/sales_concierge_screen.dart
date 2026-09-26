@@ -88,6 +88,37 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
         'Ask me about benefits, dry skin, hair, babies, sun protection, safety, or refined versus unrefined shea.';
   }
 
+  String? _categoryAnswer(String q) {
+    final shea = RegExp(r'\b(shea|lotion|soap|skin|body|face|hair|baby|moistur)\b').hasMatch(q);
+    final hygiene = RegExp(r'\b(sanitizer|sanitise|sanitize|hand hygiene|germ|disinfect|hygiene)\b').hasMatch(q);
+    final wellness = RegExp(r'\b(hibiscus|tea|powder|drink|wellness|botanical)\b').hasMatch(q);
+    final protection = RegExp(r'\b(mosquito|insect|repellent|sun|sunscreen|uv|uva|uvb|albinism)\b').hasMatch(q);
+
+    if (shea) {
+      return 'Nile Tropical Shea Butter & Personal Care covers E.C.O. Shea Butter, Shea Butter lotions, baby lotion and the Shea Butter soap range. '
+          'I can help you choose by skin need, fragrance, product type, size or budget. '
+          'E.C.O. Shea Butter is presented as cold-pressed organic shea butter; lotions are positioned for hand and body care; soaps include Pure, Turmeric, Facial Scrub and Herbal variants. '
+          'I can explain cosmetic uses, ingredients and how to use a product, but I will not present cosmetics as cures for medical conditions.';
+    }
+    if (hygiene) {
+      return 'Nile Tropical Hygiene & Sanitization includes liquid hand sanitizer in 500ml, 1 litre and 5 litre sizes, plus Hand Sanitizer Gel 50ml. '
+          'I can help you choose by personal use, office or institutional use, refill needs and budget. '
+          'For larger settings, the 1L and 5L formats are practical size choices; for carrying around, the 50ml gel is the compact option. '
+          'Use sanitizers according to their label directions and do not treat them as a substitute for every situation where handwashing is required.';
+    }
+    if (wellness) {
+      return 'Nile Tropical Botanical & Wellness products include Hibiscus Tea 150g and Hibiscus Powder 150g. '
+          'I can explain the difference between tea and powder, preparation ideas and which product fits a customer’s intended use. '
+          'I will distinguish general food and beverage information from medical claims and will not invent health benefits that are not supported by the product information.';
+    }
+    if (protection) {
+      return 'Nile Tropical Protection products include Shea Butter Mosquito Repellent Jelly 150g and Tropisun Sunscreen for Albinism 200g. '
+          'The mosquito product is a topical repellent product, while Tropisun is labelled for UVA and UVB protection and identifies Zinc Oxide and Titanium Dioxide among its active ingredients. '
+          'I can explain the intended use and help compare these products, but I will not claim that ordinary shea butter is a sunscreen or that a repellent prevents every mosquito-borne disease.';
+    }
+    return null;
+  }
+
   (String, List<Product>) _find(String query, List<Product> products) {
     final q = query.toLowerCase();
     final sheaAnswer = _sheaAnswer(q);
