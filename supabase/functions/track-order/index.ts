@@ -151,3 +151,5 @@ serve(async (req) => {
     return json({ error: String(error) }, 500);
   }
 });
+
+// Production migration trigger: deployment workflow also verifies and applies pending DB migrations.
