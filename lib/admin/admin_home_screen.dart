@@ -165,6 +165,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             _action(context, 'Customers', 'View customer accounts and order history.', '/admin/customers', Icons.people_outline),
             _action(context, 'COD', 'Reconcile cash-on-delivery collections.', '/admin/finance/cod', Icons.payments_outlined),
             _action(context, 'Reports', 'Review business and operational reports.', '/admin/reports', Icons.bar_chart_outlined),
+            _action(context, 'Analytics', 'See website visitors, traffic, live activity and conversion signals.', '/admin/analytics', Icons.insights_outlined),
             _action(context, 'Pricing', 'Review and approve pricing recommendations.', '/admin/pricing', Icons.price_change_outlined),
             _action(context, 'Notifications', 'Manage notification templates and delivery logs.', '/admin/notifications', Icons.notifications_outlined),
             _action(context, 'Audit Log', 'Review staff actions and administrative activity.', '/admin/audit', Icons.history_outlined),
