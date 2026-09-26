@@ -82,7 +82,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
       return;
     }
 
-    final proposed = row['recommended_price'] ?? row['proposed_price'] ?? row['suggested_price'];
+    final proposed = row['suggested_retail_price'];
     final price = proposed is num
         ? proposed.toDouble()
         : double.tryParse(proposed?.toString().replaceAll(',', '') ?? '');
@@ -154,14 +154,14 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
 
   Future<void> _editRecommendation(Map<String, dynamic> row) async {
     final priceController = TextEditingController(
-      text: (row['recommended_price'] ?? row['proposed_price'] ?? row['suggested_price'] ?? '').toString(),
+      text: (row['suggested_retail_price'] ?? '').toString(),
     );
     final reasonController = TextEditingController(
       text: (row['reason'] ?? row['rationale'] ?? row['explanation'] ?? '').toString(),
     );
     String status = row['status']?.toString() ?? 'pending_approval';
-    if (status != 'pending_approval' && status != 'approved' && status != 'rejected') {
-      status = 'pending_approval';
+    if (status != 'pending' && status != 'approved' && status != 'rejected') {
+      status = 'pending';
     }
 
     final result = await showDialog<bool>(
@@ -175,7 +175,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  (row['product_name'] ?? row['product_variant_name'] ?? row['product_variant_id'] ?? 'Product').toString(),
+                  (row['variant_id'] ?? 'Product').toString(),
                   style: NileTypography.titleMedium,
                 ),
                 const SizedBox(height: 16),
@@ -193,7 +193,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
                   value: status,
                   decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
                   items: const [
-                    DropdownMenuItem(value: 'pending_approval', child: Text('Pending approval')),
+                    DropdownMenuItem(value: 'pending', child: Text('Pending')),
                     DropdownMenuItem(value: 'approved', child: Text('Approved')),
                     DropdownMenuItem(value: 'rejected', child: Text('Rejected')),
                   ],
@@ -251,20 +251,13 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
     try {
       final update = <String, dynamic>{
         'status': status,
-        'recommended_price': price,
+        'suggested_retail_price': price,
       };
 
       // The production table uses a rationale/explanation field rather than
       // `reason`. Only send the key that actually exists on this row, so an
       // edit cannot fail with PostgREST's PGRST204 schema-cache error.
-      const rationaleKeys = ['reason', 'rationale', 'explanation'];
-      final rationaleKey = rationaleKeys.cast<String?>().firstWhere(
-        (key) => row.containsKey(key),
-        orElse: () => null,
-      );
-      if (rationaleKey != null) {
-        update[rationaleKey] = reason;
-      }
+      update['rationale'] = reason;
 
       await SupabaseService.client
           .from('pricing_recommendations')
@@ -340,10 +333,10 @@ class _RecommendationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = row['status']?.toString() ?? 'pending_approval';
-    final isPending = status == 'pending_approval' || status == 'pending' || status == 'pending_review';
+    final isPending = status == 'pending';
     final product = row['product_name'] ?? row['product_variant_name'] ?? row['product_variant_id'] ?? 'Product';
     final proposed = row['recommended_price'] ?? row['proposed_price'] ?? row['suggested_price'];
-    final current = row['current_price'];
+    final current = null;
     final reason = row['reason'] ?? row['rationale'] ?? row['explanation'];
     return NileCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
