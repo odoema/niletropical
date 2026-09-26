@@ -131,6 +131,74 @@ class DesignSystemShowcase extends StatelessWidget {
             child: NileLoadingState(message: 'Loading…'),
           ),
           const SizedBox(height: NileSpacing.lg),
+          Text('Experience & use-case states', style: NileTypography.headlineMedium),
+          const SizedBox(height: NileSpacing.sm),
+          Text(
+            'Every production screen should reuse these patterns for loading, empty, success, warning, error, payment, order, tracking and access states.',
+            style: NileTypography.bodySmall,
+          ),
+          const SizedBox(height: NileSpacing.sm),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: const [
+              NileBadge(label: 'Loading'),
+              NileBadge(label: 'Success', variant: NileBadgeVariant.success),
+              NileBadge(label: 'Warning', variant: NileBadgeVariant.warning),
+              NileBadge(label: 'Error', variant: NileBadgeVariant.error),
+              NileBadge(label: 'Offline'),
+              NileBadge(label: 'Unauthorized'),
+              NileStatusChip(status: 'payment_pending'),
+              NileStatusChip(status: 'new_order'),
+              NileStatusChip(status: 'dispatched'),
+              NileStatusChip(status: 'out_for_delivery'),
+              NileStatusChip(status: 'delivered'),
+              NileStatusChip(status: 'cancelled'),
+            ],
+          ),
+          const SizedBox(height: NileSpacing.sm),
+          NileCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Production scenarios', style: NileTypography.titleMedium),
+                const SizedBox(height: 8),
+                Text(
+                  'Authentication: login, signup, OTP, reset, expired session',
+                  style: NileTypography.bodySmall,
+                ),
+                Text(
+                  'Commerce: browse, search, product, cart, checkout, payment success/failure',
+                  style: NileTypography.bodySmall,
+                ),
+                Text(
+                  'Orders: received, confirmed, processing, dispatched, out for delivery, delivered, cancelled',
+                  style: NileTypography.bodySmall,
+                ),
+                Text(
+                  'Tracking: loading, found, not found, invalid details, shipment updates',
+                  style: NileTypography.bodySmall,
+                ),
+                Text(
+                  'Operations: inventory, delivery, customers, finance, analytics, notifications',
+                  style: NileTypography.bodySmall,
+                ),
+                Text(
+                  'Resilience: slow network, offline, retry, empty data, server error, permission denied',
+                  style: NileTypography.bodySmall,
+                ),
+                Text(
+                  'Responsive: mobile, tablet and desktop layouts with accessible touch targets and readable text',
+                  style: NileTypography.bodySmall,
+                ),
+                Text(
+                  'Communication: branded email, push and future WhatsApp notification states',
+                  style: NileTypography.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: NileSpacing.lg),
           Text('Data table', style: NileTypography.headlineMedium),
           NileDataTable(
             columns: const [
