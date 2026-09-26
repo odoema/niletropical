@@ -53,6 +53,12 @@ class _CodReconciliationScreenState
       appBar: AppBar(
         backgroundColor: _Nile.primary,
         foregroundColor: Colors.white,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text('COD Reconciliation'),
         actions: [
           IconButton(
