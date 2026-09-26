@@ -56,6 +56,7 @@ class _PaymentPageState extends State<PaymentPage> {
     try {
       final res = await PaymentService.initiate(
         orderId: widget.orderId,
+        orderNumber: widget.orderNumber,
         method: _method,
         phone: widget.phone,
       );
