@@ -168,6 +168,28 @@ serve(async (req) => {
 
       const reference = crypto.randomUUID();
 
+      const { data: paymentTx, error: paymentTxError } = await supabase
+        .from("payment_transactions")
+        .insert({
+          order_id: order.id,
+          provider: "mtn_gateway",
+          method: "mtn_momo",
+          provider_reference: reference,
+          idempotency_key: reference,
+          amount: order.total,
+          currency: "UGX",
+          status: "initiated",
+        })
+        .select("id")
+        .single();
+
+      if (paymentTxError) {
+        return json({
+          error: "PAYMENT_TRANSACTION_CREATE_FAILED",
+          message: paymentTxError.message,
+        }, 500);
+      }
+
       const gatewayResponse = await fetch(
         gatewayUrl.replace(/\/$/, "") + "/mtn/collection/request-to-pay",
         {
@@ -204,6 +226,16 @@ serve(async (req) => {
 
       if (!gatewayResponse.ok || upstreamStatus !== 202) {
         await supabase
+          .from("payment_transactions")
+          .update({
+            status: "failed",
+            raw_response: gatewayData,
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", paymentTx.id);
+
+        await supabase
           .from("orders")
           .update({ payment_status: "failed" })
           .eq("id", order.id);
@@ -218,6 +250,15 @@ serve(async (req) => {
         }, 502);
       }
 
+      await supabase
+        .from("payment_transactions")
+        .update({
+          status: "pending",
+          raw_response: gatewayData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", paymentTx.id);
+
       return json({
         reference,
         status: "pending",
@@ -228,41 +269,26 @@ serve(async (req) => {
       });
     }
 
-    const reference =
-      "NTI-PAY-" + order.order_number + "-" + Date.now();
-
-    // Keep non-MTN methods isolated from the MTN path. If the legacy payments
-    // table is unavailable in production, report that cleanly instead of
-    // pretending the payment was initiated.
-    const { error: insertError } = await supabase.from("payments").insert({
-      order_id: order.id,
-      method,
-      amount: order.total,
-      status: "pending",
-      provider: method,
-      provider_reference: reference,
-    });
-
-    if (insertError) {
+    if (method === "cash_on_delivery") {
       return json({
-        error: "PAYMENT_RECORD_FAILED",
-        message: insertError.message,
-      }, 500);
+        error: "COD_PAYMENT_INITIATION_NOT_ALLOWED",
+        message: "Cash on delivery is confirmed at checkout and does not use the payment gateway.",
+      }, 409);
+    }
+
+    if (method === "airtel_money" || method === "card") {
+      return json({
+        error: "PAYMENT_PROVIDER_NOT_CONFIGURED",
+        message: `The ${method === "airtel_money" ? "Airtel Money" : "card"} payment provider is not configured yet. No payment was recorded as successful.`,
+        method,
+      }, 503);
     }
 
     return json({
-      reference,
-      status: "pending",
-      order_id: order.id,
-      order_number: order.order_number,
+      error: "UNSUPPORTED_PAYMENT_METHOD",
+      message: "This payment method is not supported.",
       method,
-      instructions:
-        method === "airtel_money"
-          ? "Complete the Airtel Money payment."
-          : method === "cash_on_delivery"
-          ? "Payment will be collected on delivery."
-          : "Complete the payment.",
-    });
+    }, 400);
   } catch (error) {
     return json({ error: String(error) }, 500);
   }
