@@ -27,12 +27,12 @@ PR: #2 — Reconcile Flutter frontend with live Supabase backend
 | MTN payment status reconciliation | RECONCILED |
 | Delivery pricing | RECONCILED |
 | Tracking path | RECONCILED |
-| Auth/RLS full frontend audit | UNVERIFIED |
-| Storage full policy audit | UNVERIFIED |
-| Edge Function version comparison | UNVERIFIED |
-| GitHub production target | BLOCKED — workflow still references `tyhq...` |
-| Automatic production `supabase db push` safety | BLOCKED — review required |
-| Flutter analyze | PENDING |
+| Auth/RLS contract audit | PARTIAL — core order/payment/pricing/error policies verified; full Flutter path audit pending |
+| Storage bucket/policy audit | LIVE VERIFIED — public catalogue buckets, private POD/testimonial buckets, staff/courier policies inspected |
+| Edge Function version comparison | LIVE VERIFIED — deployed versions inspected; payment functions differ from reconciliation branch |
+| GitHub production target | RECONCILED IN BRANCH — workflows now target `ouou...`; branch not deployed until merge |
+| Automatic production `supabase db push` safety | RECONCILED IN BRANCH — CI no longer runs database push |
+| Flutter analyze | PENDING — not yet run |
 | Flutter tests | PENDING |
 | Flutter web build | PENDING |
 | Live checkout test | PENDING |
@@ -43,14 +43,14 @@ PR: #2 — Reconcile Flutter frontend with live Supabase backend
 | Production deployment | NOT YET |
 
 ## Immediate sequence
-1. Finish admin/delivery/inventory/Auth/RLS/Storage contract audit.
-2. Correct GitHub deployment targets to the verified production project.
-3. Remove or gate automatic production database migration pushing until migration history is reconciled.
-4. Run Flutter analyze/tests/build.
-5. Compare repository Edge Functions with deployed production versions.
-6. Perform controlled end-to-end tests.
-7. Merge only after evidence is green.
-8. Deploy and verify production behavior.
+1. Finish admin/delivery/inventory/Auth/RLS contract audit and verify checkout/payment frontend paths.
+2. Review the new transaction-binding/payment-lifecycle and public-tracking fixes in the reconciliation branch.
+3. Run Flutter analyze/tests/build and Edge Function source validation.
+4. Compare/deploy Edge Functions only after code review and controlled verification.
+5. Perform controlled end-to-end checkout, MTN, tracking and notification tests.
+6. Merge only after evidence is green.
+7. Deploy and verify production behavior.
+
 
 ## Safety rule
 No destructive database reset, broad migration replay, or payment-function replacement should occur merely to make repository history look consistent.
