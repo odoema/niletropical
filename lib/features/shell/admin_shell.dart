@@ -29,6 +29,7 @@ class AdminShell extends StatelessWidget {
     NileSideNavItem(label: 'Notifications', icon: Icons.notifications_none, selectedIcon: Icons.notifications, route: '/admin/notifications'),
     NileSideNavItem(label: 'Audit Log', icon: Icons.history_outlined, selectedIcon: Icons.history, route: '/admin/audit'),
     NileSideNavItem(label: 'Error Logs', icon: Icons.bug_report_outlined, selectedIcon: Icons.bug_report, route: '/admin/errors'),
+    NileSideNavItem(label: 'SEO Health', icon: Icons.manage_search_outlined, selectedIcon: Icons.manage_search, route: '/admin/seo'),
     NileSideNavItem(label: 'Management', icon: Icons.tune_outlined, selectedIcon: Icons.tune, route: '/admin/management'),
     NileSideNavItem(label: 'Settings', icon: Icons.settings_outlined, selectedIcon: Icons.settings, route: '/admin/settings'),
   ];
@@ -49,8 +50,9 @@ class AdminShell extends StatelessWidget {
     if (location.startsWith('/admin/notifications')) return 13;
     if (location.startsWith('/admin/audit')) return 14;
     if (location.startsWith('/admin/errors')) return 15;
-    if (location.startsWith('/admin/management')) return 16;
-    if (location.startsWith('/admin/settings')) return 17;
+    if (location.startsWith('/admin/seo')) return 16;
+    if (location.startsWith('/admin/management')) return 17;
+    if (location.startsWith('/admin/settings')) return 18;
     return 0;
   }
 
