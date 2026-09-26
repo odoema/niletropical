@@ -95,7 +95,17 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
         if (results.isEmpty) throw Exception('Customer destination could not be located.');
         destination = results.first;
       }
-      final route = await LocationSearchService.route(origin: origin, destination: destination);
+      final route = await LocationSearchService.route(
+        origin: origin,
+        destination: destination,
+      );
+      if (_quoteZoneId == null) {
+        throw Exception('Select a pricing zone for the quote.');
+      }
+      final serverQuote = await DeliveryService.quoteDelivery(
+        deliveryZoneId: _quoteZoneId!,
+        distanceKm: route.distanceKm,
+      );
       if (!mounted) return;
       setState(() {
         _origin = origin;
