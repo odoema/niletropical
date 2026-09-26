@@ -23,18 +23,19 @@ PR: #2 — Reconcile Flutter frontend with live Supabase backend
 | app_error_logs | LIVE VERIFIED / RECONCILED |
 | Payment table architecture | LIVE VERIFIED / RECONCILED |
 | Checkout mock-order removal | RECONCILED |
-| MTN payment transaction recording | RECONCILED |
-| MTN payment status reconciliation | RECONCILED |
+| MTN payment transaction recording | RECONCILED IN BRANCH |
+| MTN payment status reconciliation | RECONCILED IN BRANCH |
 | Delivery pricing | RECONCILED |
-| Tracking path | RECONCILED |
-| Auth/RLS contract audit | PARTIAL — core order/payment/pricing/error policies verified; full Flutter path audit pending |
-| Storage bucket/policy audit | LIVE VERIFIED — public catalogue buckets, private POD/testimonial buckets, staff/courier policies inspected |
+| Tracking path | RECONCILED IN BRANCH |
+| Admin Orders RPC/columns | RECONCILED |
+| Admin Inventory stock RPC | RECONCILED |
+| Flutter validation | TESTED — analyze, tests, web release build passed |
+| Admin/CMS/frontend contract audit | PARTIAL — major screens inspected; role boundary audit remains |
+| Auth/RLS contract audit | PARTIAL — live policies and role helpers inspected |
+| Storage bucket/policy audit | LIVE VERIFIED — catalogue public buckets and private POD/testimonial buckets inspected |
 | Edge Function version comparison | LIVE VERIFIED — deployed versions inspected; payment functions differ from reconciliation branch |
-| GitHub production target | RECONCILED IN BRANCH — workflows now target `ouou...`; branch not deployed until merge |
+| GitHub production target | RECONCILED IN BRANCH — workflows now target `ouou...`; branch not deployed |
 | Automatic production `supabase db push` safety | RECONCILED IN BRANCH — CI no longer runs database push |
-| Flutter analyze | PENDING — not yet run |
-| Flutter tests | PENDING |
-| Flutter web build | PENDING |
 | Live checkout test | PENDING |
 | Live MTN test | PENDING |
 | Tracking live test | PENDING |
@@ -42,25 +43,59 @@ PR: #2 — Reconcile Flutter frontend with live Supabase backend
 | Merge PR #2 | NOT YET |
 | Production deployment | NOT YET |
 
-## Immediate sequence
-1. Finish admin/delivery/inventory/Auth/RLS contract audit and verify checkout/payment frontend paths.
-2. Review the new transaction-binding/payment-lifecycle and public-tracking fixes in the reconciliation branch.
-3. Run Flutter analyze/tests/build and Edge Function source validation.
-4. Compare/deploy Edge Functions only after code review and controlled verification.
-5. Perform controlled end-to-end checkout, MTN, tracking and notification tests.
-6. Merge only after evidence is green.
-7. Deploy and verify production behavior.
+## 2026-09-27 Flutter validation result
+Dedicated validation workflow completed successfully:
+- `flutter pub get`: PASS
+- production Supabase target check: PASS
+- `flutter analyze --no-fatal-infos --no-fatal-warnings`: PASS
+- `flutter test`: PASS
+- `flutter build web --release`: PASS
+- No production deployment was performed by the validation workflow.
 
+## 2026-09-27 admin/frontend contract audit
+Confirmed/reconciled:
+- Admin order detail uses live `update_order_status(p_order_id,p_new_status,p_note)`.
+- Admin order list/detail uses `customer_name_snapshot`, not obsolete `customer_name`.
+- Inventory adjustment uses live `record_stock_movement`; obsolete `adjust_stock` is not a live RPC.
+- Checkout uses distance-aware `create_order` and server-side `quote_delivery`.
+- Pricing uses `suggested_retail_price` and `apply_pricing_recommendation`.
+- Customer and COD screens use live customer/order/COD fields.
+- Delivery zone/courier creation uses live admin RPC signatures.
+- CMS collection routes currently include Pages, FAQs, Testimonials, Videos and Promotions; the live schema/policy contract for each route still needs explicit final verification before merge.
+- Admin analytics calls the deployed `analytics-dashboard` Edge Function and also reads order aggregates directly.
+
+## 2026-09-27 Auth/RLS audit — important finding
+The live role helper `is_staff()` currently returns true for any user who has any row in `user_roles`. Several broad policies use `is_staff()` for ALL/SELECT access, including:
+- orders and order_items
+- order_status_history
+- customers and customer_addresses
+- shipments, delivery_events, delivery_partners, delivery_zones and couriers
+- proof_of_delivery
+- stock/warehouse read paths
+- notification log reads
+- profile staff reads
+
+The frontend router separately distinguishes admin and courier access, but database policy boundaries are broader than the intended screen-by-role model. This is a SECURITY REVIEW ITEM, not a production change.
+
+More granular live policies already exist for:
+- content management: content_manager / manager / super_admin
+- pricing: manager / finance / super_admin for read/update; manager / super_admin for write
+- payments/webhook events: finance / manager / super_admin
+- COD: finance / manager / super_admin
+- app error logs: manager / finance / super_admin
+- courier shipment/event read: assigned courier or manager/super_admin
+
+No RLS policy was changed during this audit.
+
+## Required next step
+1. Build and document the authoritative screen-by-screen role matrix:
+   `Page → Component → Button → Flutter action → Supabase table/RPC/Edge Function → required role → live RLS policy`.
+2. Resolve intended boundaries for `manager`, `finance`, `inventory_officer`, `content_manager`, `courier`, `admin`, `super_admin` before changing RLS.
+3. Explicitly audit CMS, reports, analytics, notifications, audit/error logs, management and courier screens against that matrix.
+4. Inspect the complete reconciliation-branch payment Edge Function source before any deployment decision.
+5. Re-run Flutter validation after any code/documentation changes that affect the branch.
+6. Review/approve/merge only after the above evidence is green.
+7. Deployment and production payment/tracking tests remain later steps.
 
 ## Safety rule
-No destructive database reset, broad migration replay, or payment-function replacement should occur merely to make repository history look consistent.
-
-## 2026-09-27 Flutter validation + frontend/admin audit update
-- Flutter web build: TESTED via GitHub Actions run 580; build completed successfully and the Pages deployment job was skipped.
-- Dedicated Flutter validation workflow added to run analyze, tests, and production-targeted web build without deployment.
-- Admin order detail repaired: live RPC is update_order_status(p_order_id,p_new_status,p_note); set_order_status does not exist.
-- Inventory adjustment repaired: live stock RPC is record_stock_movement(...); adjust_stock does not exist.
-- Live delivery RPC audit: admin_create_delivery_zone and admin_create_courier have defaults for optional parameters, so current frontend calls are compatible.
-- Checkout, tracking, pricing, customer and COD column mappings were inspected; no further demonstrated contract mismatch was found in this pass.
-- Remaining: full screen-by-screen Auth/RLS and CMS/reports/analytics/notifications/storage audit; analyze/test workflow result.
-- Production deployment remains out of scope.
+No destructive database reset, broad migration replay, automatic production migration push, payment-function replacement, or fabricated production data may be used to make repository history appear consistent.
