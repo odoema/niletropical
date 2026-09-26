@@ -35,9 +35,17 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
     }
   }
 
+  String _normaliseStatus(String? raw) {
+    final value = raw?.trim().toLowerCase() ?? '';
+    if (value == 'pending_approval' || value == 'pending_review' || value == 'pending') {
+      return 'pending';
+    }
+    return value;
+  }
+
   List<Map<String, dynamic>> get _visible => _filter == 'all'
       ? _rows
-      : _rows.where((r) => (r['status']?.toString() ?? 'pending') == _filter).toList();
+      : _rows.where((r) => _normaliseStatus(r['status']?.toString()) == _filter).toList();
 
   Future<void> _setStatus(Map<String, dynamic> row, String status) async {
     try {
@@ -134,7 +142,10 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
     final reasonController = TextEditingController(
       text: (row['reason'] ?? row['rationale'] ?? row['explanation'] ?? '').toString(),
     );
-    String status = row['status']?.toString() ?? 'pending';
+    String status = row['status']?.toString() ?? 'pending_approval';
+    if (status != 'pending_approval' && status != 'approved' && status != 'rejected') {
+      status = 'pending_approval';
+    }
 
     final result = await showDialog<bool>(
       context: context,
@@ -165,7 +176,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
                   value: status,
                   decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
                   items: const [
-                    DropdownMenuItem(value: 'pending', child: Text('Pending approval')),
+                    DropdownMenuItem(value: 'pending_approval', child: Text('Pending approval')),
                     DropdownMenuItem(value: 'approved', child: Text('Approved')),
                     DropdownMenuItem(value: 'rejected', child: Text('Rejected')),
                   ],
@@ -221,11 +232,27 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
     }
 
     try {
-      await SupabaseService.client.from('pricing_recommendations').update({
+      final update = <String, dynamic>{
         'status': status,
         'recommended_price': price,
-        'reason': reason,
-      }).eq('id', row['id']);
+      };
+
+      // The production table uses a rationale/explanation field rather than
+      // `reason`. Only send the key that actually exists on this row, so an
+      // edit cannot fail with PostgREST's PGRST204 schema-cache error.
+      const rationaleKeys = ['reason', 'rationale', 'explanation'];
+      final rationaleKey = rationaleKeys.cast<String?>().firstWhere(
+        (key) => row.containsKey(key),
+        orElse: () => null,
+      );
+      if (rationaleKey != null) {
+        update[rationaleKey] = reason;
+      }
+
+      await SupabaseService.client
+          .from('pricing_recommendations')
+          .update(update)
+          .eq('id', row['id']);
       await _load();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Recommendation updated successfully.')));
     } catch (e) {
@@ -261,7 +288,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (_, i) => _RecommendationCard(
                   row: _visible[i],
-                  onApprove: () => _setStatus(_visible[i], 'approved'),
+                  onApprove: () => _applyPrice(_visible[i]),
                   onReject: () => _setStatus(_visible[i], 'rejected'),
                   onEdit: () => _editRecommendation(_visible[i]),
                   onApplyPrice: () => _applyPrice(_visible[i]),
@@ -288,7 +315,8 @@ class _RecommendationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = row['status']?.toString() ?? 'pending';
+    final status = row['status']?.toString() ?? 'pending_approval';
+    final isPending = status == 'pending_approval' || status == 'pending' || status == 'pending_review';
     final product = row['product_name'] ?? row['product_variant_name'] ?? row['product_variant_id'] ?? 'Product';
     final proposed = row['recommended_price'] ?? row['proposed_price'] ?? row['suggested_price'];
     final current = row['current_price'];
@@ -310,11 +338,13 @@ class _RecommendationCard extends StatelessWidget {
         runSpacing: 8,
         children: [
           OutlinedButton.icon(onPressed: onEdit, icon: const Icon(Icons.edit_outlined), label: const Text('Edit')),
-          if (status == 'pending')
-            FilledButton.icon(onPressed: onApplyPrice, icon: const Icon(Icons.publish_outlined), label: const Text('Apply price')),
-          if (status != 'approved')
-            OutlinedButton.icon(onPressed: onApprove, icon: const Icon(Icons.check), label: const Text('Approve')),
-          if (status != 'rejected')
+          if (isPending)
+            FilledButton.icon(
+              onPressed: onApplyPrice,
+              icon: const Icon(Icons.publish_outlined),
+              label: const Text('Approve & Apply'),
+            ),
+          if (status != 'rejected' && status != 'approved')
             OutlinedButton.icon(onPressed: onReject, icon: const Icon(Icons.close), label: const Text('Reject')),
         ],
       ),
