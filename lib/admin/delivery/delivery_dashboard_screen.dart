@@ -289,7 +289,7 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
                 ],
               ),
               const SizedBox(height: 24),
-              _sectionTitle('Delivery Zones', 'Configured fallback zones and base prices'),
+              _sectionTitle('Delivery Zones', 'Service coverage zones; the route quote is distance-based'),
               zonesAsync.when(
                 loading: () => const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator())),
                 error: (e, _) => Text('Could not load zones: $e'),
@@ -477,7 +477,7 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
       ),
       items: zones.map((z) => DropdownMenuItem<String>(
         value: z.id,
-        child: Text(z.name + ' • base UGX ' + z.deliveryFee.toStringAsFixed(0)),
+        child: Text(z.name),
       )).toList(),
       onChanged: (value) {
         setState(() {
