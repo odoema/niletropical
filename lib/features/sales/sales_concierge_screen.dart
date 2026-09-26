@@ -122,9 +122,14 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
   (String, List<Product>) _find(String query, List<Product> products) {
     final q = query.toLowerCase();
     final sheaAnswer = _sheaAnswer(q);
+    final categoryAnswer = _categoryAnswer(q);
     final budget = _budget(q);
     if (sheaAnswer != null && (q.contains('what') || q.contains('benefit') || q.contains('good for') || q.contains('why') || q.contains('help') || q.contains('good') || q.contains('how') || q.contains('use') || q.contains('skin') || q.contains('dry') || q.contains('hair') || q.contains('scalp') || q.contains('baby') || q.contains('safe') || q.contains('allerg') || q.contains('raw') || q.contains('refined') || q.contains('sun') || q.contains('spf') || q.contains('eat') || q.contains('food'))) {
       return (sheaAnswer, _sheaProducts(products));
+    }
+    if (categoryAnswer != null && sheaAnswer == null) {
+      final categoryProducts = _categoryProducts(q, products);
+      if (categoryProducts.isNotEmpty) return (categoryAnswer, categoryProducts);
     }
     final words = q.replaceAll(RegExp(r'[^a-z0-9 ]'), ' ').split(RegExp(r'\s+')).where((x) => x.length > 2).toSet();
     final scored = <_Score>[];
@@ -152,6 +157,37 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
       return ('I could not find an exact match in the current catalogue. Here are available options' + (budget == null ? '.' : ' within your budget.'), matches);
     }
     return (budget == null ? 'These are the closest in-stock matches from the current catalogue.' : 'I found these in-stock options within your UGX ' + _money(budget) + ' budget.', matches);
+  }
+
+  List<Product> _categoryProducts(String q, List<Product> products) {
+    final terms = <String>[];
+    if (RegExp(r'\b(shea|lotion|soap|skin|body|face|hair|baby|moistur)\b').hasMatch(q)) {
+      terms.addAll(['shea', 'lotion', 'soap']);
+    }
+    if (RegExp(r'\b(sanitizer|sanitise|sanitize|hand hygiene|germ|disinfect|hygiene)\b').hasMatch(q)) {
+      terms.add('sanit');
+    }
+    if (RegExp(r'\b(hibiscus|tea|powder|drink|wellness|botanical)\b').hasMatch(q)) {
+      terms.addAll(['hibiscus', 'tea']);
+    }
+    if (RegExp(r'\b(mosquito|insect|repellent|sun|sunscreen|uv|uva|uvb|albinism)\b').hasMatch(q)) {
+      terms.addAll(['mosquito', 'repellent', 'sunscreen', 'tropisun']);
+    }
+    final scored = <_Score>[];
+    for (final p in products) {
+      final stock = p.variants.where((v) => v.isActive && v.inStock).toList();
+      if (stock.isEmpty) continue;
+      final text = [p.name, p.shortDescription ?? '', p.fullDescription ?? '',
+        p.benefits ?? '', p.ingredients ?? '', p.brand].join(' ').toLowerCase();
+      var score = 0;
+      for (final term in terms) {
+        if (text.contains(term)) score += 5;
+      }
+      if (p.isBestseller) score += 1;
+      if (score > 0) scored.add(_Score(p, score));
+    }
+    scored.sort((a, b) => b.score.compareTo(a.score));
+    return scored.take(6).map((x) => x.product).toList();
   }
 
   List<Product> _sheaProducts(List<Product> products) {
