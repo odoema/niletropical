@@ -141,18 +141,6 @@ final appRouter = GoRouter(
             );
           },
         ),
-        GoRoute(path: '/track', name: 'track', builder: (_, __) => const TrackingScreen()),
-        GoRoute(
-          path: '/track/:orderNumber',
-          name: 'track-order',
-          builder: (context, state) {
-            final extra = state.extra as Map<String, dynamic>? ?? {};
-            return TrackingScreen(
-              orderNumber: state.pathParameters['orderNumber'],
-              phone: extra['phone'] as String?,
-            );
-          },
-        ),
         GoRoute(path: '/account', name: 'account', builder: (_, __) => const AccountScreen()),
         GoRoute(path: '/account/orders', name: 'account-orders', builder: (_, __) => const AccountOrdersScreen()),
         GoRoute(path: '/account/addresses', name: 'account-addresses', builder: (_, __) => const AccountAddressesScreen()),
@@ -172,6 +160,22 @@ final appRouter = GoRouter(
           },
         ),
       ],
+    ),
+
+    // Tracking is deliberately outside the customer shell so a shell/layout
+    // regression cannot blank the tracking page.
+    GoRoute(path: '/track', name: 'track', builder: (_, __) => const TrackingScreen()),
+    GoRoute(
+      path: '/track/:orderNumber',
+      name: 'track-order',
+      builder: (context, state) {
+        final extra = state.extra;
+        final phone = extra is Map<String, dynamic> ? extra['phone'] as String? : null;
+        return TrackingScreen(
+          orderNumber: state.pathParameters['orderNumber'],
+          phone: phone,
+        );
+      },
     ),
 
     // ── Admin shell ─────────────────────────────────────────────────────
