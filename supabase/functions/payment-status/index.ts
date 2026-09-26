@@ -57,7 +57,7 @@ serve(async (req) => {
       const byId = await supabase
         .from("orders")
         .select(
-          "id, order_number, status, payment_status, payment_method, total",
+          "id, order_number, status, payment_status, payment_method, total, customer_name_snapshot, customer_email_snapshot, customer_phone_snapshot",
         )
         .eq("id", orderId)
         .maybeSingle();
@@ -178,6 +178,8 @@ serve(async (req) => {
       newPaymentStatus = "pending";
     }
 
+    let notification: unknown = null;
+
     if (newPaymentStatus !== order.payment_status) {
       const update: Record<string, string> = {
         payment_status: newPaymentStatus,
@@ -205,6 +207,68 @@ serve(async (req) => {
           gateway_status: upstreamStatus,
         }, 500);
       }
+
+      // Only dispatch the confirmation after the database transition to
+      // "paid" succeeds. The notification service uses a stable Resend
+      // idempotency key so polling/retries do not create duplicate emails.
+      if (newPaymentStatus === "paid") {
+        const functionBaseUrl =
+          Deno.env.get("SUPABASE_URL") ??
+          "";
+
+        const serviceRoleKey =
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+          "";
+
+        if (functionBaseUrl && serviceRoleKey) {
+          try {
+            const notificationResponse = await fetch(
+              functionBaseUrl.replace(/\\/$/, "") +
+                "/functions/v1/notification-dispatch",
+              {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${serviceRoleKey}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  event: "payment_confirmed",
+                  order_id: order.id,
+                  order_number: order.order_number,
+                  customer_name: order.customer_name_snapshot ?? "",
+                  email: order.customer_email_snapshot ?? "",
+                  phone: order.customer_phone_snapshot ?? "",
+                  total: order.total,
+                  payment_method: order.payment_method,
+                  status: "new_order",
+                  channels: ["email"],
+                }),
+              },
+            );
+
+            const notificationText = await notificationResponse.text();
+            try {
+              notification = JSON.parse(notificationText);
+            } catch {
+              notification = {
+                http_status: notificationResponse.status,
+                raw: notificationText,
+              };
+            }
+          } catch (notificationError) {
+            // Notification failure must never undo a verified payment.
+            notification = {
+              status: "dispatch_failed",
+              message: String(notificationError),
+            };
+          }
+        } else {
+          notification = {
+            status: "not_configured",
+            message: "Supabase function environment is incomplete",
+          };
+        }
+      }
     }
 
     return json({
@@ -220,6 +284,7 @@ serve(async (req) => {
       gateway_amount: gatewayBody?.amount ?? null,
       gateway_currency: gatewayBody?.currency ?? null,
       reconciled: newPaymentStatus === "paid",
+      notification,
     });
   } catch (error) {
     return json({ error: String(error) }, 500);
