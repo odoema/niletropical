@@ -221,9 +221,11 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
         Expanded(child: ListView(controller: _scroll, padding: const EdgeInsets.all(16), children: [
           ..._messages.map((m) => _Bubble(m, _add)),
           if (_messages.length == 1) Wrap(spacing: 8, children: [
-            ActionChip(label: const Text('Dry skin'), onPressed: () => _ask('I need something for dry skin')),
+            ActionChip(label: const Text('Shea & skincare'), onPressed: () => _ask('Tell me about Shea Butter and skincare products')),
+            ActionChip(label: const Text('Hygiene & sanitizer'), onPressed: () => _ask('Show me hygiene and sanitizer products')),
+            ActionChip(label: const Text('Hibiscus & wellness'), onPressed: () => _ask('Tell me about Hibiscus Tea and Powder')),
+            ActionChip(label: const Text('Sun & mosquito protection'), onPressed: () => _ask('Show me sun and mosquito protection products')),
             ActionChip(label: const Text('Under UGX 10,000'), onPressed: () => _ask('Show me products under UGX 10,000')),
-            ActionChip(label: const Text('Sanitizer'), onPressed: () => _ask('I need a sanitizer')),
           ]),
         ])),
         SafeArea(top: false, child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [Expanded(child: TextField(controller: _input, onSubmitted: (_) => _ask(), decoration: const InputDecoration(hintText: 'What are you looking for?', prefixIcon: Icon(Icons.search)))), const SizedBox(width: 8), IconButton.filled(onPressed: _ask, icon: const Icon(Icons.send))]))),
