@@ -351,16 +351,22 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
   Widget _grid(List<Widget> children) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 1100
+        // Keep KPI cards compact on desktop so four fit comfortably in one row.
+        // On smaller screens we step down gracefully without affecting the customer UI.
+        final columns = constraints.maxWidth >= 900
             ? 4
-            : constraints.maxWidth >= 700
+            : constraints.maxWidth >= 560
                 ? 2
                 : 1;
         return GridView.count(
           crossAxisCount: columns,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: columns == 1 ? 3.2 : 2.0,
+          childAspectRatio: columns == 4
+              ? 3.55
+              : columns == 2
+                  ? 3.0
+                  : 3.6,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: children,
@@ -373,13 +379,18 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
     return NileCard(
       child: Row(
         children: [
-          Icon(icon, color: NileColors.primary, size: 24),
+          Icon(icon, color: NileColors.primary, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(value.toString(), style: NileTypography.headlineMedium),
+                Text(
+                  value.toString(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: NileTypography.headlineMedium,
+                ),
                 const SizedBox(height: 2),
                 Text(label, style: NileTypography.caption),
               ],
