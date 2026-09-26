@@ -11,6 +11,7 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/services/media_upload.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
+import '../widgets/admin_image_frame.dart';
 
 class ProductFormScreen extends ConsumerStatefulWidget {
   final String? productId;
@@ -417,18 +418,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             const SizedBox(height: 28),
             _sectionTitle('Product images'),
             if (_imagePath != null)
-              Container(
-                height: 220,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: NileColors.surfaceVariant,
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Image.network(
-                  StorageService.resolvePublicUrl(_imagePath),
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined, size: 48)),
-                ),
+              AdminImageFrame(
+                url: StorageService.resolvePublicUrl(_imagePath),
+                aspectRatio: 16 / 9,
+                fit: BoxFit.contain,
+                borderRadius: 12,
+                label: 'Product image',
               ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
