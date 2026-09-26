@@ -10,11 +10,13 @@ class OrderConfirmationScreen extends StatelessWidget {
     required this.orderNumber,
     required this.total,
     required this.paymentMethod,
+    this.phone,
   });
 
   final String orderNumber;
   final double total;
   final String paymentMethod;
+  final String? phone;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +58,10 @@ class OrderConfirmationScreen extends StatelessWidget {
               NileButton(
                 label: 'Track order',
                 icon: Icons.local_shipping_outlined,
-                onPressed: () => context.go('/track/$orderNumber'),
+                onPressed: () => context.go(
+                  '/track/$orderNumber',
+                  extra: {'phone': phone},
+                ),
               ),
               const SizedBox(height: NileSpacing.sm),
               NileOutlinedButton(
