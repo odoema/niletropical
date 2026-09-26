@@ -133,6 +133,7 @@ final appRouter = GoRouter(
               orderNumber: extra['orderNumber'] as String? ?? 'NTI-XXXX-000000',
               total: (extra['total'] as num?)?.toDouble() ?? 0,
               paymentMethod: extra['paymentMethod'] as String? ?? 'mtn_momo',
+              phone: extra['phone'] as String?,
             );
           },
         ),
