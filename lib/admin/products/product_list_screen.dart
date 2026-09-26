@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/providers/product_provider.dart';
 import '../../shared/models/product.dart';
+import '../../shared/services/storage_service.dart';
+import '../widgets/admin_image_frame.dart';
 
 class AdminProductListScreen extends ConsumerWidget {
   const AdminProductListScreen({super.key});
@@ -47,9 +49,15 @@ class AdminProductListScreen extends ConsumerWidget {
               return Card(
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  leading: CircleAvatar(
-                    backgroundColor: NileColors.primary.withOpacity(0.1),
-                    child: const Icon(Icons.spa, color: NileColors.primary),
+                  leading: SizedBox(
+                    width: 64,
+                    child: AdminImageFrame(
+                      url: StorageService.resolvePublicUrl(p.mainImageUrl),
+                      aspectRatio: 1,
+                      fit: BoxFit.cover,
+                      borderRadius: 10,
+                      label: 'No image',
+                    ),
                   ),
                   title: Text(
                     p.name,
