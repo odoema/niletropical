@@ -96,7 +96,11 @@ class _PaymentPageState extends State<PaymentPage> {
     if (ref == null) return;
     setState(() => _phase = 'checking');
     try {
-      final res = await PaymentService.status(ref);
+      final res = await PaymentService.status(
+        ref,
+        orderId: widget.orderId,
+        orderNumber: widget.orderNumber,
+      );
       if (!mounted) return;
       final status = (res['status'] ?? '').toString();
       if (status == 'successful' || status == 'paid' || status == 'success') {
