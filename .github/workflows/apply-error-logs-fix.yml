@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   apply:
@@ -44,6 +44,22 @@ jobs:
         run: |
           SQL="$(cat supabase/migrations/20260926_fix_admin_error_log_access.sql)"
           supabase db query --linked "${SQL}"
+
+      - name: Record successful production application
+        run: |
+          mkdir -p ops
+          cat > ops/last-error-log-fix.txt <<EOF
+          Error Logs production fix applied successfully.
+          Project: ${SUPABASE_PROJECT_ID}
+          Commit: ${GITHUB_SHA}
+          UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          The SQL is idempotent and safe to re-run.
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ops/last-error-log-fix.txt
+          git commit -m "Record production error logs fix"
+          git push
 
       - name: Verify Error Logs objects
         run: |
