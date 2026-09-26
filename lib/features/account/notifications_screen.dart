@@ -78,6 +78,24 @@ class _NotificationCard extends StatelessWidget {
   const _NotificationCard({required this.row});
   final Map<String, dynamic> row;
   @override
+  Future<void> _openOrder(BuildContext context) async {
+    final orderId = row['order_id']?.toString();
+    if (orderId == null || orderId.isEmpty) return;
+    final order = await NotificationInboxService.orderIdentity(orderId);
+    if (!context.mounted) return;
+    if (order == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('We could not open this order right now.')),
+      );
+      return;
+    }
+    final orderNumber = order['order_number']?.toString();
+    final phone = order['customer_phone']?.toString();
+    if (orderNumber == null || orderNumber.isEmpty) return;
+    context.push('/track/$orderNumber', extra: {'phone': phone});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final event = row['event_key']?.toString() ?? '';
     final orderId = row['order_id']?.toString();
@@ -89,7 +107,7 @@ class _NotificationCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: orderId == null ? null : () => context.push('/track'),
+        onTap: orderId == null ? null : () => _openOrder(context),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
