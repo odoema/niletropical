@@ -33,13 +33,13 @@ function seoTitle(name) {
   const max = 60;
   if ((raw + suffix).length <= max) return raw + suffix;
   const room = Math.max(20, max - suffix.length - 3);
-  return raw.slice(0, room).replace(/\\s+\\S*$/, '').trim() + '...' + suffix;
+  return raw.slice(0, room).replace(/\s+\S*$/, '').trim() + '...' + suffix;
 }
 
 function metaDescription(value, fallback) {
   const raw = strip(value || fallback);
   if (raw.length <= 155) return raw;
-  return raw.slice(0, 152).replace(/\\s+\\S*$/, '').trim() + '...';
+  return raw.slice(0, 152).replace(/\s+\S*$/, '').trim() + '...';
 }
 
 function imageAlt(product, image) {
@@ -92,7 +92,7 @@ function categoryPage(category, products) {
       ]}
     ]
   };
-  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(category.name) + ' | Nile Tropical Uganda</title><meta name="description" content="' + esc(strip(category.description || ('Shop ' + category.name + ' from Nile Tropical Industries in Uganda.')).slice(0,155)) + '"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="' + esc(canonical) + '">' +
+  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(seoTitle(category.name)) + '</title><meta name="description" content="' + esc(metaDescription(category.description, 'Shop ' + category.name + ' from Nile Tropical Industries in Uganda.')) + '"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="' + esc(canonical) + '">' +
     '<style>body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f7f9fa;color:#17212b}.wrap{width:min(1100px,calc(100% - 28px));margin:auto}.top{background:#233e85;color:#fff;padding:11px 0}.nav{display:flex;justify-content:space-between;padding:18px 0}.btn{background:#233e85;color:#fff;padding:11px 16px;border-radius:12px;font-weight:800;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:25px 0 50px}article{background:#fff;border:1px solid #dfe5e9;border-radius:16px;overflow:hidden}article a{display:block;padding-bottom:18px;text-decoration:none;color:inherit}article img{width:100%;aspect-ratio:1;object-fit:contain;background:#f1f4f7}article h2,article p,article strong{margin-left:17px;margin-right:17px}article h2{color:#003d70;font-size:19px;margin-top:15px;margin-bottom:7px}article p{color:#66717c;font-size:13px;line-height:1.55}article strong{color:#233e85}@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.grid{grid-template-columns:1fr}}</style></head><body><div class="top"><div class="wrap">Nile Tropical Industries (U) Ltd · Nebbi, West Nile, Uganda</div></div><div class="wrap"><div class="nav"><strong style="color:#233e85">NILE TROPICAL</strong><a class="btn" href="' + site + '/app/">Shop online</a></div><main><nav aria-label="Breadcrumb"><a href="' + site + '/">Home</a> / <span>' + esc(category.name) + '</span></nav><h1>' + esc(category.name) + '</h1><p>' + esc(strip(category.description || 'Explore products from Nile Tropical Industries in Uganda.')) + '</p><div class="grid">' + items + '</div></main></div><script type="application/ld+json">' + json(schema) + '</script></body></html>';
 }
 
@@ -186,8 +186,8 @@ function productPage(product) {
     ' / <span>' + esc(product.name) + '</span></nav>';
   const gallery = (product.product_images || []).map((img, i) => ({ src: productImage(img), alt: imageAlt(product, img), i })).filter(x => x.src).slice(0, 6).map(x => '<img src="' + esc(x.src) + '" alt="' + esc(x.alt) + '" loading="' + (x.i ? 'lazy' : 'eager') + '">').join('');
   return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-    '<title>' + esc(product.name) + ' | Nile Tropical Uganda</title>' +
-    '<meta name="description" content="' + esc(description.slice(0, 155)) + '">' +
+    '<title>' + esc(seoTitle(product.name)) + '</title>' +
+    '<meta name="description" content="' + esc(metaDescription(description, 'Shop ' + product.name + ' from Nile Tropical Uganda.')) + '">' +
     '<meta name="robots" content="index,follow,max-image-preview:large">' +
     '<link rel="canonical" href="' + esc(canonical) + '">' +
     '<meta property="og:type" content="product"><meta property="og:site_name" content="Nile Tropical Industries Ltd">' +
