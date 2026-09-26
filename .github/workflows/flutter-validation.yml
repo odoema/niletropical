@@ -1,0 +1,48 @@
+name: Flutter Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Validate production Supabase target
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED="https://ououfhsswyqutcczdtnb.supabase.co"
+          if [ "${SUPABASE_URL}" != "${EXPECTED}" ]; then
+            echo "::error::SUPABASE_URL is not pointing to the current Nile Tropical production project."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Flutter tests
+        run: flutter test
+
+      - name: Web build
+        run: |
+          flutter build web --release             --dart-define=APP_ENV=production             --dart-define=SUPABASE_URL="${SUPABASE_URL}"             --dart-define=SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
