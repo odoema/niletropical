@@ -34,9 +34,8 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
   bool _calculating = false;
   String? _locationError;
 
-  double _baseFee = 5000;
-  double _includedKm = 3;
-  double _extraKmRate = 1200;
+  String? _quoteZoneId;
+  Map<String, dynamic>? _serverQuote;
 
   @override
   void dispose() {
@@ -102,6 +101,7 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
         _origin = origin;
         _destination = destination;
         _route = route;
+        _serverQuote = serverQuote;
       });
     } catch (e) {
       if (mounted) setState(() => _locationError = e.toString());
@@ -110,11 +110,6 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
     }
   }
 
-  double get _quotedFee {
-    final km = _route?.distanceKm ?? 0;
-    if (km <= _includedKm) return _baseFee;
-    return _baseFee + ((km - _includedKm).ceil() * _extraKmRate);
-  }
 
   Future<void> _openGoogleMaps() async {
     if (_origin == null || _destination == null) return;
@@ -318,6 +313,7 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
                     _originResults = const [];
                   }),
                 );
+                final zone = _zoneSelector();
                 final destination = _locationField(
                   controller: _destinationCtrl,
                   label: 'Customer destination',
@@ -337,11 +333,11 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
                   }),
                 );
                 return compact
-                    ? Column(children: [origin, const SizedBox(height: 10), destination, const SizedBox(height: 12), _quoteButton()])
+                    ? Column(children: [zone, const SizedBox(height: 10), origin, const SizedBox(height: 10), destination, const SizedBox(height: 12), _quoteButton()])
                     : Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: origin),
+                          Expanded(child: Column(children: [zone, const SizedBox(height: 10), origin])),
                           const Padding(padding: EdgeInsets.only(top: 18, left: 8, right: 8), child: Icon(Icons.arrow_forward_rounded, color: Colors.white70)),
                           Expanded(child: destination),
                           const SizedBox(width: 10),
@@ -375,14 +371,14 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
                   children: [
                     _metric('ROAD DISTANCE', '${result.distanceKm.toStringAsFixed(1)} km'),
                     _metric('ETA', '${result.durationMinutes.ceil()} min'),
-                    _metric('EST. DELIVERY', 'UGX ${_quotedFee.toStringAsFixed(0)}'),
+                    _metric('EST. DELIVERY', 'UGX ${((_serverQuote?['delivery_fee'] as num?)?.toDouble() ?? 0).toStringAsFixed(0)}'),
                     OutlinedButton.icon(
                       onPressed: _openGoogleMaps,
                       style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white54)),
                       icon: const Icon(Icons.map_outlined, size: 18),
                       label: const Text('Open in Maps'),
                     ),
-                    Text('Rate: UGX ${_baseFee.toStringAsFixed(0)} base • first ${_includedKm.toStringAsFixed(0)} km included • UGX ${_extraKmRate.toStringAsFixed(0)}/extra km', style: TextStyle(color: Colors.white.withValues(alpha: .72), fontSize: 10)),
+
                   ],
                 ),
               ),
@@ -393,9 +389,36 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
     );
   }
 
+  Widget _zoneSelector() {
+    final zones = ref.watch(zonesProvider).valueOrNull ?? const <DeliveryZone>[];
+    return DropdownButtonFormField<String>(
+      value: _quoteZoneId,
+      dropdownColor: NileColors.primaryDark,
+      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+      decoration: InputDecoration(
+        labelText: 'Pricing zone',
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: const Icon(Icons.price_check_rounded, color: Colors.white70),
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: .10),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white30)),
+      ),
+      items: zones.map((z) => DropdownMenuItem<String>(
+        value: z.id,
+        child: Text(z.name + ' • base UGX ' + z.deliveryFee.toStringAsFixed(0)),
+      )).toList(),
+      onChanged: (value) {
+        setState(() {
+          _quoteZoneId = value;
+          _serverQuote = null;
+        });
+      },
+    );
+  }
+
   Widget _quoteButton() {
     return FilledButton.icon(
-      onPressed: _calculating || _destinationCtrl.text.trim().length < 3 ? null : _calculateQuote,
+      onPressed: _calculating || _quoteZoneId == null || _destinationCtrl.text.trim().length < 3 ? null : _calculateQuote,
       style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: NileColors.primary, minimumSize: const Size(150, 46)),
       icon: _calculating ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.calculate_outlined, size: 18),
       label: Text(_calculating ? 'Calculating…' : 'Get quote'),
