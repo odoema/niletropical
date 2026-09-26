@@ -28,6 +28,7 @@ import '../../features/courier/courier_dashboard_screen.dart';
 import '../../features/courier/shipment_detail_screen.dart';
 import '../../features/design_system/design_system_showcase.dart';
 import '../../admin/admin_home_screen.dart';
+import '../../admin/analytics/analytics_dashboard_screen.dart';
 import '../../admin/inventory/inventory_dashboard_screen.dart';
 import '../../admin/inventory/stock_adjustment_screen.dart';
 import '../../admin/products/product_list_screen.dart';
@@ -234,6 +235,7 @@ final appRouter = GoRouter(
         GoRoute(path: '/admin/cms/videos', builder: (_, __) => const CmsCollectionScreen(title: 'Videos', table: 'videos', titleField: 'title', subtitleField: 'storage_path')),
         GoRoute(path: '/admin/cms/promotions', builder: (_, __) => const CmsCollectionScreen(title: 'Promotions', table: 'promotions', titleField: 'name', subtitleField: 'description')),
         GoRoute(path: '/admin/reports', name: 'admin-reports', builder: (_, __) => const ReportsScreen()),
+        GoRoute(path: '/admin/analytics', name: 'admin-analytics', builder: (_, __) => const AnalyticsDashboardScreen()),
         GoRoute(path: '/admin/pricing', name: 'admin-pricing', builder: (_, __) => const PricingRecommendationsScreen()),
         GoRoute(path: '/admin/notifications', name: 'admin-notifications', builder: (_, __) => const NotificationsAdminScreen()),
         GoRoute(path: '/admin/audit', name: 'admin-audit', builder: (_, __) => const AuditLogScreen()),
