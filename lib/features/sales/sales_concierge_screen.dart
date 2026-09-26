@@ -29,9 +29,72 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
     setState(() => _messages.add(_Msg(result.$1, false, result.$2)));
   }
 
+  String? _sheaAnswer(String q) {
+    final shea = q.contains('shea') || q.contains('vitellaria') ||
+        q.contains('butyrospermum') || q.contains('shea butter');
+    if (!shea) return null;
+
+    if (q.contains('what') || q.contains('benefit') || q.contains('good for') ||
+        q.contains('why') || q.contains('help')) {
+      return 'Shea butter is a plant fat from the kernels of the shea tree (Vitellaria paradoxa). '
+          'For skincare, its main established role is as an emollient: it helps soften dry skin and supports the skin barrier. '
+          'It contains mainly stearic and oleic fatty acids plus smaller amounts of unsaponifiable compounds such as tocopherols, sterols and triterpenes. '
+          'Research reviews describe moisturizing, barrier-supporting, antioxidant and anti-inflammatory potential, but evidence varies by product and condition. '
+          'It should not be presented as a cure for eczema, infections, scars or other diseases.';
+    }
+
+    if (q.contains('skin') || q.contains('dry') || q.contains('moistur') ||
+        q.contains('face') || q.contains('body')) {
+      return 'For dry skin, shea butter works mainly as an emollient and barrier-supporting moisturizer. '
+          'Apply a small amount to clean, slightly damp skin and massage gently. '
+          'For facial use, start with a small area because individual skin types differ. '
+          'If irritation occurs, stop using it. Persistent or severe skin disease should be assessed by a clinician.';
+    }
+
+    if (q.contains('hair') || q.contains('scalp')) {
+      return 'Shea butter is commonly used in hair and scalp products because its lipid-rich texture can condition and reduce the feeling of dryness. '
+          'It is a cosmetic conditioner, not a proven treatment for hair loss or scalp disease. '
+          'Use a small amount and adjust to your hair type to avoid heaviness or buildup.';
+    }
+
+    if (q.contains('baby') || q.contains('infant')) {
+      return 'Shea butter is used in many baby-care products as a skin-conditioning ingredient. '
+          'Choose a properly formulated product and patch-test when appropriate. '
+          'For a baby with a persistent rash, broken skin or suspected eczema, seek medical advice rather than relying on a cosmetic product alone.';
+    }
+
+    if (q.contains('sun') || q.contains('spf') || q.contains('sunscreen')) {
+      return 'Shea butter contains compounds that have shown UV-related activity in laboratory and formulation research, but ordinary shea butter is not a reliable sunscreen. '
+          'For sun protection, use a properly tested broad-spectrum sunscreen with a stated SPF.';
+    }
+
+    if (q.contains('allerg') || q.contains('safe') || q.contains('side effect')) {
+      return 'Shea-derived cosmetic ingredients have a good safety record when properly formulated and non-sensitizing, but no ingredient is right for everyone. '
+          'Patch-test if you are concerned, stop if you develop irritation or allergy symptoms, and seek medical care for a significant reaction.';
+    }
+
+    if (q.contains('eat') || q.contains('food') || q.contains('cook')) {
+      return 'Shea butter can be used as a food fat in appropriate food-grade products, but a cosmetic product should not be assumed to be edible. '
+          'For eating or cooking, use a product specifically labelled and manufactured for food use.';
+    }
+
+    if (q.contains('raw') || q.contains('refined') || q.contains('unrefined')) {
+      return 'Unrefined shea butter generally retains more of the minor unsaponifiable compounds and its characteristic colour and aroma. '
+          'Refining can reduce some minor components while improving odour, colour and oxidative stability. '
+          'Quality depends on sourcing, processing, storage and formulation.';
+    }
+
+    return 'Shea butter is a plant fat from Vitellaria paradoxa. It is rich in stearic and oleic fatty acids and is widely used as an emollient and skin-conditioning ingredient. '
+        'Ask me about benefits, dry skin, hair, babies, sun protection, safety, or refined versus unrefined shea.';
+  }
+
   (String, List<Product>) _find(String query, List<Product> products) {
     final q = query.toLowerCase();
+    final sheaAnswer = _sheaAnswer(q);
     final budget = _budget(q);
+    if (sheaAnswer != null && (q.contains('what') || q.contains('benefit') || q.contains('good for') || q.contains('why') || q.contains('help') || q.contains('skin') || q.contains('dry') || q.contains('hair') || q.contains('scalp') || q.contains('baby') || q.contains('safe') || q.contains('allerg') || q.contains('raw') || q.contains('refined') || q.contains('sun') || q.contains('spf') || q.contains('eat') || q.contains('food'))) {
+      return (sheaAnswer, _sheaProducts(products));
+    }
     final words = q.replaceAll(RegExp(r'[^a-z0-9 ]'), ' ').split(RegExp(r'\s+')).where((x) => x.length > 2).toSet();
     final scored = <_Score>[];
     for (final p in products) {
@@ -58,6 +121,15 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
       return ('I could not find an exact match in the current catalogue. Here are available options' + (budget == null ? '.' : ' within your budget.'), matches);
     }
     return (budget == null ? 'These are the closest in-stock matches from the current catalogue.' : 'I found these in-stock options within your UGX ' + _money(budget) + ' budget.', matches);
+  }
+
+  List<Product> _sheaProducts(List<Product> products) {
+    final matches = products.where((p) {
+      final text = [p.name, p.shortDescription ?? '', p.fullDescription ?? '',
+        p.benefits ?? '', p.ingredients ?? '', p.brand].join(' ').toLowerCase();
+      return text.contains('shea');
+    }).where((p) => p.variants.any((v) => v.isActive && v.inStock)).take(4).toList();
+    return matches;
   }
 
   double? _budget(String q) {
