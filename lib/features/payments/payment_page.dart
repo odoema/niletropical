@@ -106,9 +106,14 @@ class _PaymentPageState extends State<PaymentPage> {
       if (status == 'successful' || status == 'paid' || status == 'success') {
         _poll?.cancel();
         context.go('/confirmation', extra: {
-          'orderNumber': widget.orderNumber ?? widget.orderId,
-          'total': widget.total ?? 0,
+          'orderNumber': res['order_number']?.toString() ??
+              widget.orderNumber ??
+              widget.orderId,
+          'total': (res['total'] as num?)?.toDouble() ??
+              widget.total ??
+              0,
           'paymentMethod': _method,
+          'phone': widget.phone,
         });
         return;
       }
