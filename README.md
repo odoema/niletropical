@@ -28,6 +28,12 @@ Production-oriented mobile-first platform for Nile Tropical Industries Ltd cover
 - **Backend**: Supabase (PostgreSQL + Auth + Storage + RLS)
 - **Payments**: MTN, Airtel, Cards + COD
 
+## Payment Integration Documentation
+
+The production MTN Mobile Money integration is documented in **[docs/MTN_MOMO_INTEGRATION.md](docs/MTN_MOMO_INTEGRATION.md)**.
+
+It records the server-side Request-to-Pay flow, payment reconciliation, order-state transition, duplicate-email protection, tracking integration, required environment variables, and deployment architecture.
+
 ## Project Structure
 
 ```
