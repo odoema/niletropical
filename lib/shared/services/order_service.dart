@@ -25,6 +25,10 @@ class OrderService {
     String? notes,
     String? idempotencyKey,
     String? couponCode,
+    double? deliveryDistanceKm,
+    double? deliveryDurationMinutes,
+    Map<String, dynamic>? deliveryOrigin,
+    Map<String, dynamic>? deliveryDestination,
   }) async {
     final key = idempotencyKey ?? _uuid.v4();
 
@@ -61,6 +65,10 @@ class OrderService {
         'p_payment_method': paymentMethod,
         'p_items': items,
         'p_notes': notes,
+        if (deliveryDistanceKm != null) 'p_delivery_distance_km': deliveryDistanceKm,
+        if (deliveryDurationMinutes != null) 'p_delivery_duration_minutes': deliveryDurationMinutes,
+        if (deliveryOrigin != null) 'p_delivery_origin': deliveryOrigin,
+        if (deliveryDestination != null) 'p_delivery_destination': deliveryDestination,
       },
     );
 
