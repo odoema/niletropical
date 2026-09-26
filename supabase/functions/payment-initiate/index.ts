@@ -90,6 +90,32 @@ serve(async (req) => {
     }
 
     if (method === "mtn_momo") {
+      // Older live create_order deployments may still leave a non-COD order
+      // in new_order. MTN payment initiation is the authoritative transition
+      // point: move that order into payment_pending atomically before charging.
+      if (order.status === "new_order") {
+        const { data: transitioned, error: transitionError } = await supabase
+          .from("orders")
+          .update({
+            status: "payment_pending",
+            payment_status: "pending",
+          })
+          .eq("id", order.id)
+          .eq("status", "new_order")
+          .select(
+            "id, order_number, total, payment_status, status, payment_method, customer_phone_snapshot",
+          )
+          .maybeSingle();
+
+        if (transitionError) {
+          return json({
+            error: "ORDER_STATUS_UPDATE_FAILED",
+            message: transitionError.message,
+          }, 500);
+        }
+        if (transitioned) order = transitioned;
+      }
+
       if (order.status !== "payment_pending") {
         return json({
           error: "ORDER_NOT_PAYABLE",
@@ -124,7 +150,7 @@ serve(async (req) => {
       const { data: payment, error: insertError } = await supabase
         .from("payments")
         .insert({
-          order_id,
+          order_id: order.id,
           method: "mtn_momo",
           amount: order.total,
           status: "pending",
@@ -151,7 +177,7 @@ serve(async (req) => {
             amount: String(order.total),
             currency: "UGX",
             payer_party_id_type: "MSISDN",
-            payer_party_id: order.guest_phone ?? body.phone ?? "",
+            payer_party_id: order.customer_phone_snapshot ?? body.phone ?? "",
             payer_message: "Nile Tropical payment",
             payee_note: "Nile Tropical order " + order.order_number,
             transfer_type: "CUSTOM_PAYMENT",
