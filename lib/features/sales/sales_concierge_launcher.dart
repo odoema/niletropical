@@ -108,6 +108,10 @@ class _SalesConciergeLauncherState extends State<SalesConciergeLauncher>
   Widget _buildLauncher(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final panelWidth = width < 430 ? width - 32 : 360.0;
+    final path = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+    if (path.startsWith('/admin') || path == '/login' || path == '/signup' || path == '/concierge') {
+      return const SizedBox.shrink();
+    }
 
     return Material(
       color: Colors.transparent,
@@ -151,6 +155,12 @@ class _SalesConciergeLauncherState extends State<SalesConciergeLauncher>
   }
 
   Widget _welcomePanel(BuildContext context) {
+    final day = DateTime.now().day;
+    final offset = day % _questions.length;
+    final prompts = List<_ConciergePrompt>.generate(
+      _questions.length,
+      (i) => _questions[(i + offset) % _questions.length],
+    );
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 430),
       child: Column(
@@ -227,7 +237,7 @@ class _SalesConciergeLauncherState extends State<SalesConciergeLauncher>
               shrinkWrap: true,
               padding: const EdgeInsets.fromLTRB(12, 2, 12, 10),
               children: [
-                ..._questions.map(
+                ...prompts.map(
                   (q) => Padding(
                     padding: const EdgeInsets.only(bottom: 7),
                     child: Material(
