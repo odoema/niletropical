@@ -90,10 +90,10 @@ class _AdminOrderDetailScreenState
       }
 
       await SupabaseService.client.rpc(
-        'set_order_status',
+        'update_order_status',
         params: {
           'p_order_id': widget.orderId,
-          'p_status': status,
+          'p_new_status': status,
           'p_note': 'Updated by admin',
         },
       );
