@@ -165,6 +165,34 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 ],
               ),
             ),
+            final shipment = _result!['shipment'];
+            if (shipment is Map && shipment.isNotEmpty) ...[
+              const SizedBox(height: NileSpacing.md),
+              NileCard(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.local_shipping_rounded,
+                      color: NileColors.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Delivery', style: NileTypography.titleSmall),
+                          const SizedBox(height: 3),
+                          Text(
+                            shipment['status']?.toString() ?? 'Shipment created',
+                            style: NileTypography.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: NileSpacing.md),
             Text('Timeline', style: NileTypography.titleMedium),
             const SizedBox(height: NileSpacing.sm),
