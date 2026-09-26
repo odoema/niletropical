@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - master
+  # Keep the public SEO layer synchronized with catalogue changes made
+  # directly in Supabase (products, variants, images, descriptions, etc.).
+  schedule:
+    - cron: '17 * * * *'
   workflow_dispatch:
   pull_request:
     branches:
