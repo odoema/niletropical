@@ -1,4 +1,5 @@
 name: Deploy Supabase Edge Functions
+# Secret configured: trigger deployment
 
 on:
   push:
