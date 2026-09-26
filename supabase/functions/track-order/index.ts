@@ -68,14 +68,18 @@ serve(async (req) => {
     );
 
     let order: any = null;
+    // Older tracking links used the database UUID in the order-number slot.
+    // Treat a UUID-shaped order_number as an order_id before the
+    // human-facing order_number lookup.
+    const legacyOrderId = orderId || (looksLikeUuid(orderNumber) ? orderNumber : "");
 
-    if (orderId) {
+    if (legacyOrderId) {
       const byId = await supabase
         .from("orders")
         .select(
           "id, order_number, status, payment_status, total, created_at, customer_phone_snapshot",
         )
-        .eq("id", orderId)
+        .eq("id", legacyOrderId)
         .maybeSingle();
 
       if (byId.error) {
@@ -84,7 +88,7 @@ serve(async (req) => {
       order = byId.data;
     }
 
-    if (!order && orderNumber) {
+    if (!order && orderNumber && !looksLikeUuid(orderNumber)) {
       const byNumber = await supabase
         .from("orders")
         .select(
