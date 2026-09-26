@@ -2,9 +2,9 @@
 -- 2026-09-26
 --
 -- Server-authoritative quote:
--- base fee comes from the selected active delivery zone;
--- first 3 road km are included;
--- additional road km are charged at UGX 1,200/km, rounded up.
+-- base fee is UGX 2,500;
+-- each road km is charged at UGX 450;
+-- the quote is server-authoritative.
 -- The customer may display the quote client-side, but create_order recalculates it.
 
 alter table public.orders
@@ -23,11 +23,8 @@ security definer
 set search_path = public
 as $$
 declare
-  v_base_fee numeric := 0;
-  v_included_km numeric := 3;
-  v_extra_km_rate numeric := 1200;
-  v_extra_km numeric := 0;
-  v_extra_units integer := 0;
+  v_base_fee numeric := 2500;
+  v_extra_km_rate numeric := 450;
   v_total numeric := 0;
   v_zone_name text;
 begin
@@ -35,8 +32,7 @@ begin
     raise exception 'INVALID_DISTANCE: %', p_distance_km using errcode = 'P0001';
   end if;
 
-  select coalesce(delivery_fee, 0), name
-    into v_base_fee, v_zone_name
+  select name into v_zone_name
   from public.delivery_zones
   where id = p_delivery_zone_id
     and is_active = true;
@@ -45,20 +41,20 @@ begin
     raise exception 'INVALID_DELIVERY_ZONE: %', p_delivery_zone_id using errcode = 'P0002';
   end if;
 
-  v_extra_km := greatest(p_distance_km - v_included_km, 0);
-  v_extra_units := ceil(v_extra_km);
-  v_total := v_base_fee + (v_extra_units * v_extra_km_rate);
+  v_total := round(v_base_fee + (greatest(p_distance_km, 0) * v_extra_km_rate), 0);
 
   return jsonb_build_object(
     'zone_id', p_delivery_zone_id,
     'zone_name', v_zone_name,
     'distance_km', round(p_distance_km, 2),
-    'included_km', v_included_km,
-    'extra_km', round(v_extra_km, 2),
-    'extra_km_units', v_extra_units,
+    'included_km', 0,
+    'extra_km', round(greatest(p_distance_km, 0), 2),
+    'extra_km_units', 0,
     'base_fee', v_base_fee,
     'extra_km_rate', v_extra_km_rate,
-    'delivery_fee', v_total
+    'delivery_fee', v_total,
+    'pricing_model', 'safeboda_like',
+    'currency', 'UGX'
   );
 end;
 $$;
