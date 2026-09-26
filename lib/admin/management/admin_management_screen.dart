@@ -24,15 +24,37 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Management'),
-        bottom: const TabBar(isScrollable: true, tabs: [
-          Tab(icon: Icon(Icons.category_outlined), text: 'Categories'),
-          Tab(icon: Icon(Icons.local_offer_outlined), text: 'Coupons'),
-          Tab(icon: Icon(Icons.local_shipping_outlined), text: 'Delivery'),
-        ]),
       ),
-      body: TabBarView(controller: _tabs, children: const [
-        _CategoriesTab(), _CouponsTab(), _DeliveryTab(),
-      ]),
+      body: Column(
+        children: [
+          Material(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: TabBar(
+              controller: _tabs,
+              isScrollable: true,
+              tabs: const [
+                Tab(icon: Icon(Icons.category_outlined), text: 'Categories'),
+                Tab(icon: Icon(Icons.local_offer_outlined), text: 'Coupons'),
+                Tab(icon: Icon(Icons.local_shipping_outlined), text: 'Delivery'),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: AnimatedBuilder(
+              animation: _tabs,
+              builder: (context, _) => IndexedStack(
+                index: _tabs.index,
+                children: const [
+                  _CategoriesTab(),
+                  _CouponsTab(),
+                  _DeliveryTab(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
