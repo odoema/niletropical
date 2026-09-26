@@ -46,7 +46,17 @@ PR #2: Reconcile Flutter frontend with live Supabase backend.
 - Do not claim Airtel/card are operational without configured providers.
 - Do not infer production state from GitHub alone.
 
-## Next handoff
-Supabase-connected session should verify exact live create_order overloads, quote_delivery behavior, pricing RPC/table contract, payment_transactions schema, deployed payment/tracking/notification function versions, Auth/RLS, Storage policies, and migration history versus repository migrations.
+## Latest contract audit
+- Live migration history now includes the 2026-09-24 through 2026-09-27 reconciliation migrations; do not treat 016–024 as the complete live history.
+- Live payment-initiate v29 still contains the obsolete `payments` table path for non-MTN methods. Branch code is reconciled to `payment_transactions` but has not been deployed.
+- Live payment-status v22 was inspected. Branch code now requires a matching local MTN transaction and checks provider/method/amount/currency before changing payment state.
+- Live payment-status previously jumped successful payment from `payment_pending` to `new_order`; branch now uses the valid `payment_confirmed` transition.
+- Live track-order v7 currently has `verify_jwt=true`. Guest/public phone-verified tracking requires the branch deployment to explicitly use `--no-verify-jwt`.
+- Flutter order/payment services previously fabricated state when Supabase was unconfigured. Branch now fails closed for checkout, tracking and payment initiation.
+- Storage buckets and core POD/courier/staff policies have been inspected. Full Flutter-path authorization audit remains pending.
+- GitHub workflow target and automatic database-push risks have been reconciled in branch; branch is not production-deployed.
 
-GitHub-connected session should then reconcile remaining differences and run the complete Flutter validation suite.
+## Next handoff
+Supabase-connected session should continue verifying Auth provider configuration, full RLS authorization for every Flutter/admin path, exact deployed function versions after controlled deployment, and live end-to-end behavior.
+
+GitHub-connected session should run Flutter analyze/tests/build and inspect the remaining admin/inventory/delivery frontend mappings before any merge or production deployment.
