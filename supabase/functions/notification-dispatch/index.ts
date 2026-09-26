@@ -104,9 +104,12 @@ async function sendEmail(payload: {
 <body style="margin:0;background:#f5f7f8;font-family:Arial,Helvetica,sans-serif;color:#18212b">
   <div style="max-width:640px;margin:0 auto;padding:28px 16px">
     <div style="background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e6eaee">
-      <div style="background:#0b6b3a;padding:28px 26px;color:#ffffff">
-        <div style="font-size:24px;font-weight:800">Nile Tropical</div>
-        <div style="margin-top:6px;font-size:14px;opacity:.9">Fresh products. Simple ordering. Reliable delivery.</div>
+      <div style="background:#233E85;padding:24px 26px;color:#ffffff;text-align:center">
+        <img src="https://raw.githubusercontent.com/odoema/niletropical/master/assets/images/nile-tropical-email-logo.svg"
+             alt="Nile Tropical — Tropical Industries Ltd"
+             width="150"
+             style="display:block;width:150px;height:150px;margin:0 auto 14px;border:0">
+        <div style="font-size:14px;font-weight:700;letter-spacing:.2px">Fresh products. Simple ordering. Reliable delivery.</div>
       </div>
 
       <div style="padding:30px 26px">
@@ -121,7 +124,7 @@ async function sendEmail(payload: {
             : "There is a new update on your Nile Tropical order."}
         </p>
 
-        <div style="background:#f7faf8;border:1px solid #dfeae3;border-radius:14px;padding:18px">
+        <div style="background:#f5f7fb;border:1px solid #d9e0ef;border-radius:14px;padding:18px">
           <div style="font-size:13px;color:#64717b">ORDER NUMBER</div>
           <div style="font-size:20px;font-weight:800;margin-top:4px">${order}</div>
 
@@ -143,14 +146,14 @@ async function sendEmail(payload: {
 
         <div style="text-align:center;margin:28px 0">
           <a href="${link}"
-             style="display:inline-block;background:#0b6b3a;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:10px;font-weight:800">
+             style="display:inline-block;background:#233E85;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:10px;font-weight:800">
             Track My Order
           </a>
         </div>
 
         <p style="font-size:13px;line-height:1.6;color:#68737d;margin:0">
           If the button does not work, use this tracking link:<br>
-          <a href="${link}" style="color:#0b6b3a;word-break:break-all">${link}</a>
+          <a href="${link}" style="color:#233E85;word-break:break-all">${link}</a>
         </p>
       </div>
 
