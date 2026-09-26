@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/config/env.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/errors/error_reporter.dart';
 import '../../shared/services/media_upload.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
@@ -24,6 +25,7 @@ class ProductFormScreen extends ConsumerStatefulWidget {
 class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
+  final _brand = TextEditingController(text: 'Nile Tropical');
   final _short = TextEditingController();
   final _full = TextEditingController();
   final _benefits = TextEditingController();
@@ -81,6 +83,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         }
 
         _name.text = product['name']?.toString() ?? '';
+        _brand.text = product['brand']?.toString() ?? 'Nile Tropical';
         _short.text = product['short_description']?.toString() ?? '';
         _full.text = product['full_description']?.toString() ?? '';
         _benefits.text = product['benefits']?.toString() ?? '';
@@ -135,6 +138,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   void dispose() {
     for (final c in [
       _name,
+      _brand,
       _short,
       _full,
       _benefits,
@@ -181,6 +185,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         if (isEditing) 'id': widget.productId,
         'name': _name.text.trim(),
         'slug': slug,
+        'brand': _brand.text.trim().isEmpty ? 'Nile Tropical' : _brand.text.trim(),
         'short_description': _short.text.trim(),
         'full_description': _full.text.trim(),
         'benefits': _benefits.text.trim(),
@@ -345,11 +350,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         ),
       );
       context.pop();
-    } catch (e) {
+    } catch (e, st) {
+      await ErrorReporter.report(e, stackTrace: st, source: 'admin_products', action: isEditing ? 'update_product' : 'create_product');
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Save failed: $e'), backgroundColor: NileColors.error),
+        SnackBar(content: Text('Could not save this product. ${ErrorReporter.friendlyMessage(e)}'), backgroundColor: NileColors.error),
       );
     }
   }
@@ -384,6 +390,19 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               validator: (v) => v == null || v.trim().isEmpty ? 'Product name is required' : null,
             ),
             const SizedBox(height: 12),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _brand,
+              decoration: const InputDecoration(labelText: 'Brand', helperText: 'Used in product structured data and merchant feeds.'),
+            ),
+            const SizedBox(height: 12),
+            _SeoReadiness(
+              name: _name.text, brand: _brand.text,
+              description: _short.text.isNotEmpty ? _short.text : _full.text,
+              slug: _name.text.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-'),
+              imageReady: _imagePath != null, sku: _sku.text,
+              price: double.tryParse(_price.text) ?? 0,
+            ),
             DropdownButtonFormField<String?>(
               value: _categoryId,
               decoration: const InputDecoration(labelText: 'Category'),
@@ -514,4 +533,32 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         padding: const EdgeInsets.only(bottom: 12),
         child: Text(title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
       );
+}
+
+class _SeoReadiness extends StatelessWidget {
+  final String name, brand, description, slug, sku;
+  final bool imageReady;
+  final double price;
+  const _SeoReadiness({required this.name, required this.brand, required this.description, required this.slug, required this.imageReady, required this.sku, required this.price});
+  @override
+  Widget build(BuildContext context) {
+    final checks = <String, bool>{
+      'Product name': name.trim().isNotEmpty, 'SEO slug': slug.trim().isNotEmpty,
+      'Brand': brand.trim().isNotEmpty, 'Description': description.trim().length >= 30,
+      'Main image': imageReady, 'SKU': sku.trim().isNotEmpty, 'Price': price > 0,
+    };
+    final good = checks.values.where((v) => v).length;
+    final ready = good == checks.length;
+    return Card(color: (ready ? NileColors.success : NileColors.warning).withOpacity(.07), child: Padding(
+      padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [Icon(ready ? Icons.check_circle : Icons.search, color: ready ? NileColors.success : NileColors.warning), const SizedBox(width: 10),
+          Expanded(child: Text(ready ? 'SEO Ready' : 'SEO readiness: $good/${checks.length}', style: const TextStyle(fontWeight: FontWeight.w700))) ]),
+        const SizedBox(height: 8),
+        Wrap(spacing: 12, runSpacing: 5, children: checks.entries.map((e) => Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(e.value ? Icons.check : Icons.close, size: 15, color: e.value ? NileColors.success : NileColors.error),
+          const SizedBox(width: 4), Text(e.key, style: const TextStyle(fontSize: 12)),
+        ])).toList()),
+      ]),
+    ));
+  }
 }
