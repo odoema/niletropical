@@ -26,20 +26,13 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const body =
-      req.method === "GET"
-        ? {}
-        : await req.json().catch(() => ({}));
+      req.method === "GET" ? {} : await req.json().catch(() => ({}));
 
     const reference =
-      url.searchParams.get("reference") ??
-      body.reference ??
-      null;
-    const orderId =
-      body.order_id ??
-      url.searchParams.get("order_id");
+      url.searchParams.get("reference") ?? body.reference ?? null;
+    const orderId = body.order_id ?? url.searchParams.get("order_id");
     const orderNumber =
-      body.order_number ??
-      url.searchParams.get("order_number");
+      body.order_number ?? url.searchParams.get("order_number");
 
     if (!reference) return json({ error: "reference required" }, 400);
     if (!orderId && !orderNumber) {
@@ -54,7 +47,7 @@ serve(async (req) => {
     let order: any = null;
 
     if (orderId) {
-      const byId = await supabase
+      const result = await supabase
         .from("orders")
         .select(
           "id, order_number, status, payment_status, payment_method, total, customer_name_snapshot, customer_email_snapshot, customer_phone_snapshot",
@@ -62,14 +55,17 @@ serve(async (req) => {
         .eq("id", orderId)
         .maybeSingle();
 
-      if (byId.error) {
-        return json({ error: "ORDER_LOOKUP_FAILED", message: byId.error.message }, 500);
+      if (result.error) {
+        return json(
+          { error: "ORDER_LOOKUP_FAILED", message: result.error.message },
+          500,
+        );
       }
-      order = byId.data;
+      order = result.data;
     }
 
     if (!order && orderNumber) {
-      const byNumber = await supabase
+      const result = await supabase
         .from("orders")
         .select(
           "id, order_number, status, payment_status, payment_method, total, customer_name_snapshot, customer_email_snapshot, customer_phone_snapshot",
@@ -77,10 +73,13 @@ serve(async (req) => {
         .eq("order_number", orderNumber)
         .maybeSingle();
 
-      if (byNumber.error) {
-        return json({ error: "ORDER_LOOKUP_FAILED", message: byNumber.error.message }, 500);
+      if (result.error) {
+        return json(
+          { error: "ORDER_LOOKUP_FAILED", message: result.error.message },
+          500,
+        );
       }
-      order = byNumber.data;
+      order = result.data;
     }
 
     if (!order) {
@@ -128,6 +127,7 @@ serve(async (req) => {
 
     const gatewayText = await gatewayResponse.text();
     let gatewayData: any;
+
     try {
       gatewayData = JSON.parse(gatewayText);
     } catch {
@@ -135,34 +135,38 @@ serve(async (req) => {
     }
 
     if (!gatewayResponse.ok) {
-      return json({
-        reference,
-        status: order.payment_status,
-        order_id: order.id,
-        order_number: order.order_number,
-        gateway_http_status: gatewayResponse.status,
-        gateway: gatewayData,
-      }, 502);
+      return json(
+        {
+          reference,
+          status: order.payment_status,
+          order_id: order.id,
+          order_number: order.order_number,
+          gateway_http_status: gatewayResponse.status,
+          gateway: gatewayData,
+        },
+        502,
+      );
     }
 
     const gatewayBody = gatewayData?.body ?? gatewayData ?? {};
     const upstreamStatus = gatewayBody?.status ?? null;
     const gatewayExternalId = gatewayBody?.externalId ?? null;
 
-    // The MTN reference is not enough to identify the order. The gateway
-    // request was bound to order_number as externalId, so require that binding
-    // before a successful provider response can mark the order paid.
+    // Bind the provider response to the order before changing payment state.
     if (
       gatewayExternalId &&
       String(gatewayExternalId) !== String(order.order_number)
     ) {
-      return json({
-        error: "PAYMENT_ORDER_MISMATCH",
-        reference,
-        order_id: order.id,
-        order_number: order.order_number,
-        gateway_external_id: gatewayExternalId,
-      }, 409);
+      return json(
+        {
+          error: "PAYMENT_ORDER_MISMATCH",
+          reference,
+          order_id: order.id,
+          order_number: order.order_number,
+          gateway_external_id: gatewayExternalId,
+        },
+        409,
+      );
     }
 
     let newPaymentStatus = order.payment_status ?? "pending";
@@ -178,8 +182,6 @@ serve(async (req) => {
       newPaymentStatus = "pending";
     }
 
-    let notification: unknown = null;
-
     if (newPaymentStatus !== order.payment_status) {
       const update: Record<string, string> = {
         payment_status: newPaymentStatus,
@@ -189,26 +191,34 @@ serve(async (req) => {
         update.status = "new_order";
       }
 
-      const { error: updateOrderError } = await supabase
+      const { error } = await supabase
         .from("orders")
         .update(update)
         .eq("id", order.id);
 
-      if (updateOrderError) {
-        return json({
-          error: "ORDER_PAYMENT_UPDATE_FAILED",
-          message: updateOrderError.message,
-          reference,
-          order_id: order.id,
-          payment_status: order.payment_status,
-          gateway_status: upstreamStatus,
-        }, 500);
+      if (error) {
+        return json(
+          {
+            error: "ORDER_PAYMENT_UPDATE_FAILED",
+            message: error.message,
+            reference,
+            order_id: order.id,
+            payment_status: order.payment_status,
+            gateway_status: upstreamStatus,
+          },
+          500,
+        );
       }
+
+      // Keep the local representation used below consistent with the DB write.
+      order.payment_status = newPaymentStatus;
+      if (update.status) order.status = update.status;
     }
 
-    // Dispatch on every confirmed-paid poll. Resend's stable idempotency key
-    // prevents duplicate sends during normal payment polling, while allowing
-    // a later poll to recover from a transient notification failure.
+    // Payment is authoritative. Email is a secondary notification and can
+    // never make a successful payment fail.
+    let notification: unknown = null;
+
     if (newPaymentStatus === "paid") {
       const functionBaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
       const serviceRoleKey =
@@ -217,7 +227,7 @@ serve(async (req) => {
       if (functionBaseUrl && serviceRoleKey) {
         try {
           const notificationResponse = await fetch(
-            functionBaseUrl.replace(/\\/$/, "") +
+            functionBaseUrl.replace(/\/$/, "") +
               "/functions/v1/notification-dispatch",
             {
               method: "POST",
@@ -234,13 +244,14 @@ serve(async (req) => {
                 phone: order.customer_phone_snapshot ?? "",
                 total: order.total,
                 payment_method: order.payment_method,
-                status: "new_order",
+                status: order.status ?? "new_order",
                 channels: ["email"],
               }),
             },
           );
 
           const notificationText = await notificationResponse.text();
+
           try {
             notification = JSON.parse(notificationText);
           } catch {
@@ -249,12 +260,10 @@ serve(async (req) => {
               raw: notificationText,
             };
           }
-        } catch (notificationError) {
-          // Never turn a successful payment into a failed payment because
-          // an email provider is temporarily unavailable.
+        } catch (error) {
           notification = {
             status: "dispatch_failed",
-            message: String(notificationError),
+            message: String(error),
           };
         }
       } else {
@@ -262,79 +271,6 @@ serve(async (req) => {
           status: "not_configured",
           message: "Supabase function environment is incomplete",
         };
-      }
-    }
-
-    return json({
-          error: "ORDER_PAYMENT_UPDATE_FAILED",
-          message: updateOrderError.message,
-          reference,
-          order_id: order.id,
-          payment_status: order.payment_status,
-          gateway_status: upstreamStatus,
-        }, 500);
-      }
-
-      // Only dispatch the confirmation after the database transition to
-      // "paid" succeeds. The notification service uses a stable Resend
-      // idempotency key so polling/retries do not create duplicate emails.
-      if (newPaymentStatus === "paid") {
-        const functionBaseUrl =
-          Deno.env.get("SUPABASE_URL") ??
-          "";
-
-        const serviceRoleKey =
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
-          "";
-
-        if (functionBaseUrl && serviceRoleKey) {
-          try {
-            const notificationResponse = await fetch(
-              functionBaseUrl.replace(/\\/$/, "") +
-                "/functions/v1/notification-dispatch",
-              {
-                method: "POST",
-                headers: {
-                  "Authorization": `Bearer ${serviceRoleKey}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  event: "payment_confirmed",
-                  order_id: order.id,
-                  order_number: order.order_number,
-                  customer_name: order.customer_name_snapshot ?? "",
-                  email: order.customer_email_snapshot ?? "",
-                  phone: order.customer_phone_snapshot ?? "",
-                  total: order.total,
-                  payment_method: order.payment_method,
-                  status: "new_order",
-                  channels: ["email"],
-                }),
-              },
-            );
-
-            const notificationText = await notificationResponse.text();
-            try {
-              notification = JSON.parse(notificationText);
-            } catch {
-              notification = {
-                http_status: notificationResponse.status,
-                raw: notificationText,
-              };
-            }
-          } catch (notificationError) {
-            // Notification failure must never undo a verified payment.
-            notification = {
-              status: "dispatch_failed",
-              message: String(notificationError),
-            };
-          }
-        } else {
-          notification = {
-            status: "not_configured",
-            message: "Supabase function environment is incomplete",
-          };
-        }
       }
     }
 
