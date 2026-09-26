@@ -197,10 +197,11 @@ serve(async (req) => {
         },
         409,
       );
-   
+    }
 
     const gatewayAmount = gatewayBody?.amount;
     const gatewayCurrency = gatewayBody?.currency;
+
     if (
       gatewayAmount != null &&
       Number(gatewayAmount) !== Number(txLookup.data?.amount)
@@ -227,7 +228,6 @@ serve(async (req) => {
         gateway_currency: gatewayCurrency,
       }, 409);
     }
- }
 
     const previousPaymentStatus = order.payment_status ?? "pending";
     let newPaymentStatus = previousPaymentStatus;
