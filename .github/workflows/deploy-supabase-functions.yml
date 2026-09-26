@@ -54,6 +54,9 @@ jobs:
       - name: Deploy payment-status
         run: supabase functions deploy payment-status --project-ref "${SUPABASE_PROJECT_ID}"
 
+      - name: Deploy analytics-dashboard
+        run: supabase functions deploy analytics-dashboard --project-ref "${SUPABASE_PROJECT_ID}"
+
       - name: Deployment complete
         run: |
-          echo "Nile Tropical tracking and payment functions deployed successfully."
+          echo "Nile Tropical tracking, payment and analytics functions deployed successfully."
