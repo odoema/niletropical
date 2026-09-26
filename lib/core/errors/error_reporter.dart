@@ -136,18 +136,18 @@ class ErrorReporter {
 
   static String? _errorCode(Object error) {
     if (error is PostgrestException) return error.code;
-    final match = RegExp(r'\\b(PGRST\\d{3}|[0-9A-Z]{5})\\b').firstMatch(error.toString());
+    final match = RegExp(r'\b(PGRST\d{3}|[0-9A-Z]{5})\b').firstMatch(error.toString());
     return match?.group(1);
   }
 
   static String _redact(String value) {
     var result = value;
     result = result.replaceAll(
-      RegExp(r'Bearer\\s+[A-Za-z0-9._-]+', caseSensitive: false),
+      RegExp(r'Bearer\s+[A-Za-z0-9._-]+', caseSensitive: false),
       'Bearer [REDACTED]',
     );
     result = result.replaceAll(
-      RegExp(r'(password|token|secret|authorization|access_token|refresh_token)=([^,\\s}]+)', caseSensitive: false),
+      RegExp(r'(password|token|secret|authorization|access_token|refresh_token)=([^,\s}]+)', caseSensitive: false),
       r'$1=[REDACTED]',
     );
     return result.length > 4000 ? result.substring(0, 4000) : result;
