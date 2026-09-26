@@ -7,6 +7,7 @@ import '../../core/constants/payment_methods.dart';
 class PaymentService {
   static Future<Map<String, dynamic>> initiate({
     required String orderId,
+    String? orderNumber,
     required String method,
     String? phone,
   }) async {
@@ -26,6 +27,7 @@ class PaymentService {
       'payment-initiate',
       body: {
         'order_id': orderId,
+        'order_number': orderNumber,
         'method': normalized,
         'phone': phone,
       },
