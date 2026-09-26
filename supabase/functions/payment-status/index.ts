@@ -1,4 +1,4 @@
-// payment-status — server-side MTN verification and reconciliation
+// payment-status — server-side MTN verification and order reconciliation
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -14,44 +14,77 @@ function json(data: unknown, status = 200) {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: cors });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { status: 200, headers: cors });
+  }
 
   try {
-    let reference: string | null = null;
     const url = new URL(req.url);
-    reference = url.searchParams.get("reference");
-
-    if (!reference) {
-      const body = await req.json().catch(() => ({}));
-      reference = body.reference ?? null;
+    let body: any = {};
+    if (req.method !== "GET") {
+      body = await req.json().catch(() => ({}));
     }
 
+    const reference =
+      url.searchParams.get("reference") ??
+      body.reference ??
+      null;
+    const orderId = body.order_id ?? url.searchParams.get("order_id");
+    const orderNumber =
+      body.order_number ?? url.searchParams.get("order_number");
+
     if (!reference) return json({ error: "reference required" }, 400);
+    if (!orderId && !orderNumber) {
+      return json({ error: "order_id or order_number required" }, 400);
+    }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: payment, error: paymentError } = await supabase
-      .from("payments")
-      .select("id, order_id, status, method, provider_reference, amount")
-      .eq("provider_reference", reference)
-      .maybeSingle();
+    let order: any = null;
+    let orderError: any = null;
 
-    if (paymentError) {
-      return json({ error: paymentError.message }, 500);
+    if (orderId) {
+      const byId = await supabase
+        .from("orders")
+        .select("id, order_number, status, payment_status, payment_method, total")
+        .eq("id", orderId)
+        .maybeSingle();
+      order = byId.data;
+      orderError = byId.error;
     }
 
-    if (!payment) return json({ error: "Not found" }, 404);
+    if (!order && orderNumber) {
+      const byNumber = await supabase
+        .from("orders")
+        .select("id, order_number, status, payment_status, payment_method, total")
+        .eq("order_number", orderNumber)
+        .maybeSingle();
+      order = byNumber.data;
+      orderError = byNumber.error;
+    }
 
-    // Only MTN payments are verified against the MTN gateway.
-    if (payment.method !== "mtn_momo") {
+    if (orderError) {
+      return json({ error: orderError.message }, 500);
+    }
+    if (!order) {
+      return json({
+        error: "Order not found",
+        order_id: orderId ?? null,
+        order_number: orderNumber ?? null,
+      }, 404);
+    }
+
+    if (order.payment_method !== "mtn_momo") {
       return json({
         reference,
-        status: payment.status,
-        order_id: payment.order_id,
-        method: payment.method,
+        status: order.payment_status,
+        order_id: order.id,
+        order_number: order.order_number,
+        method: order.payment_method,
+        reconciled: order.payment_status === "paid",
       });
     }
 
@@ -93,15 +126,16 @@ serve(async (req) => {
     if (!gatewayResponse.ok) {
       return json({
         reference,
-        status: payment.status,
-        order_id: payment.order_id,
+        status: order.payment_status,
+        order_id: order.id,
+        order_number: order.order_number,
         gateway_http_status: gatewayResponse.status,
         gateway: gatewayData,
       }, 502);
     }
 
     const upstreamStatus = gatewayData?.body?.status ?? null;
-    let newPaymentStatus = payment.status;
+    let newPaymentStatus = order.payment_status ?? "pending";
 
     if (upstreamStatus === "SUCCESSFUL") {
       newPaymentStatus = "paid";
@@ -114,44 +148,29 @@ serve(async (req) => {
       newPaymentStatus = "pending";
     }
 
-    if (newPaymentStatus !== payment.status) {
-      const { error: updatePaymentError } = await supabase
-        .from("payments")
-        .update({ status: newPaymentStatus })
-        .eq("id", payment.id);
+    if (newPaymentStatus !== order.payment_status) {
+      const { error: updateOrderError } = await supabase
+        .from("orders")
+        .update({ payment_status: newPaymentStatus })
+        .eq("id", order.id);
 
-      if (updatePaymentError) {
+      if (updateOrderError) {
         return json({
-          error: updatePaymentError.message,
+          error: updateOrderError.message,
           reference,
+          order_id: order.id,
+          payment_status: order.payment_status,
           gateway_status: upstreamStatus,
         }, 500);
-      }
-
-      if (newPaymentStatus === "paid") {
-        const { error: updateOrderError } = await supabase
-          .from("orders")
-          .update({
-            payment_status: "paid",
-          })
-          .eq("id", payment.order_id);
-
-        if (updateOrderError) {
-          return json({
-            error: updateOrderError.message,
-            reference,
-            payment_status: "paid",
-            gateway_status: upstreamStatus,
-          }, 500);
-        }
       }
     }
 
     return json({
       reference,
       status: newPaymentStatus,
-      order_id: payment.order_id,
-      method: payment.method,
+      order_id: order.id,
+      order_number: order.order_number,
+      method: "mtn_momo",
       gateway_status: upstreamStatus,
       financial_transaction_id:
         gatewayData?.body?.financialTransactionId ?? null,
