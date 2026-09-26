@@ -468,7 +468,7 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
       dropdownColor: NileColors.primaryDark,
       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
       decoration: InputDecoration(
-        labelText: 'Pricing zone',
+        labelText: 'Service zone',
         labelStyle: const TextStyle(color: Colors.white70),
         prefixIcon: const Icon(Icons.price_check_rounded, color: Colors.white70),
         filled: true,
