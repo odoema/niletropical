@@ -179,9 +179,20 @@ serve(async (req) => {
     }
 
     if (newPaymentStatus !== order.payment_status) {
+      const update: Record<string, string> = {
+        payment_status: newPaymentStatus,
+      };
+
+      // Payment is the gate between payment_pending and the normal order
+      // processing pipeline. Once MTN confirms success, release the order to
+      // the fulfilment workflow.
+      if (newPaymentStatus === "paid" && order.status === "payment_pending") {
+        update.status = "new_order";
+      }
+
       const { error: updateOrderError } = await supabase
         .from("orders")
-        .update({ payment_status: newPaymentStatus })
+        .update(update)
         .eq("id", order.id);
 
       if (updateOrderError) {
