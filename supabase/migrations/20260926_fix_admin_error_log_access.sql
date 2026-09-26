@@ -125,3 +125,5 @@ $$;
 revoke all on function public.record_app_error(text,text,text,text,text,text,text,text,text,jsonb) from public;
 grant execute on function public.record_app_error(text,text,text,text,text,text,text,text,text,jsonb) to anon;
 grant execute on function public.record_app_error(text,text,text,text,text,text,text,text,text,jsonb) to authenticated;
+
+-- Re-run trigger: apply only when needed; all statements above are idempotent.
