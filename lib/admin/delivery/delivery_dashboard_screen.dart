@@ -352,7 +352,7 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
               ],
             ),
             const SizedBox(height: 4),
-            Text('Search a destination, calculate a road route and produce an operational delivery estimate.', style: TextStyle(color: Colors.white.withValues(alpha: .82), fontSize: 12)),
+            Text('Search a destination, calculate the road route and produce a distance-based delivery quote.', style: TextStyle(color: Colors.white.withValues(alpha: .82), fontSize: 12)),
             const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, c) {
