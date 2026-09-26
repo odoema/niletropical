@@ -102,3 +102,32 @@ More granular live policies already exist for:
 
 ## Safety rule
 No destructive database reset, broad migration replay, automatic production migration push, payment-function replacement, or fabricated production data may be used to make repository history appear consistent.
+
+
+## 2026-09-27 continued authorization/payment audit
+
+### NEW findings
+- Live payment-webhook is ACTIVE v17 but the reconciliation branch previously had no repository source for it. A repository snapshot/repair was added at supabase/functions/payment-webhook/index.ts.
+- Live webhook writes order_status_history.notes, but the live column is note. The repaired branch source uses note and now checks critical write errors instead of silently returning success.
+- Live update_order_status() contains payment_failed in its transition matrix but omitted it from the accepted status list. A repository migration repairs that mismatch.
+- Live analytics-dashboard v5 accepts a broader set of staff roles than the documented role matrix. Branch source now limits the analytics gateway to super_admin, manager, and finance.
+- Broad is_staff() policies remain LIVE and were not changed in production. A repository-only migration records narrow role replacements for operational tables; it is NOT deployed.
+- Supabase production remains ououfhsswyqutcczdtnb. No production migration or Edge Function deployment was performed in this pass.
+
+### KEEP
+- Production database as source of truth.
+- Function-level authorization where already enforced.
+- Guest tracking and payment server authority.
+- No destructive reset or role-assignment changes.
+
+### REPAIR — repository only
+- supabase/functions/payment-webhook/index.ts
+- supabase/functions/analytics-dashboard/index.ts
+- supabase/migrations/20260927_authorization_lifecycle_reconciliation.sql
+
+### PENDING
+- Review and test the new RLS migration with non-production role fixtures before any production application.
+- Verify MTN callback authentication/signature contract; current live integration has no verified callback signature field, so gateway status reconciliation remains the independent confirmation control.
+- Run Flutter validation against the latest branch head after the current commits settle.
+- Re-run Supabase security/performance advisors after any eventual production RLS change.
+- No deployment is authorized by this audit step.
