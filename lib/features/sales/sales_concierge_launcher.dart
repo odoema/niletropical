@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../shared/services/supabase_service.dart';
 
 class SalesConciergeLauncher extends StatefulWidget {
   const SalesConciergeLauncher({super.key, required this.child});
@@ -18,6 +19,14 @@ class SalesConciergeLauncher extends StatefulWidget {
 class _SalesConciergeLauncherState extends State<SalesConciergeLauncher>
     with SingleTickerProviderStateMixin {
   static const _seenKey = 'nile_tropical_concierge_seen_v1';
+
+  String get _visitorSeenKey {
+    try {
+      final userId = SupabaseService.client.auth.currentUser?.id;
+      if (userId != null && userId.isNotEmpty) return '${_seenKey}_user_$userId';
+    } catch (_) {}
+    return '${_seenKey}_guest';
+  }
 
   late final AnimationController _controller;
   Timer? _welcomeTimer;
@@ -47,7 +56,7 @@ class _SalesConciergeLauncherState extends State<SalesConciergeLauncher>
 
   Future<void> _prepareWelcome() async {
     final prefs = await SharedPreferences.getInstance();
-    final seen = prefs.getBool(_seenKey) ?? false;
+    final seen = prefs.getBool(_visitorSeenKey) ?? false;
     if (!mounted) return;
     setState(() => _firstVisit = !seen);
     if (!seen) {
@@ -55,7 +64,7 @@ class _SalesConciergeLauncherState extends State<SalesConciergeLauncher>
         if (!mounted) return;
         setState(() => _open = true);
         _controller.forward();
-        prefs.setBool(_seenKey, true);
+        prefs.setBool(_visitorSeenKey, true);
       });
     }
   }
