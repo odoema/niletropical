@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/errors/error_reporter.dart';
 
 class ProductImageManagerScreen extends ConsumerStatefulWidget {
   const ProductImageManagerScreen({super.key});
@@ -83,6 +84,45 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
     }
   }
 
+  Future<void> _editAltText(Map<String, dynamic> image, String productName) async {
+    final controller = TextEditingController(text: image['alt_text']?.toString() ?? '');
+    final value = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit image alt text'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 160,
+          maxLines: 3,
+          decoration: InputDecoration(
+            labelText: 'Alt text',
+            hintText: 'Describe this product image for search and accessibility',
+            helperText: 'Use a concise, accurate description. Do not keyword-stuff.',
+            suffixIcon: IconButton(tooltip: 'Use product name', onPressed: () => controller.text = productName, icon: const Icon(Icons.auto_fix_high_outlined)),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('Save')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (value == null) return;
+    final imageId = image['id']?.toString();
+    if (imageId == null || imageId.isEmpty) return;
+    try {
+      await SupabaseService.client.from('product_images').update({'alt_text': value}).eq('id', imageId);
+      if (!mounted) return;
+      setState(() => _products = _loadProducts());
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image alt text updated')));
+    } catch (e, st) {
+      await ErrorReporter.report(e, stackTrace: st, source: 'admin_product_images', action: 'update_image_alt_text');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not update alt text. ' + ErrorReporter.friendlyMessage(e)), backgroundColor: NileColors.error));
+    }
+  }
   Future<void> _setMain(String productId, String imageId) async {
     try {
       await SupabaseService.client.from('product_images').update({'is_main': false}).eq('product_id', productId);
@@ -156,12 +196,20 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
             )),
           Positioned(
             right: 4, top: 4,
-            child: IconButton(
-              tooltip: 'Delete image',
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              IconButton(
+                tooltip: 'Edit alt text',
+                style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: .92), padding: const EdgeInsets.all(7), minimumSize: const Size(34, 34)),
+                onPressed: () => _editAltText(image, _displayName(product)),
+                icon: Icon(Icons.accessibility_new_outlined, color: (image['alt_text']?.toString().trim().isNotEmpty ?? false) ? NileColors.primary : NileColors.warning, size: 18),
+              ),
+              IconButton(
+                tooltip: 'Delete image',
               style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: .92), padding: const EdgeInsets.all(7), minimumSize: const Size(34, 34)),
               onPressed: () => _deleteImage(product['id'].toString(), image),
-              icon: const Icon(Icons.delete_outline, color: NileColors.error, size: 18),
-            ),
+                icon: const Icon(Icons.delete_outline, color: NileColors.error, size: 18),
+              ),
+            ]),
           ),
           Positioned(
             left: 5, right: 5, bottom: 5,
@@ -264,6 +312,12 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
                                     ),
                             ),
                             const SizedBox(height: 7),
+                            if (images.any((image) => (image['alt_text']?.toString().trim().isEmpty ?? true)))
+                              const Padding(
+                                padding: EdgeInsets.only(top: 4),
+                                child: Row(children: [Icon(Icons.warning_amber_rounded, size: 14, color: NileColors.warning), SizedBox(width: 4), Text('Alt text needs attention', style: TextStyle(fontSize: 10, color: NileColors.warning, fontWeight: FontWeight.w700))]),
+                              ),
+                            const SizedBox(height: 3),
                             Row(
                               children: [
                                 Text('${images.length} image${images.length == 1 ? '' : 's'}', style: Theme.of(context).textTheme.bodySmall),
