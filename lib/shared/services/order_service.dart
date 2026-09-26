@@ -1,6 +1,9 @@
 /// Nile Tropical - Order Service
-/// Aligned to create_order v2 (idempotency, server-side fee)
-/// Copyright © Hon. Dr. Betty Udongo Pacutho
+/// Server-side order creation and tracking.
+///
+/// Tracking intentionally uses the track-order Edge Function instead of the
+/// legacy track_order SQL RPC. The live database uses customer_phone_snapshot,
+/// and the Edge Function gives us one canonical production tracking path.
 
 import 'package:uuid/uuid.dart';
 
@@ -11,7 +14,6 @@ import '../../core/config/env.dart';
 class OrderService {
   static final _uuid = Uuid();
 
-  /// Create order via RPC create_order.
   static Future<Map<String, dynamic>> createOrder({
     required Cart cart,
     required String fullName,
@@ -65,9 +67,9 @@ class OrderService {
     return Map<String, dynamic>.from(res as Map);
   }
 
-  /// Track an existing order using order number and customer phone.
-  /// Also accepts a legacy database UUID and resolves it to the real order
-  /// number before calling the tracking RPC.
+  /// Track an order by its displayed order number or a legacy database UUID.
+  /// The Edge Function resolves the UUID when necessary and verifies the
+  /// checkout phone against the canonical customer_phone_snapshot.
   static Future<Map<String, dynamic>?> trackOrder({
     required String orderNumber,
     required String phone,
@@ -81,7 +83,7 @@ class OrderService {
         'total': 0,
         'timeline': [
           {
-            'status': 'new',
+            'status': 'new_order',
             'note': 'Order created',
             'created_at': DateTime.now().toIso8601String(),
           },
@@ -95,36 +97,19 @@ class OrderService {
       };
     }
 
-    var lookupOrderNumber = orderNumber;
-    var lookupPhone = phone;
-
-    final uuidPattern = RegExp(
-      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
-    );
-
-    if (uuidPattern.hasMatch(orderNumber)) {
-      final order = await SupabaseService.client
-          .from('orders')
-          .select('order_number, customer_phone_snapshot')
-          .eq('id', orderNumber)
-          .maybeSingle();
-
-      if (order != null) {
-        lookupOrderNumber =
-            order['order_number']?.toString() ?? lookupOrderNumber;
-        lookupPhone =
-            order['customer_phone_snapshot']?.toString() ?? lookupPhone;
-      }
-    }
-
-    final res = await SupabaseService.client.rpc(
-      'track_order',
-      params: {
-        'p_order_number': lookupOrderNumber,
-        'p_phone': lookupPhone,
+    final response = await SupabaseService.client.functions.invoke(
+      'track-order',
+      body: {
+        'order_number': orderNumber,
+        'phone': phone,
       },
     );
 
-    return res == null ? null : Map<String, dynamic>.from(res as Map);
+    final data = response.data;
+    if (data is Map) {
+      return Map<String, dynamic>.from(data);
+    }
+
+    throw StateError('track-order returned an unexpected payload');
   }
 }
