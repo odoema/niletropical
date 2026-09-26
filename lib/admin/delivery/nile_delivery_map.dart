@@ -5,7 +5,13 @@ import 'package:latlong2/latlong.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/services/location_search_service.dart';
 
-class NileDeliveryMap extends StatelessWidget {
+/// Interactive delivery map used by both checkout and the admin delivery console.
+///
+/// The map deliberately uses a controller and re-fits whenever the origin,
+/// destination, or route changes. FlutterMap's initialCameraFit is only applied
+/// when the map is first created, so relying on it alone can leave a newly
+/// selected destination outside the viewport.
+class NileDeliveryMap extends StatefulWidget {
   const NileDeliveryMap({
     super.key,
     required this.origin,
@@ -20,35 +26,87 @@ class NileDeliveryMap extends StatelessWidget {
   final double height;
 
   @override
-  Widget build(BuildContext context) {
-    final originPoint = LatLng(origin.latitude, origin.longitude);
-    final destinationPoint = LatLng(destination.latitude, destination.longitude);
-    final routePoints = route?.geometry
-            .map((p) => LatLng(p[0], p[1]))
-            .toList(growable: false) ??
-        const <LatLng>[];
+  State<NileDeliveryMap> createState() => _NileDeliveryMapState();
+}
 
-    final points = <LatLng>[
-      originPoint,
-      destinationPoint,
-      ...routePoints,
-    ];
+class _NileDeliveryMapState extends State<NileDeliveryMap> {
+  final MapController _mapController = MapController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fitToRoute());
+  }
+
+  @override
+  void didUpdateWidget(covariant NileDeliveryMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final changed = oldWidget.origin.latitude != widget.origin.latitude ||
+        oldWidget.origin.longitude != widget.origin.longitude ||
+        oldWidget.destination.latitude != widget.destination.latitude ||
+        oldWidget.destination.longitude != widget.destination.longitude ||
+        oldWidget.route?.distanceKm != widget.route?.distanceKm ||
+        oldWidget.route?.geometry.length != widget.route?.geometry.length;
+
+    if (changed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fitToRoute());
+    }
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  List<LatLng> get _routePoints => widget.route?.geometry
+          .map((p) => LatLng(p[0], p[1]))
+          .toList(growable: false) ??
+      const <LatLng>[];
+
+  List<LatLng> get _allPoints => <LatLng>[
+        LatLng(widget.origin.latitude, widget.origin.longitude),
+        LatLng(widget.destination.latitude, widget.destination.longitude),
+        ..._routePoints,
+      ];
+
+  void _fitToRoute() {
+    if (!mounted) return;
+    final points = _allPoints;
+    if (points.length < 2) return;
+
+    _mapController.fitCamera(
+      CameraFit.coordinates(
+        coordinates: points,
+        padding: const EdgeInsets.all(54),
+        maxZoom: 16,
+        minZoom: 9,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final routePoints = _routePoints;
+    final points = _allPoints;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: SizedBox(
-        height: height,
+        height: widget.height,
         child: Stack(
           children: [
             FlutterMap(
+              mapController: _mapController,
               options: MapOptions(
                 initialCenter: _center(points),
                 initialZoom: _zoom(points),
                 initialCameraFit: points.length >= 2
                     ? CameraFit.coordinates(
                         coordinates: points,
-                        padding: const EdgeInsets.all(42),
+                        padding: const EdgeInsets.all(54),
                         maxZoom: 16,
+                        minZoom: 9,
                       )
                     : null,
                 interactionOptions: const InteractionOptions(
@@ -75,13 +133,13 @@ class NileDeliveryMap extends StatelessWidget {
                 MarkerLayer(
                   markers: [
                     Marker(
-                      point: originPoint,
+                      point: LatLng(widget.origin.latitude, widget.origin.longitude),
                       width: 44,
                       height: 44,
                       child: _pin(Icons.storefront_rounded, NileColors.primary),
                     ),
                     Marker(
-                      point: destinationPoint,
+                      point: LatLng(widget.destination.latitude, widget.destination.longitude),
                       width: 44,
                       height: 44,
                       child: _pin(Icons.location_on_rounded, NileColors.accent),
@@ -103,7 +161,28 @@ class NileDeliveryMap extends StatelessWidget {
               left: 12,
               child: _legend(),
             ),
-            if (route == null)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Material(
+                color: Colors.white,
+                elevation: 3,
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: _fitToRoute,
+                  child: const Padding(
+                    padding: EdgeInsets.all(9),
+                    child: Icon(
+                      Icons.center_focus_strong_rounded,
+                      size: 18,
+                      color: NileColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (widget.route == null)
               Positioned(
                 right: 12,
                 bottom: 12,
@@ -148,11 +227,17 @@ class NileDeliveryMap extends StatelessWidget {
           children: [
             const Icon(Icons.storefront_rounded, size: 16, color: NileColors.primary),
             const SizedBox(width: 5),
-            const Text('Nile Tropical', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+            const Text(
+              'Nile Tropical',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+            ),
             const SizedBox(width: 10),
             Icon(Icons.location_on_rounded, size: 16, color: NileColors.accent),
             const SizedBox(width: 5),
-            const Text('Customer', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+            const Text(
+              'Customer',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+            ),
           ],
         ),
       ),
@@ -171,7 +256,10 @@ class NileDeliveryMap extends StatelessWidget {
           children: [
             Icon(icon, size: 15, color: NileColors.primary),
             const SizedBox(width: 5),
-            Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
+            Text(
+              text,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+            ),
           ],
         ),
       ),
@@ -180,16 +268,20 @@ class NileDeliveryMap extends StatelessWidget {
 
   LatLng _center(List<LatLng> points) {
     if (points.isEmpty) return const LatLng(0, 0);
-    final lat = points.map((p) => p.latitude).reduce((a, b) => a + b) / points.length;
-    final lng = points.map((p) => p.longitude).reduce((a, b) => a + b) / points.length;
+    final lat =
+        points.map((p) => p.latitude).reduce((a, b) => a + b) / points.length;
+    final lng =
+        points.map((p) => p.longitude).reduce((a, b) => a + b) / points.length;
     return LatLng(lat, lng);
   }
 
   double _zoom(List<LatLng> points) {
     if (points.length < 2) return 12;
-    final latSpan = points.map((p) => p.latitude).reduce((a, b) => a > b ? a : b) -
+    final latSpan =
+        points.map((p) => p.latitude).reduce((a, b) => a > b ? a : b) -
         points.map((p) => p.latitude).reduce((a, b) => a < b ? a : b);
-    final lngSpan = points.map((p) => p.longitude).reduce((a, b) => a > b ? a : b) -
+    final lngSpan =
+        points.map((p) => p.longitude).reduce((a, b) => a > b ? a : b) -
         points.map((p) => p.longitude).reduce((a, b) => a < b ? a : b);
     final span = latSpan > lngSpan ? latSpan : lngSpan;
     if (span < 0.01) return 14;
