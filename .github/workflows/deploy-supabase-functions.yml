@@ -67,7 +67,33 @@ jobs:
 
           echo "Listing live migration history..."
           supabase migration list --db-url "${DB_URL}"
-          echo "Applying only migrations not already recorded on the live project..."
+
+          # The original 001-015 migrations are archived because production
+          # was built from that schema outside the current migration history.
+          # Migrations 016-024 are legacy order/stock/RPC files and are
+          # incompatible with the live production schema (for example, 016
+          # expects a payment_method enum that the live production schema does
+          # not use). They must be recorded as applied, not executed.
+          #
+          # migration repair changes ONLY Supabase migration history; it does
+          # not execute SQL. This safely baselines already-existing production
+          # changes before the dated 2026 migrations are applied.
+          LEGACY_VERSIONS=(016 017 018 019 020 021 022 023 024)
+          MIGRATION_STATUS="$(supabase migration list --db-url "${DB_URL}")"
+
+          for VERSION in "${LEGACY_VERSIONS[@]}"; do
+            if printf "%s\n" "${MIGRATION_STATUS}" | grep -Eq "^.*\|[[:space:]]*\`${VERSION}\`[[:space:]]*\|"; then
+              echo "Legacy migration ${VERSION} is already recorded on production."
+            else
+              echo "Baselining legacy migration ${VERSION} as applied (history only)..."
+              supabase migration repair "${VERSION}" --status applied --db-url "${DB_URL}"
+            fi
+          done
+
+          echo "Migration history after baseline repair:"
+          supabase migration list --db-url "${DB_URL}"
+
+          echo "Applying only the dated production migrations..."
           supabase db push --db-url "${DB_URL}"
 
       - name: Deploy track-order
