@@ -49,7 +49,7 @@ class CodService {
           .from('cod_collections')
           .select(_select)
           .filter('collected_at', 'is', null)
-          .order('created_at', ascending: false)
+          .order('collected_at', ascending: false, nullsFirst: true)
           .limit(limit);
       return List<Map<String, dynamic>>.from(rows);
     }
