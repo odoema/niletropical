@@ -145,22 +145,11 @@ serve(async (req) => {
         return json({ error: "MTN gateway secret is not configured" }, 500);
       }
 
+      // The live production database currently does not expose the legacy
+      // public.payments table. Do not block MTN charging on that table.
+      // The provider reference is returned to the client and payment-status
+      // reconciles the verified MTN result directly onto orders.payment_status.
       const reference = crypto.randomUUID();
-
-      const { data: payment, error: insertError } = await supabase
-        .from("payments")
-        .insert({
-          order_id: order.id,
-          method: "mtn_momo",
-          amount: order.total,
-          status: "pending",
-          provider: "mtn_momo",
-          provider_reference: reference,
-        })
-        .select("id, order_id, amount, status, provider_reference")
-        .single();
-
-      if (insertError) return json({ error: insertError.message }, 500);
 
       const gatewayResponse = await fetch(
         gatewayUrl.replace(/\/$/, "") + "/mtn/collection/request-to-pay",
