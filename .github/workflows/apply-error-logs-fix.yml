@@ -45,7 +45,34 @@ jobs:
           SQL="$(cat supabase/migrations/20260926_fix_admin_error_log_access.sql)"
           supabase db query --linked "${SQL}"
 
+      - name: Verify Error Logs objects
+        run: |
+          supabase db query --linked "
+            select
+              to_regclass('public.app_error_logs') as error_logs_table,
+              exists (
+                select 1 from pg_policies
+                where schemaname = 'public'
+                  and tablename = 'app_error_logs'
+                  and policyname = 'app_error_logs_staff_read'
+              ) as staff_read_policy,
+              exists (
+                select 1 from pg_policies
+                where schemaname = 'public'
+                  and tablename = 'app_error_logs'
+                  and policyname = 'app_error_logs_staff_update'
+              ) as staff_update_policy,
+              exists (
+                select 1
+                from pg_proc p
+                join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public'
+                  and p.proname = 'record_app_error'
+              ) as record_error_function;
+          "
+
       - name: Record successful production application
+        if: success()
         run: |
           mkdir -p ops
           cat > ops/last-error-log-fix.txt <<EOF
@@ -60,31 +87,3 @@ jobs:
           git add ops/last-error-log-fix.txt
           git commit -m "Record production error logs fix"
           git push
-
-      - name: Verify Error Logs objects
-        run: |
-          supabase db query --linked "
-            select
-              to_regclass('public.app_error_logs') as error_logs_table,
-              exists (
-                select 1
-                from pg_policies
-                where schemaname = 'public'
-                  and tablename = 'app_error_logs'
-                  and policyname = 'app_error_logs_staff_read'
-              ) as staff_read_policy,
-              exists (
-                select 1
-                from pg_policies
-                where schemaname = 'public'
-                  and tablename = 'app_error_logs'
-                  and policyname = 'app_error_logs_staff_update'
-              ) as staff_update_policy,
-              exists (
-                select 1
-                from pg_proc p
-                join pg_namespace n on n.oid = p.pronamespace
-                where n.nspname = 'public'
-                  and p.proname = 'record_app_error'
-              ) as record_error_function;
-          "
