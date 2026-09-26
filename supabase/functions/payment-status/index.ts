@@ -86,6 +86,19 @@ serve(async (req) => {
       return json({ error: "Order not found" }, 404);
     }
 
+    const txLookup = await supabase
+      .from("payment_transactions")
+      .select("id, status, provider_reference")
+      .eq("order_id", order.id)
+      .eq("provider_reference", reference)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (txLookup.error) {
+      return json({ error: "PAYMENT_TRANSACTION_LOOKUP_FAILED", message: txLookup.error.message }, 500);
+    }
+
     if (order.payment_method !== "mtn_momo") {
       return json({
         reference,
@@ -214,6 +227,21 @@ serve(async (req) => {
       // Keep the local representation used below consistent with the DB write.
       order.payment_status = newPaymentStatus;
       if (update.status) order.status = update.status;
+
+      if (txLookup.data?.id) {
+        await supabase
+          .from("payment_transactions")
+          .update({
+            status: newPaymentStatus === "paid" ? "successful" : newPaymentStatus,
+            completed_at: newPaymentStatus === "paid" || newPaymentStatus === "failed"
+              ? new Date().toISOString()
+              : null,
+            raw_response: gatewayData,
+            provider_transaction_id: gatewayBody?.financialTransactionId ?? null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", txLookup.data.id);
+      }
     }
 
     // Payment is authoritative. Email is a secondary notification and can
