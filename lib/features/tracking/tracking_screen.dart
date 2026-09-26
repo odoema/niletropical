@@ -93,6 +93,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final shipment = _result?['shipment'];
     return Scaffold(
       appBar: const NileAppBar(title: 'Track order'),
       body: ListView(
@@ -165,7 +166,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 ],
               ),
             ),
-            final shipment = _result!['shipment'];
             if (shipment is Map && shipment.isNotEmpty) ...[
               const SizedBox(height: NileSpacing.md),
               NileCard(
