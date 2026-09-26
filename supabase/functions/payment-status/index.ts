@@ -185,9 +185,6 @@ serve(async (req) => {
         payment_status: newPaymentStatus,
       };
 
-      // Payment is the gate between payment_pending and the normal order
-      // processing pipeline. Once MTN confirms success, release the order to
-      // the fulfilment workflow.
       if (newPaymentStatus === "paid" && order.status === "payment_pending") {
         update.status = "new_order";
       }
@@ -199,6 +196,76 @@ serve(async (req) => {
 
       if (updateOrderError) {
         return json({
+          error: "ORDER_PAYMENT_UPDATE_FAILED",
+          message: updateOrderError.message,
+          reference,
+          order_id: order.id,
+          payment_status: order.payment_status,
+          gateway_status: upstreamStatus,
+        }, 500);
+      }
+    }
+
+    // Dispatch on every confirmed-paid poll. Resend's stable idempotency key
+    // prevents duplicate sends during normal payment polling, while allowing
+    // a later poll to recover from a transient notification failure.
+    if (newPaymentStatus === "paid") {
+      const functionBaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+      const serviceRoleKey =
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+      if (functionBaseUrl && serviceRoleKey) {
+        try {
+          const notificationResponse = await fetch(
+            functionBaseUrl.replace(/\\/$/, "") +
+              "/functions/v1/notification-dispatch",
+            {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${serviceRoleKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                event: "payment_confirmed",
+                order_id: order.id,
+                order_number: order.order_number,
+                customer_name: order.customer_name_snapshot ?? "",
+                email: order.customer_email_snapshot ?? "",
+                phone: order.customer_phone_snapshot ?? "",
+                total: order.total,
+                payment_method: order.payment_method,
+                status: "new_order",
+                channels: ["email"],
+              }),
+            },
+          );
+
+          const notificationText = await notificationResponse.text();
+          try {
+            notification = JSON.parse(notificationText);
+          } catch {
+            notification = {
+              http_status: notificationResponse.status,
+              raw: notificationText,
+            };
+          }
+        } catch (notificationError) {
+          // Never turn a successful payment into a failed payment because
+          // an email provider is temporarily unavailable.
+          notification = {
+            status: "dispatch_failed",
+            message: String(notificationError),
+          };
+        }
+      } else {
+        notification = {
+          status: "not_configured",
+          message: "Supabase function environment is incomplete",
+        };
+      }
+    }
+
+    return json({
           error: "ORDER_PAYMENT_UPDATE_FAILED",
           message: updateOrderError.message,
           reference,
