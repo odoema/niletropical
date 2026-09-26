@@ -139,7 +139,7 @@ function productPage(product) {
     };
   });
 
-  const productSchema = variants.length > 1 ? {
+  const productSchema = variants.length === 0 ? null : variants.length > 1 ? {
     '@type': 'ProductGroup',
     '@id': canonical + '#product-group',
     name: product.name,
@@ -173,7 +173,7 @@ function productPage(product) {
   const schema = {
     '@context': 'https://schema.org',
     '@graph': [
-      productSchema,
+      ...(productSchema ? [productSchema] : []),
       ...(variants.length > 1 ? variantSchemas : []),
       {
         '@type':'WebPage',
@@ -227,7 +227,7 @@ function productPage(product) {
     '<main>' + breadcrumbHtml + '<div class="hero"><div class="gallery">' + gallery + '</div><div><p style="color:#08783d;font-weight:800;text-transform:uppercase;letter-spacing:.08em">Nile Tropical product</p><h1>' + esc(product.name) + '</h1><p class="desc">' + esc(description) + '</p>' +
     (price != null ? '<div class="price">From UGX ' + money(price) + '</div>' : '') +
     '<a class="btn" href="' + site + '/app/#/product/' + encodeURIComponent(slug) + '">View and order online</a>' + variantHtml + '</div></div>' + sections + '</main></div>' +
-    relatedHtml +
+    '<div class="wrap">' + relatedHtml + '</div>' +
     '<footer><div class="wrap">Nile Tropical Industries (U) Ltd · Nebbi Municipality, Uganda · <a href="' + site + '/">Official website</a></div></footer>' +
     '<script type="application/ld+json">' + json(schema) + '</script></body></html>';
 }
