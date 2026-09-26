@@ -344,6 +344,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 return null;
               },
             ),
+            const SizedBox(height: 6),
+            Text(
+              'Delivery quote: UGX 2,500 + UGX 450 per road kilometre.',
+              style: NileTypography.bodySmall,
+            ),
             const SizedBox(
               height: NileSpacing.sm,
             ),
