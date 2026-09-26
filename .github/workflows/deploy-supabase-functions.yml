@@ -1,5 +1,6 @@
 name: Deploy Supabase Edge Functions
-# Secret configured: trigger deployment
+# Production function deployment for Nile Tropical.
+# Secret configured: SUPABASE_ACCESS_TOKEN
 
 on:
   push:
@@ -41,6 +42,9 @@ jobs:
           fi
           echo "Supabase project: ${SUPABASE_PROJECT_ID}"
 
+      - name: Deploy track-order
+        run: supabase functions deploy track-order --project-ref "${SUPABASE_PROJECT_ID}"
+
       - name: Deploy payment-initiate
         run: supabase functions deploy payment-initiate --project-ref "${SUPABASE_PROJECT_ID}"
 
@@ -49,4 +53,4 @@ jobs:
 
       - name: Deployment complete
         run: |
-          echo "MTN payment functions deployed successfully."
+          echo "Nile Tropical tracking and payment functions deployed successfully."
