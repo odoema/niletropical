@@ -27,7 +27,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
     }
     setState(() { _loading = true; _error = null; });
     try {
-      final rows = await SupabaseService.client.from('pricing_recommendations').select().order('created_at', ascending: false);
+      final rows = await SupabaseService.client.from('pricing_recommendations').select('*, product_variants!pricing_recommendations_variant_id_fkey(name, sku, price)').order('created_at', ascending: false);
       if (!mounted) return;
       setState(() { _rows = List<Map<String, dynamic>>.from(rows); _loading = false; });
     } catch (e, stack) {
@@ -94,7 +94,8 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
       return;
     }
 
-    final product = (row['product_name'] ?? row['product_variant_name'] ?? 'this product').toString();
+    final variant = row['product_variants'] is Map ? Map<String, dynamic>.from(row['product_variants'] as Map) : const <String, dynamic>{};
+    final product = (variant['name'] ?? variant['sku'] ?? row['variant_id'] ?? 'this product').toString();
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -334,10 +335,11 @@ class _RecommendationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = row['status']?.toString() ?? 'pending_approval';
     final isPending = status == 'pending';
-    final product = row['variant_id'] ?? 'Product';
+    final variant = row['product_variants'] is Map ? Map<String, dynamic>.from(row['product_variants'] as Map) : const <String, dynamic>{};
+    final product = variant['name'] ?? variant['sku'] ?? row['variant_id'] ?? 'Product';
     final proposed = row['suggested_retail_price'];
-    final current = null;
-    final reason = row['reason'] ?? row['rationale'] ?? row['explanation'];
+    final current = variant['price'];
+    final reason = row['rationale'];
     return NileCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
         Expanded(child: Text(product.toString(), style: NileTypography.titleMedium)),
