@@ -259,7 +259,7 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
                                         crossAxisSpacing: 7,
                                         mainAxisSpacing: 7,
                                       ),
-                                      itemCount: images.length.clamp(0, 6),
+                                      itemCount: images.length > 6 ? 6 : images.length,
                                       itemBuilder: (_, i) => _imageTile(product, images[i]),
                                     ),
                             ),
