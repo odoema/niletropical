@@ -58,7 +58,7 @@ class _SeoHealthScreenState extends State<SeoHealthScreen> {
         });
       }
     } catch (e, st) {
-      await ErrorReporter.report(e, stackTrace: st, source: 'admin_seo', action: 'load_seo_health');
+      ErrorReporter.report(e, stackTrace: st, source: 'admin_seo', action: 'load_seo_health');
       if (mounted) setState(() { _loading = false; _error = ErrorReporter.friendlyMessage(e); });
     }
   }
