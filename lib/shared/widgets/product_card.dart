@@ -14,6 +14,10 @@ import '../services/storage_service.dart';
 /// - image loading/failure states never change the card geometry
 /// - product name and price use a fixed content rhythm
 class ProductCard extends StatelessWidget {
+  /// Single grid contract used by home, shop and category screens.
+  static const double gridMaxCrossAxisExtent = 240;
+  static const double gridChildAspectRatio = 0.68;
+
   const ProductCard({super.key, required this.product});
 
   final Product product;
