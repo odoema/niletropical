@@ -173,20 +173,51 @@ class _AnalyticsDashboardScreenState extends State<AnalyticsDashboardScreen> {
         child: ListView(
           padding: const EdgeInsets.all(NileSpacing.md),
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Nile Tropical Analytics',
-                    style: NileTypography.headlineSmall,
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _openGoogleAnalytics,
-                  icon: const Icon(Icons.open_in_new, size: 17),
-                  label: const Text('Google Analytics'),
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 620;
+                if (compact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Nile Tropical Analytics',
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: NileTypography.headlineSmall,
+                      ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: _openGoogleAnalytics,
+                        icon: const Icon(Icons.open_in_new, size: 17),
+                        label: const Text('Google Analytics'),
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Nile Tropical Analytics',
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: NileTypography.headlineSmall,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    OutlinedButton.icon(
+                      onPressed: _openGoogleAnalytics,
+                      icon: const Icon(Icons.open_in_new, size: 17),
+                      label: const Text('Google Analytics'),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 4),
             Text(
