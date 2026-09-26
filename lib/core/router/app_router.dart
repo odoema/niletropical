@@ -140,9 +140,13 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/track/:orderNumber',
           name: 'track-order',
-          builder: (context, state) => TrackingScreen(
-            orderNumber: state.pathParameters['orderNumber'],
-          ),
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            return TrackingScreen(
+              orderNumber: state.pathParameters['orderNumber'],
+              phone: extra['phone'] as String?,
+            );
+          },
         ),
         GoRoute(path: '/account', name: 'account', builder: (_, __) => const AccountScreen()),
         GoRoute(path: '/account/orders', name: 'account-orders', builder: (_, __) => const AccountOrdersScreen()),
