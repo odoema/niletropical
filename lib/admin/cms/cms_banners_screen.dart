@@ -3,6 +3,7 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/services/cms_media_upload.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
+import '../widgets/admin_image_frame.dart';
 import 'package:intl/intl.dart';
 
 class CmsBannersScreen extends StatefulWidget {
@@ -78,9 +79,12 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
                       width: double.infinity,
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
-                      child: Image.network(
-                        StorageService.resolvePublicUrl(imagePath, bucket: StorageService.cms),
+                      child: AdminImageFrame(
+                        url: StorageService.resolvePublicUrl(imagePath, bucket: StorageService.cms),
+                        aspectRatio: 16 / 9,
                         fit: BoxFit.cover,
+                        borderRadius: 10,
+                        label: 'Banner preview',
                       ),
                     ),
                   const SizedBox(height: 10),
@@ -211,9 +215,12 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
                     SizedBox(
                       height: 150,
                       width: double.infinity,
-                      child: Image.network(
-                        StorageService.resolvePublicUrl(imagePath, bucket: StorageService.cms),
+                      child: AdminImageFrame(
+                        url: StorageService.resolvePublicUrl(imagePath, bucket: StorageService.cms),
+                        aspectRatio: 16 / 9,
                         fit: BoxFit.cover,
+                        borderRadius: 10,
+                        label: 'Banner preview',
                       ),
                     ),
                   const SizedBox(height: 8),
@@ -386,10 +393,12 @@ class _CmsBannersScreenState extends State<CmsBannersScreen> {
                             height: 130,
                             child: url.isEmpty
                                 ? const Center(child: Icon(Icons.image_not_supported_outlined))
-                                : Image.network(
-                                    url,
+                                : AdminImageFrame(
+                                    url: url,
+                                    aspectRatio: 16 / 9,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined)),
+                                    borderRadius: 10,
+                                    label: 'Banner',
                                   ),
                           ),
                           const SizedBox(width: 16),
