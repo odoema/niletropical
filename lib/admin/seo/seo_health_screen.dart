@@ -122,6 +122,18 @@ class _SeoHealthScreenState extends State<SeoHealthScreen> {
   }
 }
 
+
+class _SeoProduct {
+  final String id,name,slug,description,brand,categoryId;
+  final List<Map<String,dynamic>> variants, images;
+  _SeoProduct({required this.id,required this.name,required this.slug,required this.description,required this.brand,required this.categoryId,required this.variants,required this.images});
+  factory _SeoProduct.fromMap(Map<String,dynamic> m)=>_SeoProduct(id:'${m['id']??''}',name:'${m['name']??''}',slug:'${m['slug']??''}',description:'${m['short_description']??m['full_description']??''}',brand:'${m['brand']??''}',categoryId:'${m['category_id']??''}',variants:((m['product_variants'] as List?)??const[]).map((e)=>Map<String,dynamic>.from(e)).toList(),images:((m['product_images'] as List?)??const[]).map((e)=>Map<String,dynamic>.from(e)).toList());
+  List<String> get criticalIssues=>[if(slug.trim().isEmpty)'Missing SEO slug',if(categoryId.trim().isEmpty)'Missing category',if(images.isEmpty)'Missing product image',if(variants.where((v)=>v['is_active']==true).isEmpty)'No active sellable variant',if(variants.where((v)=>v['is_active']==true && (v['sku']??'').toString().trim().isEmpty).isNotEmpty)'Missing SKU',if(variants.where((v)=>v['is_active']==true && ((v['price'] as num?)?.toDouble()??0)<=0).isNotEmpty)'Missing valid price'];
+  List<String> get recommendedIssues=>[if(name.trim().length>60)'Product title may be too long',if(brand.trim().isEmpty)'Missing Brand',if(description.trim().length<30)'Description is too short',if(images.isNotEmpty && images.every((i)=>(i['alt_text']??'').toString().trim().isEmpty))'Missing image alt text'];
+  bool get ready=>criticalIssues.isEmpty;
+}
+class _SeoCategory { final String id,name; final List<String> issues; final int productCount; _SeoCategory({required this.id,required this.name,required this.issues,required this.productCount}); factory _SeoCategory.fromMap(Map<String,dynamic>m){final issues=<String>[];if('${m['slug']??''}'.trim().isEmpty)issues.add('Missing category slug');if('${m['description']??''}'.trim().length<30)issues.add('Description is too short');final n=(m['product_count'] as num?)?.toInt()??0;if(n==0)issues.add('No active products');return _SeoCategory(id:'${m['id']??''}',name:'${m['name']??''}',issues:issues,productCount:n);}}
+
 class _Metric extends StatelessWidget {
   final String label, value; final IconData icon;
   const _Metric({required this.label, required this.value, required this.icon});
