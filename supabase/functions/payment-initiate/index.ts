@@ -25,6 +25,8 @@ function normalize(method: string | undefined): string {
 const cors = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-gateway-secret",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 function json(data: unknown, status = 200) {
@@ -32,7 +34,7 @@ function json(data: unknown, status = 200) {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+  if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: cors });
 
   try {
     const body = await req.json();
