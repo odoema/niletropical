@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
 import '../../shared/providers/cart_provider.dart';
 import '../../shared/models/cart.dart';
+import '../../shared/services/storage_service.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -82,24 +83,19 @@ class _CartLine extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: NileColors.surfaceVariant,
-              borderRadius: NileRadius.borderSm,
-            ),
-            child: const Icon(Icons.spa, color: NileColors.primary),
-          ),
+          _CartProductImage(item: item),
           const SizedBox(width: NileSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.product.name, style: NileTypography.titleSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
-                Text(item.variant.name, style: NileTypography.caption),
+                Text(item.product.brand.toUpperCase(), style: NileTypography.labelSmall.copyWith(color: NileColors.primary, fontWeight: FontWeight.w700, letterSpacing: 0.9)),
+                const SizedBox(height: 2),
+                Text(item.product.name, style: NileTypography.titleMedium.copyWith(fontWeight: FontWeight.w700, height: 1.15), maxLines: 2, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(item.variant.name, style: NileTypography.bodySmall.copyWith(color: NileColors.textSecondary)),
                 const SizedBox(height: 4),
-                NilePrice(amount: item.lineTotal, style: NileTypography.titleSmall),
+                NilePrice(amount: item.lineTotal, style: NileTypography.titleMedium.copyWith(fontWeight: FontWeight.w800)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -154,6 +150,38 @@ class _QtyBtn extends StatelessWidget {
           padding: const EdgeInsets.all(6),
           child: Icon(icon, size: 18, color: NileColors.textPrimary),
         ),
+      ),
+    );
+  }
+}
+
+class _CartProductImage extends StatelessWidget {
+  const _CartProductImage({required this.item});
+  final CartItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final resolved = StorageService.resolvePublicUrl(item.product.mainImageUrl);
+    return ClipRRect(
+      borderRadius: NileRadius.borderSm,
+      child: Container(
+        width: 88,
+        height: 88,
+        color: NileColors.surfaceVariant,
+        alignment: Alignment.center,
+        child: resolved.isEmpty
+            ? const Icon(Icons.spa_outlined, color: NileColors.primary, size: 30)
+            : Image.network(
+                resolved,
+                width: 88,
+                height: 88,
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.medium,
+                errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported_outlined, color: NileColors.primary, size: 30),
+                loadingBuilder: (context, child, progress) => progress == null
+                    ? child
+                    : const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
       ),
     );
   }
