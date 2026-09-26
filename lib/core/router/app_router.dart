@@ -56,9 +56,11 @@ import '../../admin/settings/admin_settings_screen.dart';
 import '../../admin/management/admin_management_screen.dart';
 import '../../shared/services/auth_service.dart';
 import '../../core/config/env.dart';
+import '../../core/errors/error_reporter.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
+  observers: [NileNavigatorObserver()],
   redirect: (context, state) async {
     // Dismiss any lingering SnackBar on every navigation (tab switch, back
     // button, deep link, etc.) since it's tied to the app's single global
