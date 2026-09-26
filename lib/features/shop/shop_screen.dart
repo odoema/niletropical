@@ -134,7 +134,8 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                     maxCrossAxisExtent: 240,
                     mainAxisSpacing: NileSpacing.sm,
                     crossAxisSpacing: NileSpacing.sm,
-                    childAspectRatio: 0.86,
+                    // Standard product-card geometry shared with home and category grids.
+                    childAspectRatio: 0.68,
                   ),
                   itemCount: sorted.length,
                   itemBuilder: (_, i) => ProductCard(product: sorted[i]),
