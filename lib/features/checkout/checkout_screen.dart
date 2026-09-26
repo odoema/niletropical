@@ -1,6 +1,7 @@
 /// Nile Tropical - Checkout (server-side fee, idempotent order)
 /// Copyright © Hon. Dr. Betty Udongo Pacutho
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,8 @@ import '../../core/widgets/nile_widgets.dart';
 import '../../shared/providers/cart_provider.dart';
 import '../../shared/services/order_service.dart';
 import '../../shared/services/delivery_service.dart';
+import '../../shared/services/location_search_service.dart';
+import '../../admin/delivery/nile_delivery_map.dart';
 import '../../shared/models/delivery.dart';
 import '../../core/constants/payment_methods.dart';
 
@@ -29,6 +32,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _email = TextEditingController();
   final _address = TextEditingController();
   final _notes = TextEditingController();
+  final _originCtrl = TextEditingController(text: 'Kampala, Uganda');
+  Timer? _locationDebounce;
+  GeoPlace? _origin;
+  GeoPlace? _destination;
+  RouteEstimate? _route;
+  Map<String, dynamic>? _quote;
+  List<GeoPlace> _locationResults = const [];
+  bool _searchingLocation = false;
+  bool _calculatingDelivery = false;
   String _paymentMethod = PaymentMethods.mtnMomo;
   String? _zoneId;
 
@@ -62,8 +74,69 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     _email.dispose();
     _address.dispose();
     _notes.dispose();
+    _originCtrl.dispose();
+    _locationDebounce?.cancel();
 
     super.dispose();
+  }
+
+  void _searchDestination(String value) {
+    _locationDebounce?.cancel();
+    setState(() {
+      _destination = null;
+      _route = null;
+      _quote = null;
+    });
+    if (value.trim().length < 3) {
+      setState(() => _locationResults = const []);
+      return;
+    }
+    _locationDebounce = Timer(const Duration(milliseconds: 600), () async {
+      setState(() => _searchingLocation = true);
+      try {
+        final results = await LocationSearchService.search(value);
+        if (mounted) setState(() => _locationResults = results);
+      } catch (_) {
+        if (mounted) setState(() => _locationResults = const []);
+      } finally {
+        if (mounted) setState(() => _searchingLocation = false);
+      }
+    });
+  }
+
+  Future<void> _calculateDelivery() async {
+    if (_zoneId == null || _destination == null) return;
+    setState(() => _calculatingDelivery = true);
+    try {
+      var origin = _origin;
+      if (origin == null) {
+        final results = await LocationSearchService.search(_originCtrl.text);
+        if (results.isEmpty) throw StateError('Dispatch origin could not be located.');
+        origin = results.first;
+      }
+      final route = await LocationSearchService.route(
+        origin: origin,
+        destination: _destination!,
+      );
+      final quote = await DeliveryService.quoteDelivery(
+        deliveryZoneId: _zoneId!,
+        distanceKm: route.distanceKm,
+      );
+      if (!mounted) return;
+      setState(() {
+        _origin = origin;
+        _route = route;
+        _quote = quote;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not calculate delivery: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _calculatingDelivery = false);
+    }
   }
 
   Future<void> _placeOrder() async {
@@ -76,6 +149,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ),
       );
 
+      return;
+    }
+
+    if (_destination == null || _route == null || _quote == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select your delivery location and calculate the delivery quote first.')));
       return;
     }
 
@@ -100,6 +178,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ? null
             : _notes.text.trim(),
         idempotencyKey: _idempotencyKey,
+        deliveryDistanceKm: _route!.distanceKm,
+        deliveryDurationMinutes: _route!.durationMinutes,
+        deliveryOrigin: {'name': _origin!.name, 'latitude': _origin!.latitude, 'longitude': _origin!.longitude},
+        deliveryDestination: {'name': _destination!.name, 'latitude': _destination!.latitude, 'longitude': _destination!.longitude},
       );
 
       ref.read(cartProvider.notifier).clear();
@@ -165,7 +247,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
     }
 
-    final total = cart.subtotal + _deliveryFee;
+    final total = cart.subtotal + ((_quote?['delivery_fee'] as num?)?.toDouble() ?? _deliveryFee);
 
     return Scaffold(
       appBar: const NileAppBar(
@@ -271,6 +353,89 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             const SizedBox(
               height: NileSpacing.sm,
             ),
+            const SizedBox(height: NileSpacing.sm),
+            Text('Delivery location', style: NileTypography.titleLarge),
+            const SizedBox(height: 6),
+            Text('Search your delivery location. We use the road route to calculate the delivery charge.', style: NileTypography.bodySmall),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _address,
+              onChanged: _searchDestination,
+              decoration: InputDecoration(
+                hintText: 'Search address or landmark',
+                prefixIcon: const Icon(Icons.location_searching_rounded),
+                suffixIcon: _searchingLocation
+                    ? const Padding(
+                        padding: EdgeInsets.all(13),
+                        child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+                      )
+                    : const Icon(Icons.search_rounded),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            if (_locationResults.isNotEmpty)
+              Card(
+                child: Column(
+                  children: _locationResults.map((p) => ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.place_outlined, color: NileColors.primary),
+                    title: Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    onTap: () => setState(() {
+                      _destination = p;
+                      _address.text = p.name;
+                      _locationResults = const [];
+                    }),
+                  )).toList(),
+                ),
+              ),
+            if (_destination != null) ...[
+              const SizedBox(height: 10),
+              if (_origin != null && _route != null)
+                NileDeliveryMap(
+                  origin: _origin!,
+                  destination: _destination!,
+                  route: _route,
+                  height: 280,
+                ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _calculatingDelivery || _zoneId == null ? null : _calculateDelivery,
+                  icon: _calculatingDelivery
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.calculate_rounded),
+                  label: Text(_calculatingDelivery ? 'Calculating route…' : 'Calculate delivery quote'),
+                ),
+              ),
+            ],
+            if (_quote != null && _route != null) ...[
+              const SizedBox(height: 10),
+              NileCard(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _route!.distanceKm.toStringAsFixed(1) + ' km • ' +
+                              _route!.durationMinutes.ceil().toString() + ' min',
+                          style: NileTypography.titleMedium,
+                        ),
+                        const SizedBox(height: 3),
+                        Text('Road distance and estimated driving time', style: NileTypography.bodySmall),
+                      ],
+                    ),
+                    NilePrice(
+                      amount: (_quote!['delivery_fee'] as num).toDouble(),
+                      style: NileTypography.titleLarge,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: NileSpacing.sm),
             NileTextField(
               controller: _notes,
               label: 'Notes (optional)',
