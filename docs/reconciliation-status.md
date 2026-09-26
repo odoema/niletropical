@@ -54,3 +54,13 @@ PR: #2 — Reconcile Flutter frontend with live Supabase backend
 
 ## Safety rule
 No destructive database reset, broad migration replay, or payment-function replacement should occur merely to make repository history look consistent.
+
+## 2026-09-27 Flutter validation + frontend/admin audit update
+- Flutter web build: TESTED via GitHub Actions run 580; build completed successfully and the Pages deployment job was skipped.
+- Dedicated Flutter validation workflow added to run analyze, tests, and production-targeted web build without deployment.
+- Admin order detail repaired: live RPC is update_order_status(p_order_id,p_new_status,p_note); set_order_status does not exist.
+- Inventory adjustment repaired: live stock RPC is record_stock_movement(...); adjust_stock does not exist.
+- Live delivery RPC audit: admin_create_delivery_zone and admin_create_courier have defaults for optional parameters, so current frontend calls are compatible.
+- Checkout, tracking, pricing, customer and COD column mappings were inspected; no further demonstrated contract mismatch was found in this pass.
+- Remaining: full screen-by-screen Auth/RLS and CMS/reports/analytics/notifications/storage audit; analyze/test workflow result.
+- Production deployment remains out of scope.
