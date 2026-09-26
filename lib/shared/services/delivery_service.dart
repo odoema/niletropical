@@ -43,18 +43,21 @@ class DeliveryService {
     required double distanceKm,
   }) async {
     if (!Env.isConfigured) {
-      const baseFee = 5000.0;
-      const includedKm = 3.0;
-      const extraRate = 1200.0;
-      final extraUnits = (distanceKm > includedKm) ? (distanceKm - includedKm).ceil() : 0;
+      // Production benchmark: SafeBoda-like Kampala ride pricing.
+      // The authoritative production quote comes from Supabase; this fallback
+      // intentionally mirrors the same formula so local/dev behavior cannot
+      // silently revert to the old zone-base + 3 km pricing.
+      const baseFare = 2500.0;
+      const perKmRate = 450.0;
+      final safeDistanceKm = distanceKm < 0 ? 0 : distanceKm;
+      final deliveryFee = (baseFare + safeDistanceKm * perKmRate).roundToDouble();
       return {
         'zone_id': deliveryZoneId,
-        'distance_km': distanceKm,
-        'included_km': includedKm,
-        'extra_km_units': extraUnits,
-        'base_fee': baseFee,
-        'extra_km_rate': extraRate,
-        'delivery_fee': baseFee + extraUnits * extraRate,
+        'distance_km': safeDistanceKm,
+        'base_fee': baseFare,
+        'extra_km_rate': perKmRate,
+        'delivery_fee': deliveryFee,
+        'pricing_model': 'safeboda_like',
       };
     }
 
