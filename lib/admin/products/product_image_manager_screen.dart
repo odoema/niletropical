@@ -140,13 +140,16 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: Colors.grey.shade200)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Stack(
         children: [
           AdminImageFrame(
             url: url,
-            aspectRatio: 1,
-            fit: BoxFit.contain,
+            aspectRatio: 4 / 3,
+            fit: BoxFit.cover,
             borderRadius: 10,
             label: 'Image',
           ),
@@ -258,8 +261,9 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
                                       physics: const NeverScrollableScrollPhysics(),
                                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                         crossAxisCount: images.length == 1 ? 1 : images.length == 2 ? 2 : 3,
-                                        crossAxisSpacing: 7,
-                                        mainAxisSpacing: 7,
+                                        crossAxisSpacing: 8,
+                                        mainAxisSpacing: 8,
+                                        childAspectRatio: images.length == 1 ? 4 / 3 : 1,
                                       ),
                                       itemCount: images.length > 6 ? 6 : images.length,
                                       itemBuilder: (_, i) => _imageTile(product, images[i]),
