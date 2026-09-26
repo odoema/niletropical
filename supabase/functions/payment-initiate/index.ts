@@ -39,24 +39,55 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const order_id = body.order_id;
+    const order_number = body.order_number;
     const method = normalize(body.method);
 
-    if (!order_id) return json({ error: "order_id required" }, 400);
+    if (!order_id && !order_number) {
+      return json({ error: "order_id or order_number required" }, 400);
+    }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .select(
-        "id, order_number, total, payment_status, status, payment_method, guest_phone",
-      )
-      .eq("id", order_id)
-      .single();
+    // The checkout page normally supplies the database UUID. For older or
+    // idempotency-based checkout responses, also accept the displayed order
+    // number so a valid order can still be resolved safely.
+    let order: any = null;
+    let orderError: any = null;
 
-    if (orderError || !order) return json({ error: "Order not found" }, 404);
+    if (order_id) {
+      const byId = await supabase
+        .from("orders")
+        .select(
+          "id, order_number, total, payment_status, status, payment_method, guest_phone",
+        )
+        .eq("id", order_id)
+        .maybeSingle();
+      order = byId.data;
+      orderError = byId.error;
+    }
+
+    if (!order && order_number) {
+      const byNumber = await supabase
+        .from("orders")
+        .select(
+          "id, order_number, total, payment_status, status, payment_method, guest_phone",
+        )
+        .eq("order_number", order_number)
+        .maybeSingle();
+      order = byNumber.data;
+      orderError = byNumber.error;
+    }
+
+    if (orderError || !order) {
+      return json({
+        error: "Order not found",
+        order_id: order_id ?? null,
+        order_number: order_number ?? null,
+      }, 404);
+    }
 
     if (method === "mtn_momo") {
       if (order.status !== "payment_pending") {
