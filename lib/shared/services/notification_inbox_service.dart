@@ -18,6 +18,16 @@ class NotificationInboxService {
     return List<Map<String, dynamic>>.from(rows);
   }
 
+  static Future<Map<String, dynamic>?> orderIdentity(String orderId) async {
+    if (!Env.isConfigured || AuthService.user == null) return null;
+    final row = await SupabaseService.client
+        .from('orders')
+        .select('id, order_number, customer_phone')
+        .eq('id', orderId)
+        .maybeSingle();
+    return row == null ? null : Map<String, dynamic>.from(row);
+  }
+
   static String titleFor(String event) {
     switch (event) {
       case 'order_received': return 'Order received';
