@@ -21,8 +21,8 @@ BEGIN
   INTO v_order
   FROM public.orders
   WHERE order_number = p_order_number
-    AND right(regexp_replace(customer_phone_snapshot, '\\D', '', 'g'), 9)
-        = right(regexp_replace(p_phone, '\\D', '', 'g'), 9);
+    AND right(regexp_replace(customer_phone_snapshot, '\D', '', 'g'), 9)
+        = right(regexp_replace(p_phone, '\D', '', 'g'), 9);
 
   IF NOT FOUND THEN
     RETURN jsonb_build_object('found', false);
