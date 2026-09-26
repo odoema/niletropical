@@ -29,6 +29,40 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
     setState(() => _messages.add(_Msg(result.$1, false, result.$2)));
   }
 
+  String? _websiteAnswer(String q) {
+    final contact = RegExp(r'\b(contact|phone|telephone|call|number|reach|whatsapp|address|location|where are you|where is nile)\b').hasMatch(q);
+    final company = RegExp(r'\b(about|company|nile tropical|who are you|business|manufacturer|manufacturing|founder|director|story)\b').hasMatch(q);
+    final wholesale = RegExp(r'\b(wholesale|bulk|distributor|distribution|retailer|reseller|trader|large quantity)\b').hasMatch(q);
+    final markets = RegExp(r'\b(market|markets|schedule|auction|west nile|zombo)\b').hasMatch(q);
+    final shop = RegExp(r'\b(shop|online|store|website|buy|order|purchase)\b').hasMatch(q);
+
+    if (contact) {
+      return 'You can contact Nile Tropical Industries (U) Ltd at Plot 27 Abindu Road, Olyeko Cell, Abindu Division, Nebbi Municipality, Nebbi, Uganda. '
+          'Current company contact numbers listed on the official website are +256 393 001071, +256 700 957796, +256 774 103235 and +256 775 582283. '
+          'For online shopping, use the Nile Tropical shop on niletropicaluganda.com/app/.';
+    }
+    if (wholesale) {
+      return 'Nile Tropical welcomes wholesale and distribution enquiries from retailers, traders and distributors. '
+          'If you buy for resale or need larger quantities, tell me the products, quantities and where you operate. '
+          'For availability and commercial terms, I will direct you to contact Nile Tropical rather than inventing wholesale prices or terms.';
+    }
+    if (markets) {
+      return 'The official website currently lists a West Nile market schedule covering Akaba Auction Market (Monday and Thursday), Omyer Auction Market (Tuesday and Friday), Angal Auction Market (Wednesday and Thursday), Padel Auction Market (Wednesday and Saturday), Payani Market (Monday and Thursday), Padel Ossi Auction (Tuesday and Friday), Alwi Pateng Market (Friday), Akella Market (Tuesday and Thursday), Abakamel (Thursday), and Kucwiny Market (Thursday). '
+          'Market availability can change, so customers should confirm current product availability with Nile Tropical.';
+    }
+    if (company) {
+      return 'Nile Tropical Industries (U) Ltd is a locally rooted Ugandan manufacturing business based in Nebbi, West Nile. '
+          'The official website describes four broad product families: Cosmetics & Personal Care; Soaps & Detergents; Foods & Beverages; and Candles & Repellents. '
+          'Dr. Betty Udongo Pacutho is identified on the website as Founder & Director. '
+          'The business connects local materials and customer needs with products for homes, families, traders and retailers.';
+    }
+    if (shop) {
+      return 'The Nile Tropical public website introduces the company, products, markets and wholesale opportunities, while the connected online shop handles customer shopping. '
+          'I can help you discover products, compare options, check current catalogue availability and guide you to the shop.';
+    }
+    return null;
+  }
+
   String? _sheaAnswer(String q) {
     final shea = q.contains('shea') || q.contains('vitellaria') ||
         q.contains('butyrospermum') || q.contains('shea butter');
@@ -122,10 +156,14 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
   (String, List<Product>) _find(String query, List<Product> products) {
     final q = query.toLowerCase();
     final sheaAnswer = _sheaAnswer(q);
+    final websiteAnswer = _websiteAnswer(q);
     final categoryAnswer = _categoryAnswer(q);
     final budget = _budget(q);
     if (sheaAnswer != null && (q.contains('what') || q.contains('benefit') || q.contains('good for') || q.contains('why') || q.contains('help') || q.contains('good') || q.contains('how') || q.contains('use') || q.contains('skin') || q.contains('dry') || q.contains('hair') || q.contains('scalp') || q.contains('baby') || q.contains('safe') || q.contains('allerg') || q.contains('raw') || q.contains('refined') || q.contains('sun') || q.contains('spf') || q.contains('eat') || q.contains('food'))) {
       return (sheaAnswer, _sheaProducts(products));
+    }
+    if (websiteAnswer != null && sheaAnswer == null && categoryAnswer == null) {
+      return (websiteAnswer, const <Product>[]);
     }
     if (categoryAnswer != null && sheaAnswer == null) {
       final categoryProducts = _categoryProducts(q, products);
