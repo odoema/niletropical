@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/models/delivery.dart';
 import '../../shared/services/delivery_service.dart';
 import '../../shared/services/location_search_service.dart';
+import 'nile_delivery_map.dart';
 
 final zonesProvider = FutureProvider<List<DeliveryZone>>((ref) => DeliveryService.getZones());
 final partnersProvider = FutureProvider<List<DeliveryPartner>>((ref) => DeliveryService.getPartners());
@@ -352,6 +353,15 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
             if (_locationError != null) ...[
               const SizedBox(height: 10),
               Text(_locationError!, style: const TextStyle(color: Colors.white, fontSize: 12)),
+            ],
+            if (_origin != null && _destination != null) ...[
+              const SizedBox(height: 16),
+              NileDeliveryMap(
+                origin: _origin!,
+                destination: _destination!,
+                route: result,
+                height: wide ? 380 : 300,
+              ),
             ],
             if (result != null) ...[
               const SizedBox(height: 16),
