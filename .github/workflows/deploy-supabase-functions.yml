@@ -20,8 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_PROJECT_ID: ououfhsswyqutcczdtnb
 
     steps:
@@ -52,8 +50,8 @@ jobs:
           echo "Database migrations are intentionally NOT applied by CI."
           echo "Live database schema/migration reconciliation must be performed separately and explicitly."
 
-      - name: Deploy track-order
-        run: supabase functions deploy track-order --project-ref "${SUPABASE_PROJECT_ID}"
+      - name: Deploy track-order as a public phone-verified endpoint
+        run: supabase functions deploy track-order --project-ref "${SUPABASE_PROJECT_ID}" --no-verify-jwt
 
       - name: Deploy notification-dispatch
         run: supabase functions deploy notification-dispatch --project-ref "${SUPABASE_PROJECT_ID}"
