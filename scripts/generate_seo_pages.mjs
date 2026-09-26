@@ -26,6 +26,26 @@ function json(value) {
 function strip(value) {
   return String(value ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
+
+function seoTitle(name) {
+  const raw = strip(name);
+  const suffix = ' | Nile Tropical Uganda';
+  const max = 60;
+  if ((raw + suffix).length <= max) return raw + suffix;
+  const room = Math.max(20, max - suffix.length - 3);
+  return raw.slice(0, room).replace(/\\s+\\S*$/, '').trim() + '...' + suffix;
+}
+
+function metaDescription(value, fallback) {
+  const raw = strip(value || fallback);
+  if (raw.length <= 155) return raw;
+  return raw.slice(0, 152).replace(/\\s+\\S*$/, '').trim() + '...';
+}
+
+function imageAlt(product, image) {
+  const stored = strip(image.alt_text || '');
+  return stored || (product.name + ' - Nile Tropical Uganda');
+}
 function productImage(row) {
   const p = row.storage_path || row.url || '';
   if (!p) return '';
@@ -164,7 +184,7 @@ function productPage(product) {
   const breadcrumbHtml = '<nav aria-label="Breadcrumb" style="font-size:13px;color:#66717c;margin-bottom:16px"><a href="' + site + '/">Home</a>' +
     (categoryName && categoryUrl ? ' / <a href="' + categoryUrl + '">' + esc(categoryName) + '</a>' : '') +
     ' / <span>' + esc(product.name) + '</span></nav>';
-  const gallery = images.slice(0, 6).map((src, i) => '<img src="' + esc(src) + '" alt="' + esc(product.name + ' - Nile Tropical Uganda') + '" loading="' + (i ? 'lazy' : 'eager') + '">').join('');
+  const gallery = (product.product_images || []).map((img, i) => ({ src: productImage(img), alt: imageAlt(product, img), i })).filter(x => x.src).slice(0, 6).map(x => '<img src="' + esc(x.src) + '" alt="' + esc(x.alt) + '" loading="' + (x.i ? 'lazy' : 'eager') + '">').join('');
   return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<title>' + esc(product.name) + ' | Nile Tropical Uganda</title>' +
     '<meta name="description" content="' + esc(description.slice(0, 155)) + '">' +
@@ -172,7 +192,10 @@ function productPage(product) {
     '<link rel="canonical" href="' + esc(canonical) + '">' +
     '<meta property="og:type" content="product"><meta property="og:site_name" content="Nile Tropical Industries Ltd">' +
     '<meta property="og:title" content="' + esc(product.name + ' | Nile Tropical Uganda') + '">' +
-    '<meta property="og:description" content="' + esc(description.slice(0, 200)) + '">' +
+    '<meta property="og:description" content="' + esc(metaDescription(description, 'Shop ' + product.name + ' from Nile Tropical Uganda.')) + '">' +
+    '<meta property="og:url" content="' + esc(canonical) + '">' +
+    '<meta property="og:locale" content="en_UG">' +
+    '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="' + esc(seoTitle(product.name)) + '"><meta name="twitter:description" content="' + esc(metaDescription(description, 'Shop ' + product.name + ' from Nile Tropical Uganda.')) + '">' +
     (images[0] ? '<meta property="og:image" content="' + esc(images[0]) + '">' : '') +
     '<style>body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#17212b;background:#f7f9fa}a{color:inherit;text-decoration:none}.wrap{width:min(1060px,calc(100% - 28px));margin:auto}.top{background:#233e85;color:#fff;padding:10px 0;font-size:12px}.nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0}.brand{font-weight:800;color:#233e85}.btn{display:inline-flex;padding:12px 17px;border-radius:12px;background:#233e85;color:#fff;font-weight:800}.hero{background:#fff;border-radius:20px;padding:28px;margin:18px 0;display:grid;grid-template-columns:1fr 1fr;gap:28px}.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.gallery img{width:100%;aspect-ratio:1;object-fit:contain;background:#f1f4f7;border-radius:14px}.hero h1{font-size:clamp(32px,5vw,52px);line-height:1.05;color:#003d70;margin:0 0 14px}.desc{color:#66717c;font-size:17px;line-height:1.7}.price{font-size:25px;font-weight:800;color:#233e85;margin:20px 0}.variants{margin-top:24px}.variant-grid{display:flex;flex-wrap:wrap;gap:10px}.variant{border:1px solid #dfe5e9;border-radius:12px;padding:12px 14px;background:#fff;min-width:120px}.variant span,.variant small{display:block}.variant span{color:#233e85;font-weight:800;margin-top:4px}.variant small{color:#66717c;margin-top:3px}section{background:#fff;border-radius:16px;padding:24px;margin:14px 0}section h2{color:#003d70;margin-top:0}footer{margin-top:35px;background:#002e54;color:#dbe7ee;padding:30px 0}@media(max-width:720px){.hero{grid-template-columns:1fr;padding:20px}.gallery{grid-template-columns:repeat(2,1fr)}} </style></head><body>' +
     '<div class="top"><div class="wrap">Nile Tropical Industries (U) Ltd · Nebbi, West Nile, Uganda</div></div>' +
