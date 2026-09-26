@@ -325,7 +325,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   )
                   .toList(),
               onChanged: (v) {
-                setState(() => _zoneId = v);
+                setState(() {
+                  _zoneId = v;
+                  _quote = null;
+                });
               },
               validator: (v) {
                 if (v == null) {
