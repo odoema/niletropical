@@ -326,9 +326,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   .map(
                     (z) => DropdownMenuItem(
                       value: z.id,
-                      child: Text(
-                        '${z.name} — UGX ${z.deliveryFee.toStringAsFixed(0)}',
-                      ),
+                      child: Text(z.name),
                     ),
                   )
                   .toList(),
