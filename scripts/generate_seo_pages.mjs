@@ -24,12 +24,12 @@ function json(value) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 function strip(value) {
-  return String(value ?? '').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();
+  return String(value ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 function productImage(row) {
   const p = row.storage_path || row.url || '';
   if (!p) return '';
-  if (/^https?:\\/\\//i.test(p)) return p;
+  if (/^https?:\/\//i.test(p)) return p;
   return base + '/storage/v1/object/public/product-images/' + p.split('/').map(encodeURIComponent).join('/');
 }
 function money(n) {
