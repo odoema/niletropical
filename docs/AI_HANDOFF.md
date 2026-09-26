@@ -60,3 +60,26 @@ PR #2: Reconcile Flutter frontend with live Supabase backend.
 Supabase-connected session should continue verifying Auth provider configuration, full RLS authorization for every Flutter/admin path, exact deployed function versions after controlled deployment, and live end-to-end behavior.
 
 GitHub-connected session should run Flutter analyze/tests/build and inspect the remaining admin/inventory/delivery frontend mappings before any merge or production deployment.
+
+
+## 2026-09-27 continued audit handoff
+
+The authorization/payment pass continued on reconcile/live-supabase-20260927.
+
+New repository changes:
+- Restored supabase/functions/payment-webhook/index.ts from the live contract with safer error handling and the correct order_status_history.note column.
+- Narrowed the analytics Edge Function role gate to manager/finance/super_admin.
+- Added repository-only lifecycle/RLS reconciliation migration 20260927_authorization_lifecycle_reconciliation.sql.
+- No production RLS, migration, role assignment, or Edge Function deployment was performed.
+
+Important live findings:
+1. payment-webhook v17 is deployed but was absent from the branch source.
+2. Live webhook uses an incorrect history column name (notes vs canonical note).
+3. update_order_status transition matrix references payment_failed while its accepted status list omitted it.
+4. Analytics gateway role allow-list was broader than the documented role matrix.
+5. Broad is_staff() RLS remains a production finding; do not redefine the helper globally.
+
+Next required gate:
+Audit → Reconcile → Test → Review → Approve → Deploy → Verify
+
+Deployment remains out of scope until non-production role-fixture testing and review of the repository-only RLS migration are complete.
