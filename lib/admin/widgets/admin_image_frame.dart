@@ -18,6 +18,7 @@ class AdminImageFrame extends StatelessWidget {
     this.backgroundColor,
     this.fallbackIcon = Icons.image_outlined,
     this.label,
+    this.expand = false,
   });
 
   final String? url;
@@ -27,42 +28,45 @@ class AdminImageFrame extends StatelessWidget {
   final Color? backgroundColor;
   final IconData fallbackIcon;
   final String? label;
+  final bool expand;
 
   @override
   Widget build(BuildContext context) {
     final resolvedUrl = url?.trim() ?? '';
 
-    return AspectRatio(
-      aspectRatio: aspectRatio,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: ColoredBox(
-          color: backgroundColor ?? NileColors.surfaceVariant,
-          child: resolvedUrl.isEmpty
-              ? _Fallback(icon: fallbackIcon, label: label)
-              : Image.network(
-                  resolvedUrl,
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: fit,
-                  alignment: Alignment.center,
-                  gaplessPlayback: true,
-                  filterQuality: FilterQuality.medium,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return const Center(
-                      child: SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    );
-                  },
-                  errorBuilder: (_, __, ___) =>
-                      _Fallback(icon: Icons.broken_image_outlined, label: label),
-                ),
-        ),
+    final frame = ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: ColoredBox(
+        color: backgroundColor ?? NileColors.surfaceVariant,
+        child: resolvedUrl.isEmpty
+            ? _Fallback(icon: fallbackIcon, label: label)
+            : Image.network(
+                resolvedUrl,
+                width: double.infinity,
+                height: double.infinity,
+                fit: fit,
+                alignment: Alignment.center,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.medium,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(
+                    child: SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                },
+                errorBuilder: (_, __, ___) =>
+                    _Fallback(icon: Icons.broken_image_outlined, label: label),
+              ),
       ),
+    );
+
+    return expand ? SizedBox.expand(child: frame) : AspectRatio(
+      aspectRatio: aspectRatio,
+      child: frame,
     );
   }
 }
