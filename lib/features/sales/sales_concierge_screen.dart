@@ -8,7 +8,9 @@ import '../../shared/providers/cart_provider.dart';
 import '../../shared/providers/product_provider.dart';
 
 class SalesConciergeScreen extends ConsumerStatefulWidget {
-  const SalesConciergeScreen({super.key});
+  const SalesConciergeScreen({super.key, this.initialPrompt});
+
+  final String? initialPrompt;
   @override ConsumerState<SalesConciergeScreen> createState() => _SalesConciergeScreenState();
 }
 
@@ -16,6 +18,15 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
   final List<_Msg> _messages = [const _Msg('Hello! Tell me what you need, your budget, or what problem you want to solve. I will search the current Nile Tropical catalogue and suggest available products.', false)];
+
+  @override
+  void initState() {
+    super.initState();
+    final prompt = widget.initialPrompt?.trim();
+    if (prompt != null && prompt.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _ask(prompt));
+    }
+  }
 
   @override void dispose() { _input.dispose(); _scroll.dispose(); super.dispose(); }
 
