@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../widgets/admin_image_frame.dart';
 
 class ProductImageManagerScreen extends ConsumerStatefulWidget {
   const ProductImageManagerScreen({super.key});
@@ -142,11 +143,12 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: Colors.grey.shade200)),
       child: Stack(
         children: [
-          AspectRatio(
+          AdminImageFrame(
+            url: url,
             aspectRatio: 1,
-            child: url.isEmpty
-                ? const Center(child: Icon(Icons.broken_image_outlined, size: 32))
-                : Image.network(url, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined, size: 32))),
+            fit: BoxFit.contain,
+            borderRadius: 10,
+            label: 'Image',
           ),
           if (isMain)
             Positioned(left: 7, top: 7, child: Container(
