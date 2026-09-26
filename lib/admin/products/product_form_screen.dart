@@ -547,7 +547,20 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       );
 }
 
-class _SeoReadiness extends StatelessWidget {
+String _seoTip(String key) {
+  switch (key) {
+    case 'Product name': return 'Use a clear, specific product name customers are likely to search for.';
+    case 'SEO slug': return 'Keep the URL short, readable and based on the product name.';
+    case 'Brand': return 'Set the manufacturer or brand used in your catalogue.';
+    case 'Description': return 'Aim for a useful 70–155 character search description with the main benefit.';
+    case 'Main image': return 'Add a high-quality main product image and descriptive alt text.';
+    case 'SKU': return 'Use a stable SKU for the sellable variant.';
+    case 'Price': return 'Set a valid positive selling price so search engines can understand the offer.';
+    default: return 'Complete this field before publishing the product.';
+  }
+}
+
+$classNeedle
   final String name, brand, description, slug, sku;
   final bool imageReady;
   final double price;
@@ -570,6 +583,15 @@ class _SeoReadiness extends StatelessWidget {
           Icon(e.value ? Icons.check : Icons.close, size: 15, color: e.value ? NileColors.success : NileColors.error),
           const SizedBox(width: 4), Text(e.key, style: const TextStyle(fontSize: 12)),
         ])).toList()),
+        if (!ready) ...[
+          const SizedBox(height: 10),
+          const Text('Recommendations', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          ...checks.entries.where((e) => !e.value).map((e) => Padding(
+            padding: const EdgeInsets.only(bottom: 3),
+            child: Text('• ${_seoTip(e.key)}', style: const TextStyle(fontSize: 11)),
+          )),
+        ],
       ]),
     ));
   }
