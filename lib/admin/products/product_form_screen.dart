@@ -396,12 +396,24 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               decoration: const InputDecoration(labelText: 'Brand', helperText: 'Used in product structured data and merchant feeds.'),
             ),
             const SizedBox(height: 12),
-            _SeoReadiness(
-              name: _name.text, brand: _brand.text,
-              description: _short.text.isNotEmpty ? _short.text : _full.text,
-              slug: _name.text.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-'),
-              imageReady: _imagePath != null, sku: _sku.text,
-              price: double.tryParse(_price.text) ?? 0,
+            AnimatedBuilder(
+              animation: Listenable.merge([
+                _name,
+                _brand,
+                _short,
+                _full,
+                _sku,
+                _price,
+              ]),
+              builder: (context, _) => _SeoReadiness(
+                name: _name.text,
+                brand: _brand.text,
+                description: _short.text.isNotEmpty ? _short.text : _full.text,
+                slug: _name.text.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-'),
+                imageReady: _imagePath != null,
+                sku: _sku.text,
+                price: double.tryParse(_price.text) ?? 0,
+              ),
             ),
             DropdownButtonFormField<String?>(
               value: _categoryId,
