@@ -88,7 +88,7 @@ serve(async (req) => {
 
     const txLookup = await supabase
       .from("payment_transactions")
-      .select("id, status, provider_reference")
+      .select("id, status, provider_reference, provider, method, amount, currency")
       .eq("order_id", order.id)
       .eq("provider_reference", reference)
       .order("created_at", { ascending: false })
@@ -97,6 +97,22 @@ serve(async (req) => {
 
     if (txLookup.error) {
       return json({ error: "PAYMENT_TRANSACTION_LOOKUP_FAILED", message: txLookup.error.message }, 500);
+    }
+
+    if (order.payment_method === "mtn_momo" && !txLookup.data?.id) {
+      return json({
+        error: "PAYMENT_TRANSACTION_NOT_FOUND",
+        message: "No local MTN payment transaction matches this reference and order.",
+      }, 409);
+    }
+
+    if (order.payment_method === "mtn_momo" &&
+        (txLookup.data?.provider !== "mtn_gateway" ||
+         txLookup.data?.method !== "mtn_momo")) {
+      return json({
+        error: "PAYMENT_TRANSACTION_MISMATCH",
+        message: "The local payment transaction does not match the MTN payment contract.",
+      }, 409);
     }
 
     if (order.payment_method !== "mtn_momo") {
@@ -165,7 +181,8 @@ serve(async (req) => {
     const upstreamStatus = gatewayBody?.status ?? null;
     const gatewayExternalId = gatewayBody?.externalId ?? null;
 
-    // Bind the provider response to the order before changing payment state.
+    // Bind the provider response to the local payment transaction and order
+    // before changing payment state.
     if (
       gatewayExternalId &&
       String(gatewayExternalId) !== String(order.order_number)
@@ -180,7 +197,37 @@ serve(async (req) => {
         },
         409,
       );
+   
+
+    const gatewayAmount = gatewayBody?.amount;
+    const gatewayCurrency = gatewayBody?.currency;
+    if (
+      gatewayAmount != null &&
+      Number(gatewayAmount) !== Number(txLookup.data?.amount)
+    ) {
+      return json({
+        error: "PAYMENT_AMOUNT_MISMATCH",
+        reference,
+        order_id: order.id,
+        order_number: order.order_number,
+        expected_amount: txLookup.data?.amount,
+        gateway_amount: gatewayAmount,
+      }, 409);
     }
+
+    if (
+      gatewayCurrency != null &&
+      String(gatewayCurrency).toUpperCase() !==
+        String(txLookup.data?.currency ?? "UGX").toUpperCase()
+    ) {
+      return json({
+        error: "PAYMENT_CURRENCY_MISMATCH",
+        reference,
+        expected_currency: txLookup.data?.currency ?? "UGX",
+        gateway_currency: gatewayCurrency,
+      }, 409);
+    }
+ }
 
     const previousPaymentStatus = order.payment_status ?? "pending";
     let newPaymentStatus = previousPaymentStatus;
@@ -202,7 +249,7 @@ serve(async (req) => {
       };
 
       if (newPaymentStatus === "paid" && order.status === "payment_pending") {
-        update.status = "new_order";
+        update.status = "payment_confirmed";
       }
 
       const { error } = await supabase
