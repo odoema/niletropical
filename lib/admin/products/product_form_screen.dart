@@ -547,6 +547,37 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       );
 }
 
+
+class _SeoReadiness extends StatelessWidget {
+  final String name, brand, description, slug, sku;
+  final bool imageReady;
+  final double price;
+  const _SeoReadiness({required this.name, required this.brand, required this.description, required this.slug, required this.imageReady, required this.sku, required this.price});
+  @override Widget build(BuildContext context) {
+    final checks = <String, bool>{
+      'Product name': name.trim().isNotEmpty, 'SEO slug': slug.trim().isNotEmpty,
+      'Brand': brand.trim().isNotEmpty, 'Description': description.trim().length >= 30,
+      'Main image': imageReady, 'SKU': sku.trim().isNotEmpty, 'Price': price > 0,
+    };
+    final good = checks.values.where((v) => v).length;
+    final ready = good == checks.length;
+    return Card(color: (ready ? NileColors.success : NileColors.warning).withOpacity(.07), child: Padding(
+      padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [Icon(ready ? Icons.check_circle : Icons.search, color: ready ? NileColors.success : NileColors.warning), const SizedBox(width: 10),
+          Expanded(child: Text(ready ? 'SEO Ready' : 'SEO readiness: $good/${checks.length}', style: const TextStyle(fontWeight: FontWeight.w700))) ]),
+        const SizedBox(height: 8),
+        Wrap(spacing: 12, runSpacing: 5, children: checks.entries.map((e) => Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(e.value ? Icons.check : Icons.close, size: 15, color: e.value ? NileColors.success : NileColors.error), const SizedBox(width: 4), Text(e.key, style: const TextStyle(fontSize: 12)),
+        ])).toList()),
+        if (!ready) ...[
+          const SizedBox(height: 10), const Text('Recommendations', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)), const SizedBox(height: 4),
+          ...checks.entries.where((e) => !e.value).map((e) => Padding(padding: const EdgeInsets.only(bottom: 3), child: Text('• ${_seoTip(e.key)}', style: const TextStyle(fontSize: 11)))),
+        ],
+      ]),
+    ));
+  }
+}
+
 String _seoTip(String key) {
   switch (key) {
     case 'Product name': return 'Use a clear, specific product name customers are likely to search for.';
@@ -560,7 +591,6 @@ String _seoTip(String key) {
   }
 }
 
-$classNeedle
   final String name, brand, description, slug, sku;
   final bool imageReady;
   final double price;
