@@ -255,6 +255,12 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   _QuickChip(
+                    icon: Icons.auto_awesome,
+                    label: 'Shop with me',
+                    onTap: () => context.push('/concierge'),
+                  ),
+                  const SizedBox(width: 10),
+                  _QuickChip(
                     icon: Icons.help_outline,
                     label: 'FAQs',
                     onTap: () => context.push('/faq'),
