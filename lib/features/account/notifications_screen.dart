@@ -77,7 +77,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 class _NotificationCard extends StatelessWidget {
   const _NotificationCard({required this.row});
   final Map<String, dynamic> row;
-  @override
   Future<void> _openOrder(BuildContext context) async {
     final orderId = row['order_id']?.toString();
     if (orderId == null || orderId.isEmpty) return;
