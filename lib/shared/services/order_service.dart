@@ -12,11 +12,6 @@ class OrderService {
   static final _uuid = Uuid();
 
   /// Create order via RPC create_order.
-  ///
-  /// Supports:
-  /// - Idempotency
-  /// - Server-side delivery fee calculation
-  /// - Server-side delivery fee calculation
   static Future<Map<String, dynamic>> createOrder({
     required Cart cart,
     required String fullName,
@@ -41,7 +36,6 @@ class OrderService {
         .toList();
 
     if (!Env.isConfigured) {
-      // Development mock.
       final orderNumber =
           'NTI-${DateTime.now().year}-${(DateTime.now().millisecondsSinceEpoch % 1000000).toString().padLeft(6, '0')}';
 
@@ -60,10 +54,7 @@ class OrderService {
         'p_full_name': fullName,
         'p_phone': phone,
         'p_email': email,
-
-        // Production create_order v2 expects p_address as text.
         'p_address': address,
-
         'p_delivery_zone_id': deliveryZoneId,
         'p_payment_method': paymentMethod,
         'p_items': items,
@@ -75,6 +66,8 @@ class OrderService {
   }
 
   /// Track an existing order using order number and customer phone.
+  /// Also accepts a legacy database UUID and resolves it to the real order
+  /// number before calling the tracking RPC.
   static Future<Map<String, dynamic>?> trackOrder({
     required String orderNumber,
     required String phone,
@@ -102,30 +95,25 @@ class OrderService {
       };
     }
 
-    // Accept both a real Nile Tropical order number (NT-...) and a
-    // database UUID. This makes tracking resilient to old deep links that
-    // accidentally carried order_id instead of order_number.
     var lookupOrderNumber = orderNumber;
     var lookupPhone = phone;
 
     final uuidPattern = RegExp(
-      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}
-
-    return res == null ? null : Map<String, dynamic>.from(res as Map);
-  }
-},
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
     );
 
     if (uuidPattern.hasMatch(orderNumber)) {
       final order = await SupabaseService.client
           .from('orders')
-          .select('order_number, customer_phone')
+          .select('order_number, customer_phone_snapshot')
           .eq('id', orderNumber)
           .maybeSingle();
 
       if (order != null) {
-        lookupOrderNumber = order['order_number']?.toString() ?? orderNumber;
-        lookupPhone = order['customer_phone']?.toString() ?? phone;
+        lookupOrderNumber =
+            order['order_number']?.toString() ?? lookupOrderNumber;
+        lookupPhone =
+            order['customer_phone_snapshot']?.toString() ?? lookupPhone;
       }
     }
 
