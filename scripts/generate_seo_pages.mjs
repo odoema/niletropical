@@ -35,6 +35,24 @@ function productImage(row) {
 function money(n) {
   return new Intl.NumberFormat('en-UG', { maximumFractionDigits: 0 }).format(Number(n || 0));
 }
+
+function categoryPage(category, products) {
+  const canonical = site + '/categories/' + encodeURIComponent(category.slug) + '/';
+  const items = products.map(p => {
+    const img = (p.product_images || []).map(productImage).find(Boolean);
+    const price = (p.product_variants || []).filter(v => v.is_active !== false)[0]?.price;
+    return '<article><a href="' + site + '/products/' + encodeURIComponent(p.slug) + '/">' +
+      (img ? '<img src="' + esc(img) + '" alt="' + esc(p.name) + '" loading="lazy">' : '') +
+      '<h2>' + esc(p.name) + '</h2>' +
+      '<p>' + esc(strip(p.short_description || 'Shop ' + p.name + ' from Nile Tropical Uganda.')) + '</p>' +
+      (price != null ? '<strong>UGX ' + money(price) + '</strong>' : '') +
+      '</a></article>';
+  }).join('');
+  const schema = {'@context':'https://schema.org','@type':'CollectionPage','name':category.name + ' | Nile Tropical Uganda','url':canonical,'isPartOf':{'@id':site+'/#website'}};
+  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(category.name) + ' | Nile Tropical Uganda</title><meta name="description" content="' + esc(strip(category.description || ('Shop ' + category.name + ' from Nile Tropical Industries in Uganda.')).slice(0,155)) + '"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="' + esc(canonical) + '">' +
+    '<style>body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f7f9fa;color:#17212b}.wrap{width:min(1100px,calc(100% - 28px));margin:auto}.top{background:#233e85;color:#fff;padding:11px 0}.nav{display:flex;justify-content:space-between;padding:18px 0}.btn{background:#233e85;color:#fff;padding:11px 16px;border-radius:12px;font-weight:800;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:25px 0 50px}article{background:#fff;border:1px solid #dfe5e9;border-radius:16px;overflow:hidden}article a{display:block;padding-bottom:18px;text-decoration:none;color:inherit}article img{width:100%;aspect-ratio:1;object-fit:contain;background:#f1f4f7}article h2,article p,article strong{margin-left:17px;margin-right:17px}article h2{color:#003d70;font-size:19px;margin-top:15px;margin-bottom:7px}article p{color:#66717c;font-size:13px;line-height:1.55}article strong{color:#233e85}@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.grid{grid-template-columns:1fr}}</style></head><body><div class="top"><div class="wrap">Nile Tropical Industries (U) Ltd · Nebbi, West Nile, Uganda</div></div><div class="wrap"><div class="nav"><strong style="color:#233e85">NILE TROPICAL</strong><a class="btn" href="' + site + '/app/">Shop online</a></div><main><h1>' + esc(category.name) + '</h1><p>' + esc(strip(category.description || 'Explore products from Nile Tropical Industries in Uganda.')) + '</p><div class="grid">' + items + '</div></main></div><script type="application/ld+json">' + json(schema) + '</script></body></html>';
+}
+
 function productPage(product) {
   const slug = product.slug;
   const canonical = site + '/products/' + encodeURIComponent(slug) + '/';
@@ -107,6 +125,14 @@ const [products, categories] = await Promise.all([
 
 const out = path.resolve('build/site');
 await fs.mkdir(out, { recursive: true });
+for (const category of categories) {
+  if (!category.slug) continue;
+  const categoryProducts = products.filter(p => p.category_id === category.id);
+  const dir = path.join(out, 'categories', category.slug);
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(path.join(dir, 'index.html'), categoryPage(category, categoryProducts), 'utf8');
+}
+
 for (const p of products) {
   if (!p.slug) continue;
   const dir = path.join(out, 'products', p.slug);
@@ -117,11 +143,12 @@ for (const p of products) {
 const urls = [
   { loc: site + '/', priority: '1.0', changefreq: 'weekly' },
   { loc: site + '/app/', priority: '0.9', changefreq: 'weekly' },
-  ...categories.filter(c => c.slug).map(c => ({ loc: site + '/app/#/category/' + encodeURIComponent(c.slug), priority: '0.7', changefreq: 'weekly' })),
+  ...categories.filter(c => c.slug).map(c => ({ loc: site + '/categories/' + encodeURIComponent(c.slug) + '/', priority: '0.7', changefreq: 'weekly' })),
   ...products.filter(p => p.slug).map(p => ({ loc: site + '/products/' + encodeURIComponent(p.slug) + '/', priority: '0.8', changefreq: 'weekly' }))
 ];
 const xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
   urls.map(u => '<url><loc>' + esc(u.loc) + '</loc><changefreq>' + u.changefreq + '</changefreq><priority>' + u.priority + '</priority></url>').join('') +
   '</urlset>';
 await fs.writeFile(path.join(out, 'sitemap.xml'), xml, 'utf8');
+await fs.writeFile(path.join(out, 'robots.txt'), 'User-agent: *\nAllow: /\nSitemap: ' + site + '/sitemap.xml\n', 'utf8');
 console.log('Generated ' + products.length + ' product SEO pages and ' + urls.length + ' sitemap URLs.');
