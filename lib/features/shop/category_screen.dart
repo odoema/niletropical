@@ -87,7 +87,7 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     // Standard product-card geometry shared with home and shop grids.
-                    childAspectRatio: 0.68,
+                    childAspectRatio: ProductCard.gridChildAspectRatio,
                     mainAxisSpacing: NileSpacing.md,
                     crossAxisSpacing: NileSpacing.sm,
                   ),
