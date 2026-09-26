@@ -109,7 +109,7 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(path: '/', name: 'home', builder: (_, __) => const HomeScreen()),
         GoRoute(path: '/shop', name: 'shop', builder: (_, __) => const ShopScreen()),
-        GoRoute(path: '/concierge', name: 'concierge', builder: (_, __) => const SalesConciergeScreen()),
+        GoRoute(path: '/concierge', name: 'concierge', builder: (_, state) => SalesConciergeScreen(initialPrompt: state.extra is String ? state.extra as String : null)),
         GoRoute(
           path: '/category/:slug',
           name: 'category',
