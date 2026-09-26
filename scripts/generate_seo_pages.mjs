@@ -125,6 +125,8 @@ function productPage(product) {
       category: categoryName || undefined,
       image: images,
       url: canonical,
+      mainEntityOfPage: { '@id': canonical + '#page' },
+      ...(product.updated_at ? { dateModified: new Date(product.updated_at).toISOString() } : {}),
       isVariantOf: { '@id': canonical + '#product-group' },
       offers: Number.isFinite(variantPrice) && variantPrice > 0 ? {
         '@type': 'Offer',
@@ -145,6 +147,8 @@ function productPage(product) {
     brand: { '@type': 'Brand', name: product.brand || 'Nile Tropical' },
     category: categoryName || undefined,
     url: canonical,
+    mainEntityOfPage: { '@id': canonical + '#page' },
+    ...(product.updated_at ? { dateModified: new Date(product.updated_at).toISOString() } : {}),
     image: images,
     variesBy: ['https://schema.org/size'],
     hasVariant: variantSchemas
@@ -154,11 +158,31 @@ function productPage(product) {
     '@id': canonical + '#product'
   };
 
+  const relatedProducts = (product.related_products || []).filter(p => p.slug && p.id !== product.id).slice(0, 4);
+  const relatedHtml = relatedProducts.length
+    ? '<section><h2>Related products</h2><div class="related-grid">' +
+      relatedProducts.map(p => {
+        const img = (p.product_images || []).map(productImage).find(Boolean);
+        return '<a class="related" href="' + site + '/products/' + encodeURIComponent(p.slug) + '/">' +
+          (img ? '<img src="' + esc(img) + '" alt="' + esc(imageAlt(p, p.product_images?.find(i => productImage(i) === img) || {})) + '" loading="lazy">' : '') +
+          '<strong>' + esc(p.name) + '</strong></a>';
+      }).join('') +
+      '</div></section>'
+    : '';
+
   const schema = {
     '@context': 'https://schema.org',
     '@graph': [
       productSchema,
       ...(variants.length > 1 ? variantSchemas : []),
+      {
+        '@type':'WebPage',
+        '@id':canonical + '#page',
+        url:canonical,
+        name:product.name,
+        ...(product.updated_at ? { dateModified: new Date(product.updated_at).toISOString() } : {}),
+        mainEntity:{'@id':canonical + (variants.length > 1 ? '#product-group' : '#product')}
+      },
       {
         '@type':'BreadcrumbList',
         itemListElement:[
@@ -197,12 +221,13 @@ function productPage(product) {
     '<meta property="og:locale" content="en_UG">' +
     '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="' + esc(seoTitle(product.name)) + '"><meta name="twitter:description" content="' + esc(metaDescription(description, 'Shop ' + product.name + ' from Nile Tropical Uganda.')) + '">' +
     (images[0] ? '<meta property="og:image" content="' + esc(images[0]) + '">' : '') +
-    '<style>body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#17212b;background:#f7f9fa}a{color:inherit;text-decoration:none}.wrap{width:min(1060px,calc(100% - 28px));margin:auto}.top{background:#233e85;color:#fff;padding:10px 0;font-size:12px}.nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0}.brand{font-weight:800;color:#233e85}.btn{display:inline-flex;padding:12px 17px;border-radius:12px;background:#233e85;color:#fff;font-weight:800}.hero{background:#fff;border-radius:20px;padding:28px;margin:18px 0;display:grid;grid-template-columns:1fr 1fr;gap:28px}.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.gallery img{width:100%;aspect-ratio:1;object-fit:contain;background:#f1f4f7;border-radius:14px}.hero h1{font-size:clamp(32px,5vw,52px);line-height:1.05;color:#003d70;margin:0 0 14px}.desc{color:#66717c;font-size:17px;line-height:1.7}.price{font-size:25px;font-weight:800;color:#233e85;margin:20px 0}.variants{margin-top:24px}.variant-grid{display:flex;flex-wrap:wrap;gap:10px}.variant{border:1px solid #dfe5e9;border-radius:12px;padding:12px 14px;background:#fff;min-width:120px}.variant span,.variant small{display:block}.variant span{color:#233e85;font-weight:800;margin-top:4px}.variant small{color:#66717c;margin-top:3px}section{background:#fff;border-radius:16px;padding:24px;margin:14px 0}section h2{color:#003d70;margin-top:0}footer{margin-top:35px;background:#002e54;color:#dbe7ee;padding:30px 0}@media(max-width:720px){.hero{grid-template-columns:1fr;padding:20px}.gallery{grid-template-columns:repeat(2,1fr)}} </style></head><body>' +
+    '<style>body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#17212b;background:#f7f9fa}a{color:inherit;text-decoration:none}.wrap{width:min(1060px,calc(100% - 28px));margin:auto}.top{background:#233e85;color:#fff;padding:10px 0;font-size:12px}.nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0}.brand{font-weight:800;color:#233e85}.btn{display:inline-flex;padding:12px 17px;border-radius:12px;background:#233e85;color:#fff;font-weight:800}.hero{background:#fff;border-radius:20px;padding:28px;margin:18px 0;display:grid;grid-template-columns:1fr 1fr;gap:28px}.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.gallery img{width:100%;aspect-ratio:1;object-fit:contain;background:#f1f4f7;border-radius:14px}.hero h1{font-size:clamp(32px,5vw,52px);line-height:1.05;color:#003d70;margin:0 0 14px}.desc{color:#66717c;font-size:17px;line-height:1.7}.price{font-size:25px;font-weight:800;color:#233e85;margin:20px 0}.variants{margin-top:24px}.variant-grid{display:flex;flex-wrap:wrap;gap:10px}.variant{border:1px solid #dfe5e9;border-radius:12px;padding:12px 14px;background:#fff;min-width:120px}.variant span,.variant small{display:block}.variant span{color:#233e85;font-weight:800;margin-top:4px}.variant small{color:#66717c;margin-top:3px}section{background:#fff;border-radius:16px;padding:24px;margin:14px 0}section h2{color:#003d70;margin-top:0}footer{margin-top:35px;background:#002e54;color:#dbe7ee;padding:30px 0}.related-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.related{background:#fff;border:1px solid #dfe5e9;border-radius:14px;padding:10px;display:block}.related img{width:100%;aspect-ratio:1;object-fit:contain;background:#f1f4f7;border-radius:10px;margin-bottom:8px}.related strong{display:block;color:#003d70}@media(max-width:720px){.related-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:720px){.hero{grid-template-columns:1fr;padding:20px}.gallery{grid-template-columns:repeat(2,1fr)}} </style></head><body>' +
     '<div class="top"><div class="wrap">Nile Tropical Industries (U) Ltd · Nebbi, West Nile, Uganda</div></div>' +
     '<div class="wrap"><div class="nav"><a class="brand" href="' + site + '/">NILE TROPICAL</a><a class="btn" href="' + site + '/app/">Shop online</a></div>' +
     '<main>' + breadcrumbHtml + '<div class="hero"><div class="gallery">' + gallery + '</div><div><p style="color:#08783d;font-weight:800;text-transform:uppercase;letter-spacing:.08em">Nile Tropical product</p><h1>' + esc(product.name) + '</h1><p class="desc">' + esc(description) + '</p>' +
     (price != null ? '<div class="price">From UGX ' + money(price) + '</div>' : '') +
     '<a class="btn" href="' + site + '/app/#/product/' + encodeURIComponent(slug) + '">View and order online</a>' + variantHtml + '</div></div>' + sections + '</main></div>' +
+    relatedHtml +
     '<footer><div class="wrap">Nile Tropical Industries (U) Ltd · Nebbi Municipality, Uganda · <a href="' + site + '/">Official website</a></div></footer>' +
     '<script type="application/ld+json">' + json(schema) + '</script></body></html>';
 }
@@ -231,6 +256,9 @@ for (const p of products) {
   const category = categoryById.get(p.category_id);
   p.category_name = category?.name || '';
   p.category_slug = category?.slug || '';
+  p.related_products = products
+    .filter(other => other.category_id === p.category_id && other.id !== p.id && other.slug)
+    .slice(0, 4);
   const dir = path.join(out, 'products', p.slug);
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, 'index.html'), productPage(p), 'utf8');
