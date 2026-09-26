@@ -157,7 +157,7 @@ class _PricingRecommendationsScreenState extends State<PricingRecommendationsScr
       text: (row['suggested_retail_price'] ?? '').toString(),
     );
     final reasonController = TextEditingController(
-      text: (row['reason'] ?? row['rationale'] ?? row['explanation'] ?? '').toString(),
+      text: (row['rationale'] ?? '').toString(),
     );
     String status = row['status']?.toString() ?? 'pending_approval';
     if (status != 'pending' && status != 'approved' && status != 'rejected') {
@@ -334,8 +334,8 @@ class _RecommendationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = row['status']?.toString() ?? 'pending_approval';
     final isPending = status == 'pending';
-    final product = row['product_name'] ?? row['product_variant_name'] ?? row['product_variant_id'] ?? 'Product';
-    final proposed = row['recommended_price'] ?? row['proposed_price'] ?? row['suggested_price'];
+    final product = row['variant_id'] ?? 'Product';
+    final proposed = row['suggested_retail_price'];
     final current = null;
     final reason = row['reason'] ?? row['rationale'] ?? row['explanation'];
     return NileCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
