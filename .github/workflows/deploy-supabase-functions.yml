@@ -1,6 +1,6 @@
 name: Deploy Supabase Edge Functions
 # Production function deployment for Nile Tropical.
-# Secret configured: SUPABASE_ACCESS_TOKEN
+# Secrets: SUPABASE_ACCESS_TOKEN + SUPABASE_DB_PASSWORD
 
 on:
   push:
@@ -40,21 +40,28 @@ jobs:
         run: |
           if [ -z "${SUPABASE_ACCESS_TOKEN}" ]; then
             echo "::error::SUPABASE_ACCESS_TOKEN is missing from GitHub Actions secrets."
-            echo "Add it under Settings > Secrets and variables > Actions."
             exit 1
           fi
           echo "Supabase project: ${SUPABASE_PROJECT_ID}"
 
       - name: Apply pending production database migrations safely
+        shell: bash
         run: |
+          set -euo pipefail
           echo "Checking live migration history before applying anything..."
-          if [ -n "${SUPABASE_DB_URL}" ]; then
+
+          # Prefer the raw database password so special characters are encoded
+          # safely instead of relying on a manually edited connection URI.
+          if [ -n "${SUPABASE_DB_PASSWORD}" ]; then
+            export DB_URL="$(
+              python3 -c 'import os, urllib.parse; p=os.environ["SUPABASE_DB_PASSWORD"]; print("postgresql://postgres." + os.environ["SUPABASE_PROJECT_ID"] + ":" + urllib.parse.quote(p, safe="") + "@aws-0-eu-central-1.pooler.supabase.com:5432/postgres")'
+            )"
+            echo "Using Supabase Session Pooler with the GitHub database-password secret."
+          elif [ -n "${SUPABASE_DB_URL}" ]; then
             DB_URL="${SUPABASE_DB_URL}"
-          elif [ -n "${SUPABASE_DB_PASSWORD}" ]; then
-            DB_URL="postgresql://postgres:${SUPABASE_DB_PASSWORD}@db.${SUPABASE_PROJECT_ID}.supabase.co:5432/postgres?sslmode=require"
+            echo "Using SUPABASE_DB_URL."
           else
-            echo "::error::Neither SUPABASE_DB_URL nor SUPABASE_DB_PASSWORD is configured."
-            echo "The GitHub Supabase access token cannot perform database migration operations with its current permissions."
+            echo "::error::Neither SUPABASE_DB_PASSWORD nor SUPABASE_DB_URL is configured."
             exit 1
           fi
 
