@@ -1,27 +1,18 @@
-/// Customer order tracking.
 import 'package:flutter/material.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/widgets/nile_widgets.dart';
 import '../../shared/services/order_service.dart';
 
 class TrackingScreen extends StatefulWidget {
+  const TrackingScreen({super.key, this.orderNumber, this.phone});
   final String? orderNumber;
   final String? phone;
-
-  const TrackingScreen({
-    super.key,
-    this.orderNumber,
-    this.phone,
-  });
 
   @override
   State<TrackingScreen> createState() => _TrackingScreenState();
 }
 
 class _TrackingScreenState extends State<TrackingScreen> {
-  final _orderController = TextEditingController();
-  final _phoneController = TextEditingController();
-
+  late final TextEditingController _orderController;
+  late final TextEditingController _phoneController;
   bool _loading = false;
   Map<String, dynamic>? _result;
   String? _error;
@@ -29,9 +20,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
   @override
   void initState() {
     super.initState();
-    _orderController.text = widget.orderNumber ?? '';
-    _phoneController.text = widget.phone ?? '';
-
+    _orderController = TextEditingController(text: widget.orderNumber ?? '');
+    _phoneController = TextEditingController(text: widget.phone ?? '');
     if (widget.orderNumber != null && widget.phone != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _track());
     }
@@ -47,201 +37,140 @@ class _TrackingScreenState extends State<TrackingScreen> {
   Future<void> _track() async {
     final order = _orderController.text.trim();
     final phone = _phoneController.text.trim();
-
     if (order.isEmpty || phone.isEmpty) {
-      setState(() {
-        _error = 'Enter your order number and the phone number used at checkout.';
-        _result = null;
-      });
+      setState(() => _error = 'Enter your order number and the phone number used at checkout.');
       return;
     }
-
-    setState(() {
-      _loading = true;
-      _error = null;
-      _result = null;
-    });
-
+    setState(() { _loading = true; _error = null; _result = null; });
     try {
-      final data = await OrderService.trackOrder(
-        orderNumber: order,
-        phone: phone,
-      );
-
+      final data = await OrderService.trackOrder(orderNumber: order, phone: phone);
       if (!mounted) return;
-
       if (data == null || data['found'] != true) {
         setState(() {
-          _error = 'We could not find that order. Check the order number and phone number.';
           _loading = false;
+          _error = 'We could not find that order. Check the order number and phone number.';
         });
         return;
       }
-
-      setState(() {
-        _result = data;
-        _loading = false;
-      });
+      setState(() { _loading = false; _result = data; });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'We could not load this order right now. Please try again.';
         _loading = false;
+        _error = 'We could not load this order right now. Please try again.';
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final shipment = _result?['shipment'];
+    final timeline = _result?['timeline'] is List ? _result!['timeline'] as List : const [];
+
     return Scaffold(
-      appBar: const NileAppBar(title: 'Track order'),
+      appBar: AppBar(title: const Text('Track order')),
       body: ListView(
-        padding: const EdgeInsets.all(NileSpacing.md),
+        padding: const EdgeInsets.all(20),
         children: [
-          NileTextField(
+          Text('Track your Nile Tropical order', style: theme.textTheme.headlineSmall),
+          const SizedBox(height: 8),
+          Text('Enter the order number and the phone number used at checkout.',
+              style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 20),
+          TextField(
             controller: _orderController,
-            label: 'Order number',
-            hint: 'NTI-2026-000123',
+            decoration: const InputDecoration(
+              labelText: 'Order number',
+              hintText: 'NTI-2026-000123',
+              border: OutlineInputBorder(),
+            ),
           ),
-          const SizedBox(height: NileSpacing.sm),
-          NileTextField(
+          const SizedBox(height: 12),
+          TextField(
             controller: _phoneController,
-            label: 'Phone used at checkout',
-            hint: '07XX XXX XXX',
             keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              labelText: 'Phone used at checkout',
+              hintText: '07XX XXX XXX',
+              border: OutlineInputBorder(),
+            ),
           ),
-          const SizedBox(height: NileSpacing.md),
-          NileButton(
-            label: 'Track',
-            loading: _loading,
-            onPressed: _track,
-            icon: Icons.search,
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 48,
+            child: FilledButton.icon(
+              onPressed: _loading ? null : _track,
+              icon: _loading
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.search),
+              label: Text(_loading ? 'Loading…' : 'Track order'),
+            ),
           ),
           if (_error != null) ...[
-            const SizedBox(height: NileSpacing.md),
-            NileCard(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.info_outline_rounded, color: NileColors.error),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      _error!,
-                      style: NileTypography.bodyMedium.copyWith(
-                        color: NileColors.error,
-                      ),
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
               ),
             ),
           ],
           if (_result != null) ...[
-            const SizedBox(height: NileSpacing.lg),
-            NileCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _result!['order_number']?.toString() ?? '',
-                    style: NileTypography.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  NileStatusChip(
-                    status: _result!['status']?.toString() ?? 'unknown',
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Payment: ${_result!['payment_status'] ?? 'unknown'}',
-                    style: NileTypography.bodyMedium,
-                  ),
-                  if (_result!['total'] is num) ...[
-                    const SizedBox(height: 6),
-                    NilePrice(
-                      amount: (_result!['total'] as num).toDouble(),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (shipment is Map && shipment.isNotEmpty) ...[
-              const SizedBox(height: NileSpacing.md),
-              NileCard(
-                child: Row(
+            const SizedBox(height: 24),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.local_shipping_rounded,
-                      color: NileColors.primary,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Delivery', style: NileTypography.titleSmall),
-                          const SizedBox(height: 3),
-                          Text(
-                            shipment['status']?.toString() ?? 'Shipment created',
-                            style: NileTypography.bodyMedium,
-                          ),
-                        ],
+                    Text(_result!['order_number']?.toString() ?? 'Order',
+                        style: theme.textTheme.titleLarge),
+                    const SizedBox(height: 8),
+                    Text('Status: \${_result!['status']?.toString() ?? 'unknown'}'),
+                    const SizedBox(height: 4),
+                    Text('Payment: \${_result!['payment_status']?.toString() ?? 'unknown'}'),
+                    if (_result!['total'] is num)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text('Total: UGX \${(_result!['total'] as num).toStringAsFixed(0)}'),
                       ),
-                    ),
                   ],
                 ),
               ),
+            ),
+            if (shipment is Map && shipment.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.local_shipping),
+                  title: const Text('Delivery'),
+                  subtitle: Text(shipment['status']?.toString() ?? 'Shipment created'),
+                ),
+              ),
             ],
-            const SizedBox(height: NileSpacing.md),
-            Text('Timeline', style: NileTypography.titleMedium),
-            const SizedBox(height: NileSpacing.sm),
-            ..._buildTimeline(_result!['timeline'] as List? ?? const []),
+            const SizedBox(height: 20),
+            Text('Timeline', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            if (timeline.isEmpty)
+              const Text('No status updates have been recorded yet.')
+            else
+              ...timeline.map((entry) {
+                final m = entry is Map ? Map<String, dynamic>.from(entry) : <String, dynamic>{};
+                final lines = [
+                  m['note']?.toString() ?? '',
+                  m['created_at']?.toString() ?? '',
+                ].where((s) => s.isNotEmpty).join('\n');
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.check_circle_outline),
+                  title: Text(m['status']?.toString() ?? 'Update'),
+                  subtitle: lines.isEmpty ? null : Text(lines),
+                );
+              }),
           ],
         ],
       ),
     );
-  }
-
-  List<Widget> _buildTimeline(List timeline) {
-    if (timeline.isEmpty) {
-      return [
-        const Text('No status updates have been recorded yet.'),
-      ];
-    }
-
-    return timeline.map((entry) {
-      final m = Map<String, dynamic>.from(entry as Map);
-      final status = m['status']?.toString() ?? 'update';
-      final note = m['note']?.toString();
-      final created = m['created_at']?.toString();
-
-      return Padding(
-        padding: const EdgeInsets.only(bottom: NileSpacing.sm),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(
-              Icons.check_circle,
-              color: NileColors.success,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(status, style: NileTypography.titleSmall),
-                  if (note != null && note.isNotEmpty)
-                    Text(note, style: NileTypography.bodyMedium),
-                  if (created != null && created.isNotEmpty)
-                    Text(created, style: NileTypography.caption),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }).toList();
   }
 }
