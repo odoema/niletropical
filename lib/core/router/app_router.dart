@@ -53,6 +53,7 @@ import '../../admin/pricing/pricing_recommendations_screen.dart';
 import '../../admin/notifications/notifications_admin_screen.dart';
 import '../../admin/audit/audit_log_screen.dart';
 import '../../admin/errors/error_logs_screen.dart';
+import '../../admin/seo/seo_health_screen.dart';
 import '../../admin/settings/admin_settings_screen.dart';
 import '../../admin/management/admin_management_screen.dart';
 import '../../shared/services/auth_service.dart';
@@ -243,6 +244,7 @@ final appRouter = GoRouter(
         GoRoute(path: '/admin/notifications', name: 'admin-notifications', builder: (_, __) => const NotificationsAdminScreen()),
         GoRoute(path: '/admin/audit', name: 'admin-audit', builder: (_, __) => const AuditLogScreen()),
         GoRoute(path: '/admin/errors', name: 'admin-errors', builder: (_, __) => const ErrorLogsScreen()),
+        GoRoute(path: '/admin/seo', name: 'admin-seo', builder: (_, __) => const SeoHealthScreen()),
         GoRoute(path: '/admin/settings', name: 'admin-settings', builder: (_, __) => const AdminSettingsScreen()),
         GoRoute(path: '/admin/management', name: 'admin-management', builder: (_, __) => const AdminManagementScreen()),
       ],
