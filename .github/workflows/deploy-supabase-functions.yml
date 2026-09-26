@@ -50,6 +50,22 @@ jobs:
           echo "Applying only migrations not already recorded on the live project..."
           supabase db push --linked
 
+      - name: Record database migration success
+        run: |
+          mkdir -p ops
+          cat > ops/last-production-db-migration.txt <<EOF
+          Production database migration step completed successfully.
+          Project: ${SUPABASE_PROJECT_ID}
+          Commit: ${GITHUB_SHA}
+          UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          Supabase db push applies only migrations not already recorded remotely.
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ops/last-production-db-migration.txt
+          git commit -m "Record production database migration success"
+          git push
+
       - name: Deploy track-order
         run: supabase functions deploy track-order --project-ref "${SUPABASE_PROJECT_ID}"
 
