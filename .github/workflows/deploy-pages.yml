@@ -82,6 +82,10 @@ jobs:
           cp -R assets/website/. build/site/assets/website/
           cp -R build/web/. build/site/app/
 
+      - name: Validate SEO page generator
+        run: |
+          node --check scripts/generate_seo_pages.mjs
+
       - name: Generate crawlable product SEO pages and sitemap
         run: |
           node scripts/generate_seo_pages.mjs
