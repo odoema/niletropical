@@ -42,6 +42,14 @@ jobs:
           fi
           echo "Supabase project: ${SUPABASE_PROJECT_ID}"
 
+      - name: Apply pending production database migrations safely
+        run: |
+          echo "Checking live migration history before applying anything..."
+          supabase link --project-ref "${SUPABASE_PROJECT_ID}"
+          supabase migration list --linked
+          echo "Applying only migrations not already recorded on the live project..."
+          supabase db push --linked
+
       - name: Deploy track-order
         run: supabase functions deploy track-order --project-ref "${SUPABASE_PROJECT_ID}"
 
