@@ -118,7 +118,7 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
       setState(() => _products = _loadProducts());
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image alt text updated')));
     } catch (e, st) {
-      await ErrorReporter.report(e, stackTrace: st, source: 'admin_product_images', action: 'update_image_alt_text');
+      ErrorReporter.report(e, stackTrace: st, source: 'admin_product_images', action: 'update_image_alt_text');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not update alt text. ' + ErrorReporter.friendlyMessage(e)), backgroundColor: NileColors.error));
     }
