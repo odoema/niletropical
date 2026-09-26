@@ -188,8 +188,8 @@ class _ProductCard extends StatelessWidget {
           title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: Text(
             ok
-                ? (recommended.isEmpty ? 'Ready for automatic SEO publishing' : 'Publishable; $recommended recommendation(s) to improve discoverability')
-                : '${critical.length} critical fix(es) · $recommended.length recommendation(s)',
+                ? (recommended.isEmpty ? 'Ready for automatic SEO publishing' : 'Publishable; ${recommended.length} recommendation(s) to improve discoverability')
+                : '${critical.length} critical fix(es) · ${recommended.length} recommendation(s)',
             maxLines: 2, overflow: TextOverflow.ellipsis,
           ),
           trailing: ok
