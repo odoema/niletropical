@@ -35,6 +35,14 @@ function productImage(row) {
 function money(n) {
   return new Intl.NumberFormat('en-UG', { maximumFractionDigits: 0 }).format(Number(n || 0));
 }
+function xml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
 
 function categoryPage(category, products) {
   const canonical = site + '/categories/' + encodeURIComponent(category.slug) + '/';
@@ -188,5 +196,44 @@ const xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sit
   urls.map(u => '<url><loc>' + esc(u.loc) + '</loc><changefreq>' + u.changefreq + '</changefreq><priority>' + u.priority + '</priority></url>').join('') +
   '</urlset>';
 await fs.writeFile(path.join(out, 'sitemap.xml'), xml, 'utf8');
+
+const feedItems = products.filter(p => p.slug).map(p => {
+  const activeVariants = (p.product_variants || []).filter(v => v.is_active !== false);
+  const variant = activeVariants[0];
+  const images = (p.product_images || []).map(productImage).filter(Boolean);
+  if (!variant || Number(variant.price) <= 0 || !images[0]) return '';
+  const description = strip([
+    p.short_description,
+    p.full_description,
+    p.benefits,
+    p.how_to_use
+  ].filter(Boolean).join(' ')).slice(0, 5000);
+  const availability = Number(variant.stock_quantity || 0) > 0 ? 'in_stock' : 'out_of_stock';
+  const lines = [
+    '<item>',
+    '<g:id>' + xml(variant.sku || p.id) + '</g:id>',
+    '<g:title>' + xml(p.name) + '</g:title>',
+    '<g:description>' + xml(description || ('Shop ' + p.name + ' from Nile Tropical Uganda.')) + '</g:description>',
+    '<g:link>' + xml(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:link>',
+    '<g:canonical_link>' + xml(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:canonical_link>',
+    '<g:image_link>' + xml(images[0]) + '</g:image_link>',
+    ...images.slice(1, 11).map(src => '<g:additional_image_link>' + xml(src) + '</g:additional_image_link>'),
+    '<g:availability>' + availability + '</g:availability>',
+    '<g:condition>new</g:condition>',
+    '<g:price>' + Number(variant.price).toFixed(2) + ' UGX</g:price>',
+    '<g:brand>' + xml(p.brand || 'Nile Tropical') + '</g:brand>',
+    '<g:item_group_id>' + xml(p.id) + '</g:item_group_id>',
+    '</item>'
+  ];
+  return lines.join('');
+}).filter(Boolean).join('');
+const merchantFeed = '<?xml version="1.0" encoding="UTF-8"?>' +
+  '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0"><channel>' +
+  '<title>Nile Tropical Uganda Product Feed</title>' +
+  '<link>' + xml(site + '/') + '</link>' +
+  '<description>Products sold by Nile Tropical Industries (U) Ltd in Uganda.</description>' +
+  feedItems +
+  '</channel></rss>';
+await fs.writeFile(path.join(out, 'merchant-feed.xml'), merchantFeed, 'utf8');
 await fs.writeFile(path.join(out, 'robots.txt'), 'User-agent: *\nAllow: /\nSitemap: ' + site + '/sitemap.xml\n', 'utf8');
 console.log('Generated ' + products.length + ' product SEO pages and ' + urls.length + ' sitemap URLs.');
