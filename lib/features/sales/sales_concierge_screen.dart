@@ -35,7 +35,7 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
     if (!shea) return null;
 
     if (q.contains('what') || q.contains('benefit') || q.contains('good for') ||
-        q.contains('why') || q.contains('help')) {
+        q.contains('why') || q.contains('help') || q.contains('good') || q.contains('how') || q.contains('use')) {
       return 'Shea butter is a plant fat from the kernels of the shea tree (Vitellaria paradoxa). '
           'For skincare, its main established role is as an emollient: it helps soften dry skin and supports the skin barrier. '
           'It contains mainly stearic and oleic fatty acids plus smaller amounts of unsaponifiable compounds such as tocopherols, sterols and triterpenes. '
@@ -92,7 +92,7 @@ class _SalesConciergeScreenState extends ConsumerState<SalesConciergeScreen> {
     final q = query.toLowerCase();
     final sheaAnswer = _sheaAnswer(q);
     final budget = _budget(q);
-    if (sheaAnswer != null && (q.contains('what') || q.contains('benefit') || q.contains('good for') || q.contains('why') || q.contains('help') || q.contains('skin') || q.contains('dry') || q.contains('hair') || q.contains('scalp') || q.contains('baby') || q.contains('safe') || q.contains('allerg') || q.contains('raw') || q.contains('refined') || q.contains('sun') || q.contains('spf') || q.contains('eat') || q.contains('food'))) {
+    if (sheaAnswer != null && (q.contains('what') || q.contains('benefit') || q.contains('good for') || q.contains('why') || q.contains('help') || q.contains('good') || q.contains('how') || q.contains('use') || q.contains('skin') || q.contains('dry') || q.contains('hair') || q.contains('scalp') || q.contains('baby') || q.contains('safe') || q.contains('allerg') || q.contains('raw') || q.contains('refined') || q.contains('sun') || q.contains('spf') || q.contains('eat') || q.contains('food'))) {
       return (sheaAnswer, _sheaProducts(products));
     }
     final words = q.replaceAll(RegExp(r'[^a-z0-9 ]'), ' ').split(RegExp(r'\s+')).where((x) => x.length > 2).toSet();
