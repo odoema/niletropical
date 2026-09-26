@@ -70,10 +70,10 @@ class _SeoHealthScreenState extends State<SeoHealthScreen> {
 
 class _SeoProduct {
   final String id, name, slug;
-  final String? description, brand;
+  final String? description, brand, categoryId;
   final List<_Variant> variants;
   final List<_Image> images;
-  _SeoProduct({required this.id, required this.name, required this.slug, this.description, this.brand, required this.variants, required this.images});
+  _SeoProduct({required this.id, required this.name, required this.slug, this.description, this.brand, this.categoryId, required this.variants, required this.images});
 
   factory _SeoProduct.fromMap(Map<String, dynamic> m) => _SeoProduct(
     id: m['id']?.toString() ?? '',
@@ -81,6 +81,7 @@ class _SeoProduct {
     slug: m['slug']?.toString() ?? '',
     description: (m['short_description'] ?? m['full_description'])?.toString(),
     brand: m['brand']?.toString(),
+    categoryId: m['category_id']?.toString(),
     variants: ((m['product_variants'] as List?) ?? []).map((v) => _Variant.fromMap(Map<String, dynamic>.from(v))).where((v) => v.active).toList(),
     images: ((m['product_images'] as List?) ?? []).map((v) => _Image.fromMap(Map<String, dynamic>.from(v))).toList(),
   );
@@ -88,8 +89,12 @@ class _SeoProduct {
   List<String> get issues {
     final out = <String>[];
     if (slug.trim().isEmpty) out.add('Missing SEO slug');
-    if ((description ?? '').trim().length < 30) out.add('Description is too short');
+    if ((description ?? '').trim().length < 70) out.add('Description needs more detail');
     if ((brand ?? '').trim().isEmpty) out.add('Brand is missing');
+    final titleLength = (name.trim() + ' | Nile Tropical Uganda').length;
+    if (titleLength < 20 || titleLength > 60) out.add('SEO title needs tuning');
+    if ((description ?? '').trim().length > 155) out.add('Description is too long');
+    if ((categoryId ?? '').trim().isEmpty) out.add('Product category missing');
     if (images.isEmpty) out.add('No product image');
     if (images.any((i) => i.alt.trim().isEmpty)) out.add('Image alt text missing');
     if (variants.isEmpty) out.add('No active variant');
@@ -139,8 +144,10 @@ class _ProductCard extends StatelessWidget {
         child: Icon(ok ? Icons.check : Icons.warning_amber_rounded, color: ok ? NileColors.success : NileColors.warning)),
       title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(ok ? 'Ready for automatic SEO publishing' : product.issues.join(' • '), maxLines: 2, overflow: TextOverflow.ellipsis),
-      trailing: Text(ok ? 'READY' : '${product.issues.length} ISSUE${product.issues.length == 1 ? '' : 'S'}',
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: ok ? NileColors.success : NileColors.warning)),
+      trailing: ok ? const Icon(Icons.check_circle_outline, color: NileColors.success) : Text(
+        '${product.issues.length} ISSUE${product.issues.length == 1 ? '' : 'S'}',
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: NileColors.warning),
+      ),
     ));
   }
 }
