@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
+import '../widgets/admin_image_frame.dart';
 
 class CmsWebsiteSlotsScreen extends StatefulWidget {
   const CmsWebsiteSlotsScreen({super.key});
@@ -158,13 +159,12 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
                   child: Column(
                     children: [
                       Expanded(
-                        child: Image.network(
-                          _url(path),
-                          width: double.infinity,
+                        child: AdminImageFrame(
+                          url: _url(path),
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Center(
-                            child: Icon(Icons.broken_image_outlined),
-                          ),
+                          expand: true,
+                          borderRadius: 0,
+                          label: 'Website image',
                         ),
                       ),
                       Padding(
@@ -272,26 +272,22 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
             final image = SizedBox(
               width: compact ? double.infinity : 190,
               height: compact ? 180 : 125,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: active
-                    ? Image.network(
-                        _url(path),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: NileColors.surfaceVariant,
-                          alignment: Alignment.center,
-                          child: const Icon(Icons.broken_image_outlined, size: 34),
-                        ),
-                      )
-                    : Container(
-                        color: NileColors.surfaceVariant,
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.image_outlined, size: 38),
-                      ),
-              ),
+              child: active
+                ? AdminImageFrame(
+                    url: _url(path),
+                    fit: BoxFit.cover,
+                    expand: true,
+                    borderRadius: 12,
+                    label: 'Website image',
+                  )
+                : AdminImageFrame(
+                    url: null,
+                    fit: BoxFit.cover,
+                    expand: true,
+                    borderRadius: 12,
+                    fallbackIcon: Icons.image_outlined,
+                    label: 'Using fallback',
+                  ),
             );
             final details = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
