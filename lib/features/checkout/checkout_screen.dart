@@ -31,6 +31,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _phone = TextEditingController();
   final _email = TextEditingController();
   final _address = TextEditingController();
+  final _locationCtrl = TextEditingController();
   final _notes = TextEditingController();
   final _originCtrl = TextEditingController(text: 'Kampala, Uganda');
   Timer? _locationDebounce;
@@ -51,8 +52,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _idempotencyKey = const Uuid().v4();
 
   double get _deliveryFee {
+    final quoted = (_quote?['delivery_fee'] as num?)?.toDouble();
+    if (quoted != null) return quoted;
     final z = _zones.where((z) => z.id == _zoneId);
-
     return z.isEmpty ? 0 : z.first.deliveryFee;
   }
 
@@ -62,7 +64,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     DeliveryService.getZones().then((z) {
       if (mounted) {
-        setState(() => _zones = z);
+        setState(() {
+          _zones = z;
+          if (_zoneId == null && z.isNotEmpty) {
+            _zoneId = z.first.id;
+          }
+        });
       }
     });
   }
@@ -73,6 +80,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     _phone.dispose();
     _email.dispose();
     _address.dispose();
+    _locationCtrl.dispose();
     _notes.dispose();
     _originCtrl.dispose();
     _locationDebounce?.cancel();
@@ -247,7 +255,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
     }
 
-    final total = cart.subtotal + ((_quote?['delivery_fee'] as num?)?.toDouble() ?? _deliveryFee);
+    final total = cart.subtotal + _deliveryFee;
 
     return Scaffold(
       appBar: const NileAppBar(
@@ -362,7 +370,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             Text('Search your delivery location. We use the road route to calculate the delivery charge.', style: NileTypography.bodySmall),
             const SizedBox(height: 8),
             TextField(
-              controller: _address,
+              controller: _locationCtrl,
               onChanged: _searchDestination,
               decoration: InputDecoration(
                 hintText: 'Search address or landmark',
@@ -385,6 +393,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     title: Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis),
                     onTap: () => setState(() {
                       _destination = p;
+                      _locationCtrl.text = p.name;
                       _address.text = p.name;
                       _locationResults = const [];
                     }),
