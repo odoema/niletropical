@@ -131,11 +131,11 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 return GridView.builder(
                   padding: const EdgeInsets.all(NileSpacing.md),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 240,
+                    maxCrossAxisExtent: ProductCard.gridMaxCrossAxisExtent,
                     mainAxisSpacing: NileSpacing.sm,
                     crossAxisSpacing: NileSpacing.sm,
                     // Standard product-card geometry shared with home and category grids.
-                    childAspectRatio: 0.68,
+                    childAspectRatio: ProductCard.gridChildAspectRatio,
                   ),
                   itemCount: sorted.length,
                   itemBuilder: (_, i) => ProductCard(product: sorted[i]),
