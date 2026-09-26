@@ -186,10 +186,10 @@ function productPage(product) {
 
 const [products, categories] = await Promise.all([
   api('products', new URLSearchParams({
-    select: 'id,name,slug,category_id,short_description,full_description,benefits,how_to_use,ingredients,brand,is_active,deleted_at,created_at,product_variants(*),product_images(*)',
+    select: 'id,name,slug,category_id,short_description,full_description,benefits,how_to_use,ingredients,brand,is_active,deleted_at,created_at,updated_at,product_variants(*),product_images(*)',
     is_active: 'eq.true', deleted_at: 'is.null', order: 'created_at.desc'
   }).toString()),
-  api('categories', new URLSearchParams({ select: 'id,name,slug,description,is_active,sort_order', is_active: 'eq.true', order: 'sort_order' }).toString())
+  api('categories', new URLSearchParams({ select: 'id,name,slug,description,is_active,sort_order,updated_at', is_active: 'eq.true', order: 'sort_order' }).toString())
 ]);
 
 const out = path.resolve('build/site');
@@ -216,11 +216,11 @@ for (const p of products) {
 const urls = [
   { loc: site + '/', priority: '1.0', changefreq: 'weekly' },
   { loc: site + '/app/', priority: '0.9', changefreq: 'weekly' },
-  ...categories.filter(c => c.slug).map(c => ({ loc: site + '/categories/' + encodeURIComponent(c.slug) + '/', priority: '0.7', changefreq: 'weekly' })),
-  ...products.filter(p => p.slug).map(p => ({ loc: site + '/products/' + encodeURIComponent(p.slug) + '/', priority: '0.8', changefreq: 'weekly' }))
+  ...categories.filter(c => c.slug).map(c => ({ loc: site + '/categories/' + encodeURIComponent(c.slug) + '/', priority: '0.7', changefreq: 'weekly', lastmod: c.updated_at })),
+  ...products.filter(p => p.slug).map(p => ({ loc: site + '/products/' + encodeURIComponent(p.slug) + '/', priority: '0.8', changefreq: 'weekly', lastmod: p.updated_at || p.created_at }))
 ];
 const xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
-  urls.map(u => '<url><loc>' + esc(u.loc) + '</loc><changefreq>' + u.changefreq + '</changefreq><priority>' + u.priority + '</priority></url>').join('') +
+  urls.map(u => '<url><loc>' + esc(u.loc) + '</loc>' + (u.lastmod ? '<lastmod>' + esc(new Date(u.lastmod).toISOString()) + '</lastmod>' : '') + '<changefreq>' + u.changefreq + '</changefreq><priority>' + u.priority + '</priority></url>').join('') +
   '</urlset>';
 await fs.writeFile(path.join(out, 'sitemap.xml'), xml, 'utf8');
 
