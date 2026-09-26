@@ -102,11 +102,38 @@ class OrderService {
       };
     }
 
+    // Accept both a real Nile Tropical order number (NT-...) and a
+    // database UUID. This makes tracking resilient to old deep links that
+    // accidentally carried order_id instead of order_number.
+    var lookupOrderNumber = orderNumber;
+    var lookupPhone = phone;
+
+    final uuidPattern = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}
+
+    return res == null ? null : Map<String, dynamic>.from(res as Map);
+  }
+},
+    );
+
+    if (uuidPattern.hasMatch(orderNumber)) {
+      final order = await SupabaseService.client
+          .from('orders')
+          .select('order_number, customer_phone')
+          .eq('id', orderNumber)
+          .maybeSingle();
+
+      if (order != null) {
+        lookupOrderNumber = order['order_number']?.toString() ?? orderNumber;
+        lookupPhone = order['customer_phone']?.toString() ?? phone;
+      }
+    }
+
     final res = await SupabaseService.client.rpc(
       'track_order',
       params: {
-        'p_order_number': orderNumber,
-        'p_phone': phone,
+        'p_order_number': lookupOrderNumber,
+        'p_phone': lookupPhone,
       },
     );
 
