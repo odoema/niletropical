@@ -61,6 +61,15 @@ import '../../shared/services/auth_service.dart';
 import '../../core/config/env.dart';
 import '../../core/errors/error_reporter.dart';
 
+TrackingScreen _trackingRoute(GoRouterState state) {
+  final extra = state.extra;
+  final phone = extra is Map ? extra['phone']?.toString() : null;
+  return TrackingScreen(
+    orderNumber: state.pathParameters['orderNumber'],
+    phone: phone,
+  );
+}
+
 final appRouter = GoRouter(
   initialLocation: '/',
   observers: [NileNavigatorObserver()],
@@ -144,17 +153,23 @@ final appRouter = GoRouter(
             );
           },
         ),
+        // Canonical customer tracking routes. Keep legacy aliases so older
+        // email links, bookmarks and deployments continue to resolve.
         GoRoute(path: '/track', name: 'track', builder: (_, __) => const TrackingScreen()),
         GoRoute(
           path: '/track/:orderNumber',
           name: 'track-order',
-          builder: (context, state) {
-            final extra = state.extra as Map<String, dynamic>? ?? {};
-            return TrackingScreen(
-              orderNumber: state.pathParameters['orderNumber'],
-              phone: extra['phone'] as String?,
-            );
-          },
+          builder: (context, state) => _trackingRoute(state),
+        ),
+        GoRoute(path: '/tracking', builder: (_, __) => const TrackingScreen()),
+        GoRoute(
+          path: '/tracking/:orderNumber',
+          builder: (context, state) => _trackingRoute(state),
+        ),
+        GoRoute(path: '/track-order', builder: (_, __) => const TrackingScreen()),
+        GoRoute(
+          path: '/track-order/:orderNumber',
+          builder: (context, state) => _trackingRoute(state),
         ),
         GoRoute(path: '/account', name: 'account', builder: (_, __) => const AccountScreen()),
         GoRoute(path: '/account/orders', name: 'account-orders', builder: (_, __) => const AccountOrdersScreen()),
