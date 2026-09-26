@@ -55,7 +55,7 @@ function productImage(row) {
 function money(n) {
   return new Intl.NumberFormat('en-UG', { maximumFractionDigits: 0 }).format(Number(n || 0));
 }
-function xml(value) {
+function xmlEscape(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -294,18 +294,18 @@ const feedItems = products.filter(p => p.slug).flatMap(p => {
       const title = variant.name ? p.name + ' - ' + variant.name : p.name;
       const lines = [
         '<item>',
-        '<g:id>' + xml(variant.sku || variant.id || p.id) + '</g:id>',
-        '<g:title>' + xml(title) + '</g:title>',
-        '<g:description>' + xml(description || ('Shop ' + title + ' from Nile Tropical Uganda.')) + '</g:description>',
-        '<g:link>' + xml(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:link>',
-        '<g:canonical_link>' + xml(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:canonical_link>',
-        '<g:image_link>' + xml(images[0]) + '</g:image_link>',
-        ...images.slice(1, 11).map(src => '<g:additional_image_link>' + xml(src) + '</g:additional_image_link>'),
+        '<g:id>' + xmlEscape(variant.sku || variant.id || p.id) + '</g:id>',
+        '<g:title>' + xmlEscape(title) + '</g:title>',
+        '<g:description>' + xmlEscape(description || ('Shop ' + title + ' from Nile Tropical Uganda.')) + '</g:description>',
+        '<g:link>' + xmlEscape(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:link>',
+        '<g:canonical_link>' + xmlEscape(site + '/products/' + encodeURIComponent(p.slug) + '/') + '</g:canonical_link>',
+        '<g:image_link>' + xmlEscape(images[0]) + '</g:image_link>',
+        ...images.slice(1, 11).map(src => '<g:additional_image_link>' + xmlEscape(src) + '</g:additional_image_link>'),
         '<g:availability>' + availability + '</g:availability>',
         '<g:condition>new</g:condition>',
         '<g:price>' + Number(variant.price).toFixed(2) + ' UGX</g:price>',
-        '<g:brand>' + xml(p.brand || 'Nile Tropical') + '</g:brand>',
-        '<g:item_group_id>' + xml(p.id) + '</g:item_group_id>',
+        '<g:brand>' + xmlEscape(p.brand || 'Nile Tropical') + '</g:brand>',
+        '<g:item_group_id>' + xmlEscape(p.id) + '</g:item_group_id>',
         '</item>'
       ];
       return lines.join('');
@@ -314,7 +314,7 @@ const feedItems = products.filter(p => p.slug).flatMap(p => {
 const merchantFeed = '<?xml version="1.0" encoding="UTF-8"?>' +
   '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0"><channel>' +
   '<title>Nile Tropical Uganda Product Feed</title>' +
-  '<link>' + xml(site + '/') + '</link>' +
+  '<link>' + xmlEscape(site + '/') + '</link>' +
   '<description>Products sold by Nile Tropical Industries (U) Ltd in Uganda.</description>' +
   feedItems +
   '</channel></rss>';
