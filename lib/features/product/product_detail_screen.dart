@@ -85,7 +85,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                expandedHeight: 300,
+                expandedHeight: 380,
                 pinned: true,
                 backgroundColor: NileColors.surface,
                 flexibleSpace: FlexibleSpaceBar(
@@ -94,19 +94,43 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(NileSpacing.md),
+                  padding: const EdgeInsets.fromLTRB(NileSpacing.md, NileSpacing.lg, NileSpacing.md, NileSpacing.xl),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(product.name, style: NileTypography.headlineMedium),
+                      Text(
+                        product.brand.toUpperCase(),
+                        style: NileTypography.labelSmall.copyWith(
+                          color: NileColors.primary,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        product.name,
+                        style: NileTypography.headlineMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                          height: 1.12,
+                        ),
+                      ),
                       if (product.shortDescription != null) ...[
-                        const SizedBox(height: 8),
-                        Text(product.shortDescription!, style: NileTypography.bodyMedium),
+                        const SizedBox(height: 10),
+                        Text(
+                          product.shortDescription!,
+                          style: NileTypography.bodyLarge.copyWith(
+                            color: NileColors.textSecondary,
+                            height: 1.5,
+                          ),
+                        ),
                       ],
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          NilePrice(amount: variant.price, style: NileTypography.headlineSmall),
+                          NilePrice(
+                            amount: variant.price,
+                            style: NileTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800),
+                          ),
                           if (variant.hasDiscount) ...[
                             const SizedBox(width: 10),
                             NilePrice(amount: variant.compareAtPrice!, strikeThrough: true),
@@ -126,7 +150,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
                       if (product.variants.length > 1) ...[
                         const SizedBox(height: NileSpacing.lg),
-                        Text('Size', style: NileTypography.titleSmall),
+                        Text('Choose size', style: NileTypography.titleSmall.copyWith(fontWeight: FontWeight.w700)),
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
@@ -149,7 +173,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       ],
 
                       const SizedBox(height: NileSpacing.lg),
-                      Text('Quantity', style: NileTypography.titleSmall),
+                      Text('Quantity', style: NileTypography.titleSmall.copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -170,15 +194,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
                       if (product.fullDescription != null) ...[
                         const SizedBox(height: NileSpacing.xl),
-                        Text('Description', style: NileTypography.titleMedium),
+                        Text('About this product', style: NileTypography.titleLarge.copyWith(fontWeight: FontWeight.w700)),
                         const SizedBox(height: 8),
-                        Text(product.fullDescription!, style: NileTypography.bodyLarge),
+                        Text(product.fullDescription!, style: NileTypography.bodyLarge.copyWith(height: 1.6, color: NileColors.textSecondary)),
                       ],
                       if (product.howToUse != null) ...[
                         const SizedBox(height: NileSpacing.lg),
-                        Text('How to use', style: NileTypography.titleMedium),
+                        Text('How to use', style: NileTypography.titleLarge.copyWith(fontWeight: FontWeight.w700)),
                         const SizedBox(height: 8),
-                        Text(product.howToUse!, style: NileTypography.bodyLarge),
+                        Text(product.howToUse!, style: NileTypography.bodyLarge.copyWith(height: 1.6, color: NileColors.textSecondary)),
                       ],
                       const SizedBox(height: 100),
                     ],
@@ -224,15 +248,35 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 }
 
-class _Gallery extends StatelessWidget {
+class _Gallery extends StatefulWidget {
   const _Gallery({required this.product});
   final Product product;
+
+  @override
+  State<_Gallery> createState() => _GalleryState();
+}
+
+class _GalleryState extends State<_Gallery> {
+  late final PageController _controller;
+  int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = PageController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     // Keep the gallery's first frame identical to Product.mainImageUrl.
     // Do not depend on the database's nested-row order.
-    final orderedImages = [...product.images]
+    final orderedImages = [...widget.product.images]
       ..sort((a, b) {
         if (a.isMain != b.isMain) return a.isMain ? -1 : 1;
         final sortCompare = a.sortOrder.compareTo(b.sortOrder);
@@ -242,8 +286,8 @@ class _Gallery extends StatelessWidget {
         return aCreated.compareTo(bCreated);
       });
     final urls = orderedImages.map((i) => i.url).where((u) => u.isNotEmpty).toList();
-    if (urls.isEmpty && product.mainImageUrl != null) {
-      urls.add(product.mainImageUrl!);
+    if (urls.isEmpty && widget.product.mainImageUrl != null) {
+      urls.add(widget.product.mainImageUrl!);
     }
     if (urls.isEmpty) {
       return Container(
@@ -257,9 +301,13 @@ class _Gallery extends StatelessWidget {
         ),
       );
     }
-    return PageView.builder(
-      itemCount: urls.length,
-      itemBuilder: (_, i) {
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _controller,
+          itemCount: urls.length,
+          onPageChanged: (i) => setState(() => _index = i),
+          itemBuilder: (_, i) {
         final u = StorageService.resolvePublicUrl(urls[i]);
         if (u.startsWith('http')) {
           return _GalleryImage(url: u);
@@ -269,7 +317,31 @@ class _Gallery extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(u, style: NileTypography.bodySmall),
         );
-      },
+          },
+        ),
+        if (urls.length > 1)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 16,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                urls.length,
+                (i) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: i == _index ? 18 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: i == _index ? NileColors.primary : NileColors.border,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -282,8 +354,9 @@ class _GalleryImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: NileColors.surface,
       alignment: Alignment.center,
+      padding: const EdgeInsets.all(18),
       child: Image.network(
         url,
         key: ValueKey(url),
