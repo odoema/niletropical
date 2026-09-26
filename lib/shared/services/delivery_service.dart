@@ -38,6 +38,36 @@ class DeliveryService {
     return List<Map<String, dynamic>>.from(rows).map(Courier.fromJson).toList();
   }
 
+  static Future<Map<String, dynamic>> quoteDelivery({
+    required String deliveryZoneId,
+    required double distanceKm,
+  }) async {
+    if (!Env.isConfigured) {
+      const baseFee = 5000.0;
+      const includedKm = 3.0;
+      const extraRate = 1200.0;
+      final extraUnits = (distanceKm > includedKm) ? (distanceKm - includedKm).ceil() : 0;
+      return {
+        'zone_id': deliveryZoneId,
+        'distance_km': distanceKm,
+        'included_km': includedKm,
+        'extra_km_units': extraUnits,
+        'base_fee': baseFee,
+        'extra_km_rate': extraRate,
+        'delivery_fee': baseFee + extraUnits * extraRate,
+      };
+    }
+
+    final result = await SupabaseService.client.rpc(
+      'quote_delivery',
+      params: {
+        'p_delivery_zone_id': deliveryZoneId,
+        'p_distance_km': distanceKm,
+      },
+    );
+    return Map<String, dynamic>.from(result as Map);
+  }
+
   static Future<String> createZone({
     required String name,
     required double fee,
