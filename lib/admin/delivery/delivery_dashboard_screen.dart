@@ -77,6 +77,55 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
     });
   }
 
+  void _ensurePricingZone(List<DeliveryZone> zones) {
+    if (zones.isEmpty || _quoteZoneId != null) return;
+
+    // Kampala is the safest operational default for a Kampala-origin console,
+    // while still allowing the operator to change the zone before quoting.
+    final preferred = zones.firstWhere(
+      (z) => z.name.toLowerCase().contains('kampala'),
+      orElse: () => zones.first,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _quoteZoneId != null) return;
+      setState(() => _quoteZoneId = preferred.id);
+    });
+  }
+
+  void _autoSelectZoneForPlace(GeoPlace place) {
+    final zones = ref.read(zonesProvider).valueOrNull ?? const <DeliveryZone>[];
+    if (zones.isEmpty) return;
+
+    final placeText = place.name.toLowerCase();
+    DeliveryZone? match;
+
+    // Prefer an explicit zone-name match, e.g. "Bukoto, Kampala" -> Kampala.
+    for (final zone in zones) {
+      final zoneName = zone.name.trim().toLowerCase();
+      if (zoneName.isNotEmpty && placeText.contains(zoneName)) {
+        match = zone;
+        break;
+      }
+    }
+
+    if (match == null && placeText.contains('kampala')) {
+      for (final zone in zones) {
+        if (zone.name.toLowerCase().contains('kampala')) {
+          match = zone;
+          break;
+        }
+      }
+    }
+
+    if (match != null && mounted) {
+      setState(() {
+        _quoteZoneId = match!.id;
+        _serverQuote = null;
+      });
+    }
+  }
+
   Future<void> _calculateQuote() async {
     setState(() {
       _calculating = true;
@@ -315,12 +364,18 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
                   icon: Icons.storefront_outlined,
                   results: _originResults,
                   loading: _searchingOrigin,
-                  onChanged: (_) => _origin = null,
+                  onChanged: (_) {
+                    _origin = null;
+                    _route = null;
+                    _serverQuote = null;
+                  },
                   onSearch: _searchOrigin,
                   onPick: (p) => setState(() {
                     _origin = p;
                     _originCtrl.text = p.name;
                     _originResults = const [];
+                    _route = null;
+                    _serverQuote = null;
                   }),
                 );
                 final zone = _zoneSelector();
@@ -336,11 +391,16 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
                     _scheduleDestinationSearch(v);
                   },
                   onSearch: () => _scheduleDestinationSearch(_destinationCtrl.text),
-                  onPick: (p) => setState(() {
-                    _destination = p;
-                    _destinationCtrl.text = p.name;
-                    _destinationResults = const [];
-                  }),
+                  onPick: (p) {
+                    setState(() {
+                      _destination = p;
+                      _destinationCtrl.text = p.name;
+                      _destinationResults = const [];
+                      _route = null;
+                      _serverQuote = null;
+                    });
+                    _autoSelectZoneForPlace(p);
+                  },
                 );
                 return compact
                     ? Column(children: [zone, const SizedBox(height: 10), origin, const SizedBox(height: 10), destination, const SizedBox(height: 12), _quoteButton()])
@@ -401,6 +461,8 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
 
   Widget _zoneSelector() {
     final zones = ref.watch(zonesProvider).valueOrNull ?? const <DeliveryZone>[];
+    _ensurePricingZone(zones);
+
     return DropdownButtonFormField<String>(
       value: _quoteZoneId,
       dropdownColor: NileColors.primaryDark,
@@ -421,6 +483,7 @@ class _DeliveryDashboardScreenState extends ConsumerState<DeliveryDashboardScree
         setState(() {
           _quoteZoneId = value;
           _serverQuote = null;
+          _route = null;
         });
       },
     );
