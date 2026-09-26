@@ -134,21 +134,58 @@ class _Metric extends StatelessWidget {
 class _ProductCard extends StatelessWidget {
   final _SeoProduct product;
   const _ProductCard({required this.product});
-  @override Widget build(BuildContext context) {
+
+  String _recommendation(String issue) {
+    if (issue.contains('Description')) return 'Write a useful 70–155 character search description that explains the product and its main customer benefit.';
+    if (issue.contains('Brand')) return 'Set the real product brand so structured data and catalogue feeds identify the manufacturer correctly.';
+    if (issue.contains('title')) return 'Keep the generated product title concise; aim for a clear product name plus the Nile Tropical suffix within about 60 characters.';
+    if (issue.contains('category')) return 'Assign the most specific active catalogue category to strengthen navigation, breadcrumbs and category discovery.';
+    if (issue.contains('image')) return 'Add a high-quality main product image. Product pages perform better when the primary visual clearly represents the item.';
+    if (issue.contains('alt')) return 'Add concise, accurate alt text describing the product image for accessibility and image search.';
+    if (issue.contains('variant')) return 'Create at least one active sellable variant so the product page can expose price and availability.';
+    if (issue.contains('SKU')) return 'Give every active variant a stable SKU so catalogue feeds can identify the exact sellable item.';
+    if (issue.contains('price')) return 'Set a valid positive selling price so Product structured data and merchant feeds can expose an offer.';
+    if (issue.contains('slug')) return 'Use a short, readable, stable URL slug based on the product name.';
+    return 'Review this product for completeness before publishing it to the SEO layer.';
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ok = product.issues.isEmpty;
-    return Card(margin: const EdgeInsets.only(bottom: 10), child: ListTile(
-      onTap: () => product.id.isEmpty ? null : context.push('/admin/products/${product.id}'),
-      mouseCursor: SystemMouseCursors.click,
-      leading: CircleAvatar(
-        backgroundColor: (ok ? NileColors.success : NileColors.warning).withOpacity(.12),
-        child: Icon(ok ? Icons.check : Icons.warning_amber_rounded, color: ok ? NileColors.success : NileColors.warning)),
-      title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(ok ? 'Ready for automatic SEO publishing' : product.issues.join(' • '), maxLines: 2, overflow: TextOverflow.ellipsis),
-      trailing: ok ? const Icon(Icons.check_circle_outline, color: NileColors.success) : Text(
-        '${product.issues.length} ISSUE${product.issues.length == 1 ? '' : 'S'}',
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: NileColors.warning),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        children: [
+          ListTile(
+            onTap: () => product.id.isEmpty ? null : context.push('/admin/products/${product.id}'),
+            mouseCursor: SystemMouseCursors.click,
+            leading: CircleAvatar(
+              backgroundColor: (ok ? NileColors.success : NileColors.warning).withOpacity(.12),
+              child: Icon(ok ? Icons.check : Icons.warning_amber_rounded, color: ok ? NileColors.success : NileColors.warning),
+            ),
+            title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text(ok ? 'Ready for automatic SEO publishing' : product.issues.join(' • '), maxLines: 2, overflow: TextOverflow.ellipsis),
+            trailing: ok
+                ? const Icon(Icons.check_circle_outline, color: NileColors.success)
+                : Text('${product.issues.length} ISSUE${product.issues.length == 1 ? '' : 'S'}',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: NileColors.warning)),
+          ),
+          if (!ok)
+            ExpansionTile(
+              leading: const Icon(Icons.lightbulb_outline, size: 20),
+              title: const Text('SEO recommendations', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              children: product.issues.map((issue) => ListTile(
+                dense: true,
+                leading: const Icon(Icons.arrow_right, size: 18),
+                title: Text(issue, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                subtitle: Text(_recommendation(issue), style: const TextStyle(fontSize: 12)),
+                trailing: const Icon(Icons.build_outlined, size: 17),
+                onTap: () => product.id.isEmpty ? null : context.push('/admin/products/${product.id}'),
+              )).toList(),
+            ),
+        ],
       ),
-    ));
+    );
   }
 }
 
