@@ -9,9 +9,15 @@ class GeoPlace {
 }
 
 class RouteEstimate {
-  const RouteEstimate({required this.distanceKm, required this.durationMinutes});
+  const RouteEstimate({
+    required this.distanceKm,
+    required this.durationMinutes,
+    this.geometry = const [],
+  });
   final double distanceKm;
   final double durationMinutes;
+  /// Road-route geometry as [latitude, longitude] pairs.
+  final List<List<double>> geometry;
 }
 
 class LocationSearchService {
@@ -56,7 +62,11 @@ class LocationSearchService {
   static Future<RouteEstimate> route({required GeoPlace origin, required GeoPlace destination}) async {
     final uri = Uri.parse(
       '$_osrm/${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}',
-    ).replace(queryParameters: {'overview': 'false', 'steps': 'false'});
+    ).replace(queryParameters: {
+      'overview': 'full',
+      'geometries': 'geojson',
+      'steps': 'false',
+    });
 
     final response = await http.get(uri, headers: {'Accept': 'application/json'}).timeout(const Duration(seconds: 10));
     if (response.statusCode != 200) throw Exception('Route calculation failed (${response.statusCode}).');
@@ -67,9 +77,20 @@ class LocationSearchService {
     if (routes.isEmpty) throw Exception('No route was found.');
 
     final first = routes.first as Map<String, dynamic>;
+    final geometry = <List<double>>[];
+    final geometryRaw = first['geometry'];
+    if (geometryRaw is Map && geometryRaw['coordinates'] is List) {
+      for (final point in geometryRaw['coordinates'] as List) {
+        if (point is List && point.length >= 2 && point[0] is num && point[1] is num) {
+          geometry.add([(point[1] as num).toDouble(), (point[0] as num).toDouble()]);
+        }
+      }
+    }
+
     return RouteEstimate(
       distanceKm: (first['distance'] as num).toDouble() / 1000,
       durationMinutes: (first['duration'] as num).toDouble() / 60,
+      geometry: geometry,
     );
   }
 }
