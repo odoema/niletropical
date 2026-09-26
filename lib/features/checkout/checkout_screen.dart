@@ -54,8 +54,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   double get _deliveryFee {
     final quoted = (_quote?['delivery_fee'] as num?)?.toDouble();
     if (quoted != null) return quoted;
-    final z = _zones.where((z) => z.id == _zoneId);
-    return z.isEmpty ? 0 : z.first.deliveryFee;
+
+    // Keep the pre-quote display aligned with the production pricing model.
+    // The order cannot be placed until the authoritative server quote exists.
+    const baseFare = 2500.0;
+    return baseFare;
   }
 
   @override
