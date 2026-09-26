@@ -15,6 +15,7 @@ import 'core/errors/error_reporter.dart';
 import 'core/router/app_router.dart';
 import 'shared/services/supabase_service.dart';
 import 'shared/services/auth_service.dart';
+import 'features/sales/sales_concierge_launcher.dart';
 
 Future<void> main() async {
   return runZonedGuarded(() async {
@@ -80,7 +81,9 @@ class NileTropicalApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       routerConfig: appRouter,
-      builder: (context, child) => child ?? const SizedBox.shrink(),
+      builder: (context, child) => SalesConciergeLauncher(
+        child: child ?? const SizedBox.shrink(),
+      ),
     );
   }
 }
