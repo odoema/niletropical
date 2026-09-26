@@ -1,8 +1,13 @@
-// payment-initiate — server-side payment initiation; client is never authority
+// payment-initiate — server-side payment initiation; client is never authority.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const METHODS = new Set(["mtn_momo", "airtel_money", "card", "cash_on_delivery"]);
+const METHODS = new Set([
+  "mtn_momo",
+  "airtel_money",
+  "card",
+  "cash_on_delivery",
+]);
 
 function normalize(method: string | undefined): string {
   switch (method) {
@@ -25,7 +30,8 @@ function normalize(method: string | undefined): string {
 const cors = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-gateway-secret",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -34,15 +40,22 @@ function json(data: unknown, status = 200) {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: cors });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { status: 200, headers: cors });
+  }
+
+  if (req.method !== "POST") {
+    return json({ error: "POST required" }, 405);
+  }
 
   try {
-    const body = await req.json();
-    const order_id = body.order_id;
-    const order_number = body.order_number;
+    const body = await req.json().catch(() => ({}));
+    const orderId = String(body.order_id ?? "").trim();
+    const orderNumber = String(body.order_number ?? "").trim();
     const method = normalize(body.method);
+    const clientPhone = String(body.phone ?? "").trim();
 
-    if (!order_id && !order_number) {
+    if (!orderId && !orderNumber) {
       return json({ error: "order_id or order_number required" }, 400);
     }
 
@@ -51,48 +64,52 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // The checkout page normally supplies the database UUID. For older or
-    // idempotency-based checkout responses, also accept the displayed order
-    // number so a valid order can still be resolved safely.
     let order: any = null;
-    let orderError: any = null;
 
-    if (order_id) {
+    if (orderId) {
       const byId = await supabase
         .from("orders")
         .select(
           "id, order_number, total, payment_status, status, payment_method, customer_phone_snapshot",
         )
-        .eq("id", order_id)
+        .eq("id", orderId)
         .maybeSingle();
+
+      if (byId.error) {
+        return json({ error: "ORDER_LOOKUP_FAILED", message: byId.error.message }, 500);
+      }
       order = byId.data;
-      orderError = byId.error;
     }
 
-    if (!order && order_number) {
+    if (!order && orderNumber) {
       const byNumber = await supabase
         .from("orders")
         .select(
           "id, order_number, total, payment_status, status, payment_method, customer_phone_snapshot",
         )
-        .eq("order_number", order_number)
+        .eq("order_number", orderNumber)
         .maybeSingle();
+
+      if (byNumber.error) {
+        return json({ error: "ORDER_LOOKUP_FAILED", message: byNumber.error.message }, 500);
+      }
       order = byNumber.data;
-      orderError = byNumber.error;
     }
 
-    if (orderError || !order) {
-      return json({
-        error: "Order not found",
-        order_id: order_id ?? null,
-        order_number: order_number ?? null,
-      }, 404);
+    if (!order) {
+      return json({ error: "Order not found" }, 404);
     }
 
     if (method === "mtn_momo") {
-      // Older live create_order deployments may still leave a non-COD order
-      // in new_order. MTN payment initiation is the authoritative transition
-      // point: move that order into payment_pending atomically before charging.
+      if (order.payment_method !== "mtn_momo") {
+        return json({
+          error: "PAYMENT_METHOD_MISMATCH",
+          message: "Order payment method is not MTN Mobile Money",
+        }, 409);
+      }
+
+      // create_order normally puts non-COD orders directly into payment_pending.
+      // Keep this repair for older orders created before that fix.
       if (order.status === "new_order") {
         const { data: transitioned, error: transitionError } = await supabase
           .from("orders")
@@ -124,11 +141,15 @@ serve(async (req) => {
         }, 409);
       }
 
-      if (order.payment_method !== "mtn_momo") {
+      const payerPhone = String(
+        order.customer_phone_snapshot ?? clientPhone ?? "",
+      ).trim();
+
+      if (!payerPhone) {
         return json({
-          error: "PAYMENT_METHOD_MISMATCH",
-          message: "Order payment method is not MTN Mobile Money",
-        }, 409);
+          error: "MISSING_PAYMENT_PHONE",
+          message: "The order has no checkout phone number.",
+        }, 422);
       }
 
       const gatewayUrl =
@@ -145,10 +166,6 @@ serve(async (req) => {
         return json({ error: "MTN gateway secret is not configured" }, 500);
       }
 
-      // The live production database currently does not expose the legacy
-      // public.payments table. Do not block MTN charging on that table.
-      // The provider reference is returned to the client and payment-status
-      // reconciles the verified MTN result directly onto orders.payment_status.
       const reference = crypto.randomUUID();
 
       const gatewayResponse = await fetch(
@@ -166,7 +183,7 @@ serve(async (req) => {
             amount: String(order.total),
             currency: "UGX",
             payer_party_id_type: "MSISDN",
-            payer_party_id: order.customer_phone_snapshot ?? body.phone ?? "",
+            payer_party_id: payerPhone,
             payer_message: "Nile Tropical payment",
             payee_note: "Nile Tropical order " + order.order_number,
             transfer_type: "CUSTOM_PAYMENT",
@@ -182,35 +199,43 @@ serve(async (req) => {
         gatewayData = { raw: gatewayText };
       }
 
-      const upstreamStatus = gatewayData?.status_code ?? gatewayResponse.status;
+      const upstreamStatus =
+        gatewayData?.status_code ?? gatewayResponse.status;
 
       if (!gatewayResponse.ok || upstreamStatus !== 202) {
         await supabase
-          .from("payments")
-          .update({ status: "failed" })
-          .eq("id", payment.id);
+          .from("orders")
+          .update({ payment_status: "failed" })
+          .eq("id", order.id);
 
         return json({
           error: "MTN_REQUEST_TO_PAY_FAILED",
           gateway_status: upstreamStatus,
           gateway: gatewayData,
           reference,
+          order_id: order.id,
+          order_number: order.order_number,
         }, 502);
       }
 
       return json({
         reference,
         status: "pending",
-        order_id,
+        order_id: order.id,
+        order_number: order.order_number,
         method: "mtn_momo",
         instructions: "Approve the MTN Mobile Money prompt.",
       });
     }
 
-    const reference = "NTI-PAY-" + order.order_number + "-" + Date.now();
+    const reference =
+      "NTI-PAY-" + order.order_number + "-" + Date.now();
 
+    // Keep non-MTN methods isolated from the MTN path. If the legacy payments
+    // table is unavailable in production, report that cleanly instead of
+    // pretending the payment was initiated.
     const { error: insertError } = await supabase.from("payments").insert({
-      order_id,
+      order_id: order.id,
       method,
       amount: order.total,
       status: "pending",
@@ -218,12 +243,18 @@ serve(async (req) => {
       provider_reference: reference,
     });
 
-    if (insertError) return json({ error: insertError.message }, 500);
+    if (insertError) {
+      return json({
+        error: "PAYMENT_RECORD_FAILED",
+        message: insertError.message,
+      }, 500);
+    }
 
     return json({
       reference,
       status: "pending",
-      order_id,
+      order_id: order.id,
+      order_number: order.order_number,
       method,
       instructions:
         method === "airtel_money"
@@ -232,7 +263,7 @@ serve(async (req) => {
           ? "Payment will be collected on delivery."
           : "Complete the payment.",
     });
-  } catch (e) {
-    return json({ error: String(e) }, 500);
+  } catch (error) {
+    return json({ error: String(error) }, 500);
   }
 });
