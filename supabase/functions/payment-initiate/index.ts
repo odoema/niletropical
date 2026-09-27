@@ -8,6 +8,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const MTN_GATEWAY_CURRENCY = (Deno.env.get("MTN_GATEWAY_CURRENCY") ?? "EUR").toUpperCase();
 const MTN_GATEWAY_MODE = (Deno.env.get("MTN_GATEWAY_MODE") ?? "sandbox").toLowerCase();
 const MTN_SANDBOX_UGX_PER_EUR = Number(Deno.env.get("MTN_SANDBOX_UGX_PER_EUR") ?? "4000");
+// MTN documents that any non-predefined MSISDN produces SUCCESS in sandbox.
+// This is an explicit sandbox-only test identity so checkout can exercise the
+// complete success path without depending on a real Uganda wallet prompt.
+const MTN_SANDBOX_TEST_MSISDN = String(
+  Deno.env.get("MTN_SANDBOX_TEST_MSISDN") ?? "46733123499",
+).trim();
 
 function providerAmountFromUgx(ugx: number): string {
   if (!Number.isFinite(ugx) || ugx <= 0) throw new Error("INVALID_UGX_AMOUNT");
@@ -195,10 +201,24 @@ serve(async (req) => {
         return json({ error: "MTN_CURRENCY_CONFIGURATION_ERROR", message: String(error) }, 500);
       }
 
+      const providerPayerPhone = MTN_GATEWAY_MODE === "sandbox"
+        ? MTN_SANDBOX_TEST_MSISDN
+        : payerPhone;
+
+      if (MTN_GATEWAY_MODE === "sandbox" && !/^\\d{8,15}$/.test(providerPayerPhone)) {
+        return json({
+          error: "MTN_SANDBOX_TEST_MSISDN_INVALID",
+          message: "Sandbox test MSISDN must contain 8-15 digits.",
+        }, 500);
+      }
+
       const providerRequest = {
         amount: providerAmount,
         currency: MTN_GATEWAY_CURRENCY,
         external_id: order.order_number,
+        payer_party_id_type: "MSISDN",
+        payer_party_id: providerPayerPhone,
+        transfer_type: "CUSTOM_PAYMENT",
       };
 
       const { data: paymentTx, error: paymentTxError } = await supabase
@@ -249,7 +269,7 @@ serve(async (req) => {
             amount: providerAmount,
             currency: MTN_GATEWAY_CURRENCY,
             payer_party_id_type: "MSISDN",
-            payer_party_id: payerPhone,
+            payer_party_id: providerPayerPhone,
             payer_message: "Nile Tropical payment",
             payee_note: "Nile Tropical order " + order.order_number,
             transfer_type: "CUSTOM_PAYMENT",
@@ -309,7 +329,9 @@ serve(async (req) => {
         order_id: order.id,
         order_number: order.order_number,
         method: "mtn_momo",
-        instructions: "Approve the MTN Mobile Money prompt.",
+        instructions: MTN_GATEWAY_MODE === "sandbox"
+          ? "Sandbox payment submitted using the MTN success test identity; waiting for the sandbox final status."
+          : "Approve the MTN Mobile Money prompt.",
       });
     }
 
