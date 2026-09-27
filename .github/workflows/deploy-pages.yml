@@ -92,6 +92,8 @@ jobs:
           rm -rf build/site
           mkdir -p build/site/app
           cp index.html build/site/index.html
+          cp privacy.html build/site/privacy.html
+          cp terms.html build/site/terms.html
           cp CNAME build/site/CNAME
           mkdir -p build/site/assets/website
           cp -R assets/website/. build/site/assets/website/
