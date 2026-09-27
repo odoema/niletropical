@@ -1,3 +1,4 @@
+import 'dart:async';
 /// Nile Tropical - Home Screen (Nile design system)
 /// Copyright © Hon. Dr. Betty Udongo Pacutho
 
@@ -496,6 +497,166 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+}
+
+class _NileTropicalHeroCarousel extends StatefulWidget {
+  const _NileTropicalHeroCarousel();
+
+  @override
+  State<_NileTropicalHeroCarousel> createState() => _NileTropicalHeroCarouselState();
+}
+
+class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
+  final PageController _controller = PageController();
+  Timer? _timer;
+  int _index = 0;
+
+  static const _slides = [
+    (
+      image: 'assets/products/eco-shea-butter-250g.svg',
+      heading: 'Nile Tropical Industries',
+      text: 'A Ugandan enterprise creating natural, practical products for everyday life.',
+    ),
+    (
+      image: 'assets/products/hibiscus-tea-150g.svg',
+      heading: 'From Uganda, With Purpose',
+      text: 'We bring together local inspiration, natural ingredients and thoughtful product development.',
+    ),
+    (
+      image: 'assets/products/nile-sheabutter-lotion-apple-200ml.svg',
+      heading: 'Natural Care For Everyday Living',
+      text: 'Our growing range spans personal care, hygiene, wellness and botanical products.',
+    ),
+    (
+      image: 'assets/products/shea-butter-mosquito-repellent-jelly-150g.svg',
+      heading: 'Growing With Our Community',
+      text: 'Nile Tropical Industries is building a modern Ugandan brand focused on quality, accessibility and value.',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 6), (_) {
+      if (!mounted || !_controller.hasClients) return;
+      final next = (_index + 1) % _slides.length;
+      _controller.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 390,
+      child: PageView.builder(
+        controller: _controller,
+        itemCount: _slides.length,
+        onPageChanged: (value) => setState(() => _index = value),
+        itemBuilder: (context, index) {
+          final slide = _slides[index];
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                slide.image,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: NileColors.primary,
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.image_not_supported_outlined, color: Colors.white, size: 48),
+                ),
+              ),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      NileColors.primary.withValues(alpha: 0.92),
+                      NileColors.primary.withValues(alpha: 0.48),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          slide.heading,
+                          style: NileTypography.displaySmall.copyWith(
+                            color: Colors.white,
+                            height: 1.12,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          slide.text,
+                          style: NileTypography.bodyLarge.copyWith(
+                            color: Colors.white.withValues(alpha: 0.94),
+                            height: 1.45,
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        ElevatedButton(
+                          onPressed: () => context.go('/shop'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: NileColors.primary,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: NileRadius.borderMd),
+                          ),
+                          child: Text('Explore our products', style: NileTypography.button),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 24,
+                bottom: 18,
+                child: Row(
+                  children: List.generate(
+                    _slides.length,
+                    (dot) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.only(right: 6),
+                      width: dot == _index ? 24 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: dot == _index ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _QuickChip extends StatelessWidget {
