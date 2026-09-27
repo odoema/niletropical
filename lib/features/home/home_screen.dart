@@ -161,12 +161,12 @@ class HomeScreen extends ConsumerWidget {
                                     fit: StackFit.expand,
                                     children: [
                                       if (url.isNotEmpty)
-                                        Image.network(
-                                          url,
+                                        NileImage(
+                                          url: url,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Center(
-                                            child: Icon(Icons.broken_image_outlined),
-                                          ),
+                                          semanticLabel: banner['title']?.toString(),
+                                          memCacheWidth: 1200,
+                                          memCacheHeight: 500,
                                         ),
                                       if (banner['title']?.toString().isNotEmpty == true)
                                         Align(
@@ -307,14 +307,20 @@ class HomeScreen extends ConsumerWidget {
                 : allProducts.when(
                     data: (all) => _productGrid(all.take(4).toList()),
                     loading: () => const SliverToBoxAdapter(
-                      child: SizedBox(height: 180, child: NileLoadingState()),
+                      child: Padding(
+                        padding: EdgeInsets.all(NileSpacing.md),
+                        child: NileProductGridSkeleton(itemCount: 4),
+                      ),
                     ),
                     error: (e, _) => SliverToBoxAdapter(
                       child: NileErrorState(message: e.toString()),
                     ),
                   ),
             loading: () => const SliverToBoxAdapter(
-              child: SizedBox(height: 180, child: NileLoadingState()),
+              child: Padding(
+                padding: EdgeInsets.all(NileSpacing.md),
+                child: NileProductGridSkeleton(itemCount: 4),
+              ),
             ),
             error: (e, _) => SliverToBoxAdapter(
               child: NileErrorState(message: e.toString()),
@@ -453,13 +459,12 @@ class HomeScreen extends ConsumerWidget {
                                                       child: Icon(Icons.play_circle_outline, size: 48),
                                                     ),
                                                   )
-                                                : Image.network(
-                                                    thumb,
-                                                    width: double.infinity,
+                                                : NileImage(
+                                                    url: thumb,
                                                     fit: BoxFit.cover,
-                                                    errorBuilder: (_, __, ___) => const Center(
-                                                      child: Icon(Icons.broken_image_outlined),
-                                                    ),
+                                                    semanticLabel: video['title']?.toString(),
+                                                    memCacheWidth: 700,
+                                                    memCacheHeight: 500,
                                                   ),
                                           ),
                                           Padding(
