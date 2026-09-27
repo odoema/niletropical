@@ -25,37 +25,56 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
       appBar: AppBar(
         title: const Text('Management'),
       ),
-      body: Column(
-        children: [
-          Material(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: TabBar(
-              controller: _tabs,
-              isScrollable: true,
-              tabs: const [
-                Tab(icon: Icon(Icons.category_outlined), text: 'Categories'),
-                Tab(icon: Icon(Icons.local_offer_outlined), text: 'Coupons'),
-                Tab(icon: Icon(Icons.local_shipping_outlined), text: 'Delivery'),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: AnimatedBuilder(
-              animation: _tabs,
-              builder: (context, _) => SizedBox.expand(
-                child: IndexedStack(
-                  index: _tabs.index,
-                  children: const [
-                    _CategoriesTab(),
-                    _CouponsTab(),
-                    _DeliveryTab(),
-                  ],
-                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Management is a desktop-style operations workspace. Never allow
+          // an inherited narrow constraint to collapse ListTile/Text to a
+          // one-character column. On genuinely narrow screens the workspace
+          // scrolls horizontally instead of corrupting text layout.
+          final width = constraints.maxWidth.isFinite
+              ? constraints.maxWidth.clamp(640.0, double.infinity)
+              : 640.0;
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: width <= constraints.maxWidth
+                ? const NeverScrollableScrollPhysics()
+                : null,
+            child: SizedBox(
+              width: width,
+              height: constraints.maxHeight,
+              child: Column(
+                children: [
+                  Material(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    child: TabBar(
+                      controller: _tabs,
+                      isScrollable: true,
+                      tabs: const [
+                        Tab(icon: Icon(Icons.category_outlined), text: 'Categories'),
+                        Tab(icon: Icon(Icons.local_offer_outlined), text: 'Coupons'),
+                        Tab(icon: Icon(Icons.local_shipping_outlined), text: 'Delivery'),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: AnimatedBuilder(
+                      animation: _tabs,
+                      builder: (context, _) => IndexedStack(
+                        index: _tabs.index,
+                        children: const [
+                          _CategoriesTab(),
+                          _CouponsTab(),
+                          _DeliveryTab(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
