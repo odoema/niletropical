@@ -144,7 +144,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       ),
                       const SizedBox(height: 8),
                       if (variant.inStock)
-                        NileBadge(label: 'In stock', variant: NileBadgeVariant.success)
+                        NileBadge(
+                          label: '${variant.stockQuantity} available',
+                          variant: NileBadgeVariant.success,
+                        )
                       else
                         const NileBadge(label: 'Out of stock', variant: NileBadgeVariant.error),
 
@@ -186,7 +189,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             child: Text('$_qty', style: NileTypography.titleLarge),
                           ),
                           IconButton.filledTonal(
-                            onPressed: variant.inStock ? () => setState(() => _qty++) : null,
+                            onPressed: variant.inStock && _qty < variant.stockQuantity
+                                ? () => setState(() => _qty++)
+                                : null,
                             icon: const Icon(Icons.add),
                           ),
                         ],
