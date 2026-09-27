@@ -224,8 +224,19 @@ input,select,textarea,button{border-radius:12px}
     .then(r=>r.ok?r.json():[]).then(rows=>rows.forEach(row=>{
       if(!row||!row.slot_key||!row.storage_path)return;
       const version=row.updated_at?encodeURIComponent(String(row.updated_at)):String(Date.now());
-      const src=publicUrl(row.storage_path)+'?v='+version;
-      document.querySelectorAll('[data-cms-slot="'+row.slot_key+'"]').forEach(img=>{img.removeAttribute('srcset');img.removeAttribute('sizes');img.src=src;if(row.alt_text)img.alt=row.alt_text;});
+      const baseSrc=publicUrl(row.storage_path);
+      const src=baseSrc+'?v='+version;
+      document.querySelectorAll('[data-cms-slot="'+row.slot_key+'"]').forEach(img=>{
+        img.removeAttribute('srcset');
+        img.removeAttribute('sizes');
+        // Keep an eagerly loading hero request when it already points at the
+        // same CMS asset; otherwise the cache-busted URL can trigger a second
+        // full image download during the first paint.
+        const current=img.currentSrc||img.src||'';
+        const sameAsset=current.split('?')[0]===baseSrc;
+        if(!sameAsset)img.src=src;
+        if(row.alt_text)img.alt=row.alt_text;
+      });
     })).catch(()=>{});
 })();
 function toggleMenu(){const n=document.getElementById('mobileNav'),b=document.querySelector('.menu-btn');const open=n.classList.toggle('open');b.setAttribute('aria-expanded',String(open));b.setAttribute('aria-label',open?'Close menu':'Open menu');b.textContent=open?'×':'☰'}
