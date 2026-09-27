@@ -45,10 +45,10 @@ jobs:
           echo "Supabase project: ${SUPABASE_PROJECT_ID}"
 
       - name: Deploy payment-initiate
-        run: supabase functions deploy payment-initiate --project-ref "${SUPABASE_PROJECT_ID}"
+        run: supabase functions deploy payment-initiate --project-ref "${SUPABASE_PROJECT_ID}" --use-api
 
       - name: Deploy payment-status
-        run: supabase functions deploy payment-status --project-ref "${SUPABASE_PROJECT_ID}"
+        run: supabase functions deploy payment-status --project-ref "${SUPABASE_PROJECT_ID}" --use-api
 
       - name: Deployment complete
         run: |
