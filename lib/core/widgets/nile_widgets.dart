@@ -12,6 +12,7 @@ export 'nile_badge.dart';
 export 'nile_empty_state.dart';
 export 'nile_error_state.dart';
 export 'nile_loading_state.dart';
+export 'nile_skeleton.dart';
 export 'nile_dialog.dart';
 export 'nile_section_header.dart';
 export 'nile_status_chip.dart';
