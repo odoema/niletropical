@@ -673,7 +673,15 @@ class _ManagementList extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
       child: Row(children: [
         Expanded(child: Text(title, style: NileTypography.titleLarge)),
-        FilledButton.icon(onPressed: onAdd, icon: const Icon(Icons.add), label: const Text('Add')),
+        FilledButton.icon(
+          onPressed: onAdd,
+          icon: const Icon(Icons.add),
+          label: const Text('Add'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(0, 48),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+          ),
+        ),
         const SizedBox(width: 8),
         IconButton(onPressed: loading ? null : onRefresh, icon: const Icon(Icons.refresh)),
       ]),
