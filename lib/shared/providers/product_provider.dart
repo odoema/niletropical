@@ -40,6 +40,13 @@ final productsProvider =
   }
 });
 
+/// Complete catalogue for the admin Products screen, including inactive products.
+final adminProductsProvider =
+    FutureProvider.autoDispose.family<List<Product>, String?>((ref, search) async {
+  final data = await SupabaseService.fetchAdminProducts(search: search);
+  return data.map((json) => Product.fromJson(json)).toList();
+});
+
 final categoriesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   if (!Env.isConfigured) return const [];
   return SupabaseService.fetchCategories();
