@@ -9,11 +9,25 @@ class CartNotifier extends StateNotifier<Cart> {
   CartNotifier() : super(const Cart());
 
   void addItem(Product product, ProductVariant variant, {int quantity = 1}) {
-    state = state.addItem(product, variant, quantity: quantity);
+    if (variant.stockQuantity <= 0) return;
+    final existing = state.items.where((item) => item.variant.id == variant.id);
+    final current = existing.isEmpty ? 0 : existing.first.quantity;
+    final capped = (current + quantity).clamp(1, variant.stockQuantity);
+    state = state.removeItem(variant.id).addItem(
+      product,
+      variant,
+      quantity: capped,
+    );
   }
 
   void updateQuantity(String variantId, int quantity) {
-    state = state.updateQuantity(variantId, quantity);
+    final existing = state.items.where((item) => item.variant.id == variantId);
+    if (existing.isEmpty) return;
+    final maxStock = existing.first.variant.stockQuantity;
+    state = state.updateQuantity(
+      variantId,
+      quantity.clamp(1, maxStock),
+    );
   }
 
   void removeItem(String variantId) {
