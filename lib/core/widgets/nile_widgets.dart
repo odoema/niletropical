@@ -19,4 +19,5 @@ export 'nile_bottom_navigation.dart';
 export 'nile_side_navigation.dart';
 export 'nile_data_table.dart';
 export 'nile_search_field.dart';
+export 'nile_responsive_workspace.dart';
 export 'nile_confirm_dialog.dart';
