@@ -2,6 +2,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// The MTN MoMo Developer sandbox accepts EUR only. The Oracle gateway should
+// translate this provider-facing currency according to its configured MTN
+// environment. Production MTN Uganda should set MTN_GATEWAY_CURRENCY=UGX.
+const MTN_GATEWAY_CURRENCY = (Deno.env.get("MTN_GATEWAY_CURRENCY") ?? "EUR").toUpperCase();
+
 const METHODS = new Set([
   "mtn_momo",
   "airtel_money",
@@ -179,6 +184,11 @@ serve(async (req) => {
           amount: order.total,
           currency: "UGX",
           status: "initiated",
+          raw_response: {
+            payment_environment: "mtn_sandbox",
+            provider_currency: MTN_GATEWAY_CURRENCY,
+            provider_amount: order.total,
+          },
         })
         .select("id")
         .single();
@@ -203,7 +213,7 @@ serve(async (req) => {
             reference_id: reference,
             external_id: order.order_number,
             amount: String(order.total),
-            currency: "UGX",
+            currency: MTN_GATEWAY_CURRENCY,
             payer_party_id_type: "MSISDN",
             payer_party_id: payerPhone,
             payer_message: "Nile Tropical payment",
