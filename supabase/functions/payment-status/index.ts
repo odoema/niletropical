@@ -2,6 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const MTN_GATEWAY_CURRENCY = (Deno.env.get("MTN_GATEWAY_CURRENCY") ?? "EUR").toUpperCase();
+
 const cors = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
@@ -88,7 +90,7 @@ serve(async (req) => {
 
     const txLookup = await supabase
       .from("payment_transactions")
-      .select("id, status, provider_reference, provider, method, amount, currency")
+      .select("id, status, provider_reference, provider, method, amount, currency, raw_response")
       .eq("order_id", order.id)
       .eq("provider_reference", reference)
       .order("created_at", { ascending: false })
@@ -199,19 +201,22 @@ serve(async (req) => {
       );
     }
 
+    const providerRequest = (txLookup.data?.raw_response as Record<string, unknown> | null)?.request as Record<string, unknown> | undefined;
+    const expectedProviderAmount = providerRequest?.amount ?? txLookup.data?.amount;
+    const expectedProviderCurrency = String(providerRequest?.currency ?? MTN_GATEWAY_CURRENCY).toUpperCase();
     const gatewayAmount = gatewayBody?.amount;
     const gatewayCurrency = gatewayBody?.currency;
 
     if (
       gatewayAmount != null &&
-      Number(gatewayAmount) !== Number(txLookup.data?.amount)
+      Number(gatewayAmount) !== Number(expectedProviderAmount)
     ) {
       return json({
         error: "PAYMENT_AMOUNT_MISMATCH",
         reference,
         order_id: order.id,
         order_number: order.order_number,
-        expected_amount: txLookup.data?.amount,
+        expected_amount: expectedProviderAmount,
         gateway_amount: gatewayAmount,
       }, 409);
     }
@@ -219,12 +224,12 @@ serve(async (req) => {
     if (
       gatewayCurrency != null &&
       String(gatewayCurrency).toUpperCase() !==
-        String(txLookup.data?.currency ?? "UGX").toUpperCase()
+        expectedProviderCurrency
     ) {
       return json({
         error: "PAYMENT_CURRENCY_MISMATCH",
         reference,
-        expected_currency: txLookup.data?.currency ?? "UGX",
+        expected_currency: expectedProviderCurrency,
         gateway_currency: gatewayCurrency,
       }, 409);
     }
