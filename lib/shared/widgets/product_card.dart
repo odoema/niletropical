@@ -194,6 +194,9 @@ class _ResilientProductImageState extends State<_ResilientProductImage> {
         semanticLabel: 'Nile Tropical product image',
         memCacheWidth: 720,
         memCacheHeight: 720,
+        onError: () {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _failed());
+        },
       ),
     );
   }
