@@ -134,7 +134,11 @@ Deno.serve(async (req) => {
   const { data: tx, error: txError } = await admin
     .from("payment_transactions")
     .select("id,order_id,provider_reference,amount,currency,status")
-    .eq("provider", "mtn_uganda")
+    // payment-initiate records the local transaction under the canonical
+    // gateway provider identifier. The callback event itself remains
+    // mtn_uganda in payment_webhook_events because that identifies the
+    // upstream callback source.
+    .eq("provider", "mtn_gateway")
     .eq("provider_reference", referenceId)
     .maybeSingle();
 
