@@ -62,36 +62,6 @@ class SupabaseService {
     return List<Map<String, dynamic>>.from(response);
   }
 
-  /// Complete catalogue query for the admin Products screen.
-  /// Includes inactive products so administrators can search the full catalogue.
-  static Future<List<Map<String, dynamic>>> fetchAdminProducts({
-    String? search,
-    int limit = 50,
-  }) async {
-    final q = (search ?? '').trim();
-    var query = client
-        .from('products')
-        .select('''
-          *,
-          product_variants (*),
-          product_images (*)
-        ''')
-        .isFilter('deleted_at', null);
-
-    if (q.isNotEmpty) {
-      final escaped = q.replaceAll('%', '\\%').replaceAll('_', '\\_');
-      query = query.or(
-        'name.ilike.%$escaped%,slug.ilike.%$escaped%,short_description.ilike.%$escaped%,full_description.ilike.%$escaped%',
-      );
-    }
-
-    final response = await query
-        .order('created_at', ascending: false)
-        .limit(limit);
-
-    return List<Map<String, dynamic>>.from(response);
-  }
-
   static Future<Map<String, dynamic>?> fetchProductBySlug(String slug) async {
     final response = await client
         .from('products')
