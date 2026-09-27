@@ -93,7 +93,7 @@ class _AdminProductListScreenState extends ConsumerState<AdminProductListScreen>
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (products) {
           if (products.isEmpty) {
-            return const Center(child: Text('No products yet. Add your first product.'));
+            return Center(child: Text(_search.isEmpty ? 'No products yet. Add your first product.' : 'No products found for “$_search”.'));
           }
           return ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
@@ -147,12 +147,12 @@ class _AdminProductListScreenState extends ConsumerState<AdminProductListScreen>
             },
           );
         },
-      ),
+          }),
+        ),
+      ],
     );
   }
 }
-
-class _Badge extends StatelessWidget {
   final String label;
   final Color color;
   const _Badge({required this.label, required this.color});
