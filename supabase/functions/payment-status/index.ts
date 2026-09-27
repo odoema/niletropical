@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
       };
 
       if (newPaymentStatus === "paid" && order.status === "payment_pending") {
-        update.status = "payment_confirmed";
+        update.status = "new_order";
       }
 
       const { error } = await supabase
