@@ -70,8 +70,24 @@ class _CodReconciliationScreenState
           ),
         ],
       ),
-      body: Column(
-        children: [
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Match the proven Management fix: never allow the operations
+          // workspace to collapse to a narrow inherited constraint.
+          final width = constraints.maxWidth.isFinite
+              ? (constraints.maxWidth < 720.0 ? 720.0 : constraints.maxWidth)
+              : 720.0;
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: width <= constraints.maxWidth
+                ? const NeverScrollableScrollPhysics()
+                : null,
+            child: SizedBox(
+              width: width,
+              height: constraints.maxHeight,
+              child: Column(
+                children: [
+
           summaryAsync.when(
             loading: () => const LinearProgressIndicator(),
             error: (_, __) => const SizedBox.shrink(),
@@ -185,6 +201,8 @@ class _CodReconciliationScreenState
                             : FilledButton(
                                 style: FilledButton.styleFrom(
                                   backgroundColor: _Nile.primary,
+                                  minimumSize: const Size(0, 44),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
                                 ),
                                 onPressed: () => _recordDialog(
                                   context,
@@ -200,7 +218,11 @@ class _CodReconciliationScreenState
               },
             ),
           ),
-        ],
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
