@@ -153,6 +153,7 @@ class _AdminProductListScreenState extends ConsumerState<AdminProductListScreen>
     );
   }
 }
+class _Badge extends StatelessWidget {
   final String label;
   final Color color;
   const _Badge({required this.label, required this.color});
