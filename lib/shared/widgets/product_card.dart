@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
 import '../models/product.dart';
 import '../services/storage_service.dart';
+import 'nile_image.dart';
 
 /// Standard Nile Tropical product card.
 ///
@@ -185,32 +186,14 @@ class _ResilientProductImageState extends State<_ResilientProductImage> {
 
     return ColoredBox(
       color: Colors.white,
-      child: Image.network(
-        url,
+      child: NileImage(
         key: ValueKey(url),
-        // Product photography should fill the card rather than float inside
-        // a padded white box. The card itself supplies the clipping boundary.
+        url: url,
         fit: BoxFit.cover,
         alignment: Alignment.center,
-        gaplessPlayback: true,
-        filterQuality: FilterQuality.medium,
-        loadingBuilder: (context, child, progress) {
-          if (progress == null) return child;
-          return const ColoredBox(
-            color: NileColors.surfaceVariant,
-            child: Center(
-              child: SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          );
-        },
-        errorBuilder: (_, __, ___) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _failed());
-          return const _ImagePlaceholder();
-        },
+        semanticLabel: 'Nile Tropical product image',
+        memCacheWidth: 720,
+        memCacheHeight: 720,
       ),
     );
   }
