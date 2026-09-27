@@ -1,22 +1,82 @@
 {
-  "hand-sanitizer-gel-50ml": {"name":"Hand Sanitizer Gel 50ml","description":"A convenient 50ml hand sanitizing gel for everyday use when soap and water are not immediately available."},
-  "nile-liquid-hand-sanitizer-1litre": {"name":"Nile Liquid Hand Sanitizer – 1 Litre","description":"Nile Tropical liquid hand sanitizer in a practical 1-litre size for homes, offices, shops and shared spaces."},
-  "nile-liquid-hand-sanitizer-5-litres": {"name":"Nile Liquid Hand Sanitizer – 5 Litres","description":"Nile Tropical liquid hand sanitizer in a 5-litre bulk size, suitable for high-use locations and refill needs."},
-  "nile-liquid-hand-sanitizer-500ml": {"name":"Nile Liquid Hand Sanitizer – 500ml","description":"Nile Tropical liquid hand sanitizer in a convenient 500ml size for everyday personal and workplace use."},
-  "nile-sheabutter-lotion-apple-200ml": {"name":"Nile Shea Butter Hand & Body Lotion – Apple 200ml","description":"A 200ml Nile Shea Butter hand and body lotion with Apple fragrance. The label highlights vitamins A, C, E and F together with essential oils and plant extracts."},
-  "nile-sheabutter-lotion-lavender-200ml": {"name":"Nile Shea Butter Hand & Body Lotion – Lavender 200ml","description":"A 200ml Nile Shea Butter hand and body lotion with Lavender fragrance. The label highlights vitamins A, C, E and F together with essential oils and plant extracts."},
-  "nile-sheabutter-lotion-lemon-200ml": {"name":"Nile Shea Butter Hand & Body Lotion – Lemon 200ml","description":"A 200ml Nile Shea Butter hand and body lotion with Lemon fragrance. The product label highlights vitamins A, C, E and F, essential oils and plant extracts."},
-  "nile-sheabutter-lotion-sweetie-200ml": {"name":"Nile Shea Butter Hand & Body Lotion – Sweetie 200ml","description":"A 200ml Nile Shea Butter hand and body lotion in the Sweetie fragrance variant."},
-  "sheabutter-baby-lotion-200ml": {"name":"Shea Butter Baby Lotion 200ml","description":"A 200ml shea butter lotion presented for gentle everyday skin care."},
-  "shea-butter-mosquito-repellent-jelly-150g": {"name":"Shea Butter Mosquito Repellent Jelly 150g","description":"A shea butter mosquito-repellent jelly in a 150g catalogue size. The supplied product photography identifies the product as Shea Butter Mosquito Repellent."},
-  "eco-shea-butter": {"name":"E.C.O. Shea Butter","description":"Environmentally friendly cold-pressed organic shea butter. The label highlights natural vitamins A, E and F and presents it as a versatile shea butter product."},
-  "eco-shea-butter-250g": {"name":"E.C.O. Shea Butter – 250g","description":"E.C.O. Shea Butter in the 250g catalogue variant, presented as environmentally friendly cold-pressed organic shea butter."},
-  "eco-shea-butter-500g": {"name":"E.C.O. Shea Butter – 500g","description":"E.C.O. Shea Butter in the 500g catalogue variant, presented as environmentally friendly cold-pressed organic shea butter."},
-  "pure-sheabutter-soap-120g": {"name":"Pure Shea Butter Soap 120g","description":"A 120g soap product made around the Nile Tropical shea butter range."},
-  "shea-butter-tumeric-soap-120g": {"name":"Shea Butter Turmeric Soap 120g","description":"A 120g shea butter soap variant featuring turmeric."},
-  "sheabutter-facial-scrub-soap-120g": {"name":"Shea Butter Facial Scrub Soap 120g","description":"A 120g shea butter facial scrub soap. The supplied product photograph is used as the verified catalogue image."},
-  "sheabutter-herbal-soap-120g": {"name":"Shea Butter Herbal Soap 120g","description":"A 120g shea butter soap variant formulated and presented as an herbal soap."},
-  "tropisun-sunscreen-for-albinism-200g": {"name":"Tropisun Sunscreen for Albinism 200g","description":"Tropisun sunscreen formulated for high sun protection. The product label states protection against UVA and UVB and identifies Zinc Oxide and Titanium Dioxide among the active ingredients."},
-  "hibiscus-powder-150g": {"name":"Hibiscus Powder 150g","description":"Hibiscus powder in a 150g pack, presented as a botanical product in the supplied Nile Tropical product photography."},
-  "hibiscus-tea-150g": {"name":"Hibiscus Tea 150g","description":"Hibiscus tea in a 150g pack for preparation as a botanical tea."}
+  "hand-sanitizer-gel-50ml": {
+    "name": "Hand Sanitizer Gel 50ml",
+    "description": "A convenient 50ml hand sanitizing gel for everyday use when soap and water are not immediately available."
+  },
+  "nile-liquid-hand-sanitizer-1litre": {
+    "name": "Nile Liquid Hand Sanitizer – 1 Litre",
+    "description": "Nile Tropical liquid hand sanitizer in a practical 1-litre size for homes, offices, shops and shared spaces."
+  },
+  "nile-liquid-hand-sanitizer-5-litres": {
+    "name": "Nile Liquid Hand Sanitizer – 5 Litres",
+    "description": "Nile Tropical liquid hand sanitizer in a 5-litre bulk size, suitable for high-use locations and refill needs."
+  },
+  "nile-liquid-hand-sanitizer-500ml": {
+    "name": "Nile Liquid Hand Sanitizer – 500ml",
+    "description": "Nile Tropical liquid hand sanitizer in a convenient 500ml size for everyday personal and workplace use."
+  },
+  "nile-sheabutter-lotion-apple-200ml": {
+    "name": "Nile Shea Butter Hand & Body Lotion – Apple 200ml",
+    "description": "A 200ml Nile Shea Butter hand and body lotion in Apple fragrance. Formulated as a skin moisturizer with healthy fats and emollient properties: anti-inflammatory (helps eczema and rosacea), anti-aging (vitamins A and E reduce fine lines), UV-protective (cinnamic acid and phytosterols), acne-preventing, wound-healing, and soothing for chapped cuticles, sunburn and razor bumps."
+  },
+  "nile-sheabutter-lotion-lavender-200ml": {
+    "name": "Nile Shea Butter Hand & Body Lotion – Lavender 200ml",
+    "description": "A 200ml Nile Shea Butter hand and body lotion in Lavender fragrance. Formulated as a skin moisturizer with healthy fats and emollient properties: anti-inflammatory (helps eczema and rosacea), anti-aging (vitamins A and E reduce fine lines), UV-protective (cinnamic acid and phytosterols), acne-preventing, wound-healing, and soothing for chapped cuticles, sunburn and razor bumps."
+  },
+  "nile-sheabutter-lotion-lemon-200ml": {
+    "name": "Nile Shea Butter Hand & Body Lotion – Lemon 200ml",
+    "description": "A 200ml Nile Shea Butter hand and body lotion in Lemon fragrance. Formulated as a skin moisturizer with healthy fats and emollient properties: anti-inflammatory (helps eczema and rosacea), anti-aging (vitamins A and E reduce fine lines), UV-protective (cinnamic acid and phytosterols), acne-preventing, wound-healing, and soothing for chapped cuticles, sunburn and razor bumps."
+  },
+  "nile-sheabutter-lotion-sweetie-200ml": {
+    "name": "Nile Shea Butter Hand & Body Lotion – Sweetie 200ml",
+    "description": "A 200ml Nile Shea Butter hand and body lotion in the Sweetie fragrance variant."
+  },
+  "sheabutter-baby-lotion-200ml": {
+    "name": "Shea Butter Baby Lotion 200ml",
+    "description": "A 200ml shea butter lotion presented for gentle everyday skin care."
+  },
+  "shea-butter-mosquito-repellent-jelly-150g": {
+    "name": "Shea Butter Mosquito Repellent Jelly 150g",
+    "description": "A skin-applied natural mosquito repellent jelly made with Neem oil, Lemon Eucalyptus and Lemongrass essential oils. Neem oil is used for ringworm, skin disorders, rashes, wounds, boils and ulcers, and is emollient, antimicrobial, anti-inflammatory and antioxidant, in addition to repelling insects. Brochure catalogue lists this product at 120g and 60g — confirm which size matches this 150g listing before publishing."
+  },
+  "eco-shea-butter": {
+    "name": "E.C.O. Shea Butter",
+    "description": "E.C.O Shea Butter is an environmentally friendly, cold-pressed Organic Shea Butter Nilotica from Northern Uganda, containing natural vitamins A, E and F. Vitamins A and E help maintain and clear the skin; Vitamin F acts as a skin protector and rejuvenator. Soothes rough, dry or chapped skin. Contains cinnamic acid, which helps protect skin from UV rays, and has antimicrobial and anti-inflammatory properties. Traditionally used to help heal burns, sores, scars, dermatitis, psoriasis, eczema, dandruff and stretch marks."
+  },
+  "eco-shea-butter-250g": {
+    "name": "E.C.O. Shea Butter – 250g",
+    "description": "E.C.O Shea Butter in the 250g size — environmentally friendly, cold-pressed Organic Shea Butter Nilotica from Northern Uganda, containing natural vitamins A, E and F. Soothes rough, dry or chapped skin; contains cinnamic acid for UV protection; antimicrobial and anti-inflammatory. Traditionally used for burns, sores, scars, dermatitis, psoriasis, eczema, dandruff and stretch marks."
+  },
+  "eco-shea-butter-500g": {
+    "name": "E.C.O. Shea Butter – 500g",
+    "description": "E.C.O Shea Butter in the 500g size — environmentally friendly, cold-pressed Organic Shea Butter Nilotica from Northern Uganda, containing natural vitamins A, E and F. Soothes rough, dry or chapped skin; contains cinnamic acid for UV protection; antimicrobial and anti-inflammatory. Traditionally used for burns, sores, scars, dermatitis, psoriasis, eczema, dandruff and stretch marks."
+  },
+  "pure-sheabutter-soap-120g": {
+    "name": "Pure Shea Butter Soap 120g",
+    "description": "Pure Shea Butter Soap made from raw cold-pressed shea butter and lye (sodium hydroxide), infused with essential oils and herbal extracts. Nourishes and moisturizes; no chemical or foam boosters added. Gentle enough for sensitive skin, including babies', and used for eczema, dermatitis, psoriasis and dandruff. Brochure catalogue lists this soap at 100g — confirm sizing against this 120g listing before publishing."
+  },
+  "shea-butter-tumeric-soap-120g": {
+    "name": "Shea Butter Turmeric Soap 120g",
+    "description": "Pure Shea Butter Turmeric Soap made from raw cold-pressed shea butter and lye (sodium hydroxide), infused with turmeric powder, essential oils and herbal extracts. Anti-inflammatory and a deep cleanser; fights acne through its antiseptic properties; reduces dark circles; anti-aging; protects against sun damage; reduces the appearance of stretch marks; lightens and soothes skin. Brochure catalogue lists this soap at 100g — confirm sizing against this 120g listing before publishing."
+  },
+  "sheabutter-facial-scrub-soap-120g": {
+    "name": "Shea Butter Facial Scrub Soap 120g",
+    "description": "Shea Butter Scrub Soap made from hot-pressed shea butter, lye (sodium hydroxide) and potash, infused with essential oils and herbal extracts. Fights acne, pimples and after-shave bumps, skin rashes and fungal infections; exfoliates and renews skin; can also be used as a natural shampoo. Brochure does not print an exact gram size for this soap — confirm against this 120g listing before publishing."
+  },
+  "sheabutter-herbal-soap-120g": {
+    "name": "Shea Butter Herbal Soap 120g",
+    "description": "A 120g shea butter soap variant formulated and presented as an herbal soap."
+  },
+  "tropisun-sunscreen-for-albinism-200g": {
+    "name": "Tropisun Sunscreen for Albinism 200g",
+    "description": "Nile Tropical's Tropisun Sunscreen, formulated specially for persons with albinism to protect from both UVA and UVB radiation. Contains Zinc Oxide and Titanium Dioxide as non-chemical sun filters, plus Shea butter, essential oils, glycerin and aloe vera, which moisturize, nourish and help repair skin damaged by sun exposure. Also available in a 100ml size per the brochure — consider adding as a second variant."
+  },
+  "hibiscus-powder-150g": {
+    "name": "Hibiscus Powder 150g",
+    "description": "Hibiscus Powder made from dried, vibrantly coloured calyces of Hibiscus Sabdariffa, for hot or cold preparation with honey or sugar. Traditionally associated with supporting healthy blood pressure and cholesterol, digestion and immune health, and is high in vitamin C and antioxidants. Brochure catalogue lists this product at 125g — confirm sizing against this 150g listing before publishing, and review health claims before using them in public-facing copy."
+  },
+  "hibiscus-tea-150g": {
+    "name": "Hibiscus Tea 150g",
+    "description": "Hibiscus Tea made from dried, vibrantly coloured calyces of Hibiscus Sabdariffa, for hot or cold preparation with honey or sugar; has a tart flavour. Traditionally associated with supporting healthy blood pressure and cholesterol, digestion and immune health, and is high in vitamin C and antioxidants. Brochure catalogue lists this product at 125g — confirm sizing against this 150g listing before publishing, and review health claims before using them in public-facing copy."
+  }
 }
