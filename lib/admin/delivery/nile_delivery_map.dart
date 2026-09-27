@@ -129,6 +129,7 @@ class _NileDeliveryMapState extends State<NileDeliveryMap> {
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.niletropical.uganda',
+                  tileProvider: NetworkTileProvider(),
                 ),
                 if (routePoints.length >= 2)
                   PolylineLayer(
