@@ -201,9 +201,17 @@ serve(async (req) => {
       );
     }
 
-    const providerRequest = (txLookup.data?.raw_response as Record<string, unknown> | null)?.request as Record<string, unknown> | undefined;
-    const expectedProviderAmount = providerRequest?.amount ?? txLookup.data?.amount;
-    const expectedProviderCurrency = String(providerRequest?.currency ?? MTN_GATEWAY_CURRENCY).toUpperCase();
+    const raw = txLookup.data?.raw_response as Record<string, unknown> | null;
+    const providerRequest = raw?.request as Record<string, unknown> | undefined;
+    if (!providerRequest?.amount || !providerRequest?.currency) {
+      return json({
+        error: "PAYMENT_PROVIDER_REQUEST_METADATA_MISSING",
+        reference,
+        message: "The local transaction has no immutable provider amount/currency metadata.",
+      }, 409);
+    }
+    const expectedProviderAmount = Number(providerRequest.amount);
+    const expectedProviderCurrency = String(providerRequest.currency).toUpperCase();
     const gatewayAmount = gatewayBody?.amount;
     const gatewayCurrency = gatewayBody?.currency;
 
@@ -368,12 +376,15 @@ serve(async (req) => {
       order_id: order.id,
       order_number: order.order_number,
       total: order.total,
+      currency: "UGX",
       method: "mtn_momo",
       gateway_status: upstreamStatus,
       financial_transaction_id:
         gatewayBody?.financialTransactionId ?? null,
       gateway_amount: gatewayBody?.amount ?? null,
       gateway_currency: gatewayBody?.currency ?? null,
+      merchant_amount: order.total,
+      merchant_currency: "UGX",
       reconciled: newPaymentStatus === "paid",
       notification,
     });
