@@ -65,6 +65,12 @@ jobs:
       - name: Deploy analytics-dashboard
         run: supabase functions deploy analytics-dashboard --project-ref "${SUPABASE_PROJECT_ID}"
 
+      - name: Deploy location-search gateway
+        run: supabase functions deploy location-search --project-ref "${SUPABASE_PROJECT_ID}"
+
+      - name: Deploy route gateway
+        run: supabase functions deploy route --project-ref "${SUPABASE_PROJECT_ID}"
+
       - name: Deployment complete
         run: |
           echo "Nile Tropical tracking, payment and analytics functions deployed successfully."
