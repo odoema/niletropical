@@ -100,6 +100,43 @@ More granular live policies already exist for:
 7. Review/approve/merge only after evidence is green.
 8. Deployment and real payment/tracking tests remain later steps.
 
+
+## 2026-09-27 efficiency pass — read-only authorization diagnostic
+
+A repeatable, repository-only diagnostic was added:
+`supabase/diagnostics/20260927_authorization_reconciliation.sql`
+
+It is SELECT-only and inventories:
+- role helper definitions;
+- public SECURITY DEFINER functions and execute grants;
+- exact `pg_policies` policy names/expressions;
+- every policy using `is_staff()`;
+- operational-domain policies;
+- aggregate role assignments;
+- the live `update_order_status()` definition.
+
+This is now the standard evidence-gathering step before any RLS migration is written. It avoids guessed policy names and avoids production role mutation.
+
+### Function authorization verification
+
+Live function bodies confirmed:
+- `admin_create_courier()` → `delivery_ops_authorized()`
+- `admin_create_delivery_zone()` → `delivery_ops_authorized()`
+- `assign_shipment()` → `delivery_ops_authorized()`
+- `create_shipment()` → `delivery_ops_authorized()`
+- `record_stock_movement()` → super_admin / manager / inventory_officer
+- `submit_proof_of_delivery()` → delivery operations or assigned courier
+- `update_order_status()` → super_admin / manager / sales_staff
+- `admin_upsert_product()` → super_admin / manager / inventory_officer
+- `apply_pricing_recommendation()` → manager / finance / super_admin
+
+No production function or policy was changed during this pass.
+
+### Important live defect retained as REPAIR/PENDING
+
+`update_order_status()` still lists `payment_failed` in its transition matrix while rejecting it in the accepted-status list. The repository migration remains a HOLD placeholder; no production change has been made.
+
+
 ## Safety rule
 No destructive database reset, broad migration replay, automatic production migration push, payment-function replacement, or fabricated production data may be used to make repository history appear consistent.
 
