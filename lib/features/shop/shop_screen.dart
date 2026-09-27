@@ -141,7 +141,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                   itemBuilder: (_, i) => ProductCard(product: sorted[i]),
                 );
               },
-              loading: () => const NileLoadingState(message: 'Loading products…'),
+              loading: () => const Padding(
+                padding: EdgeInsets.all(NileSpacing.md),
+                child: NileProductGridSkeleton(itemCount: 6),
+              ),
               error: (e, _) => NileErrorState(
                 message: e.toString(),
                 onRetry: () => ref.invalidate(productsProvider(_search)),
