@@ -62,9 +62,40 @@ This migration is REPOSITORY / PENDING REVIEW / NOT DEPLOYED.
 - SECURITY DEFINER function guards already enforcing minimum roles.
 - Public guest track_order(order_number, phone) path.
 
-## FUNCTION GRANT HARDENING — REPAIR CANDIDATE
+## CUSTOMERS / NOTIFICATIONS / MEDIA — REPOSITORY REPAIR PREPARED
 
-Live metadata shows apply_pricing_recommendation(uuid) is executable by anon as well as authenticated, although its function body requires manager/finance/super_admin. This is defense-in-depth, not an observed authorization bypass. Candidate repository repair exists separately. Do not apply until reviewed.
+Repository-only migration: `supabase/migrations/20260927_repair_customers_notifications_rls.sql`
+
+Prepared boundaries:
+- Customers direct management: super_admin / manager / sales_staff.
+- Customer addresses: owner plus super_admin / manager / sales_staff.
+- Notification log read: super_admin / manager / finance.
+- Website media staff read: super_admin / manager / content_manager.
+
+No production role assignments are changed. NOT DEPLOYED.
+
+## FUNCTION GRANT HARDENING — REPOSITORY REPAIR PREPARED
+
+Repository-only migration: `supabase/migrations/20260927_harden_internal_security_definer_grants.sql`
+
+Prepared hardening:
+- `apply_pricing_recommendation(uuid)`: remove anon execution.
+- `fail_order_payment(uuid,text)`: remove anon/authenticated execution; retain service_role because no current Flutter/payment Edge caller was found and the function mutates payment/order state.
+- trigger-only notification/history helpers: remove anon/authenticated execution.
+- notification queue helpers: remove anon/authenticated execution because current lifecycle trigger is their verified caller.
+- `admin_replace_product_main_image(...)`: remove anon execution; retain authenticated/service_role.
+
+This is REPOSITORY / PENDING REVIEW / NOT DEPLOYED.
+
+## TRIGGER SEARCH PATH — REPOSITORY REPAIR PREPARED
+
+Repository-only migration: `supabase/migrations/20260927_harden_trigger_function.sql`
+
+Prepared hardening:
+- set `public.trigger_set_updated_at()` search_path explicitly to `public`.
+- remove direct anon/authenticated execution because it is a trigger-only helper.
+
+NOT DEPLOYED.
 
 ## BRANCH DIVERGENCE — LIVE RECONCILIATION
 
