@@ -67,7 +67,24 @@ class ProductCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
-                    NilePrice(amount: price),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (product.variants.isNotEmpty)
+                          Text(
+                            product.variants.first.stockQuantity > 0
+                                ? '${product.variants.first.stockQuantity} available'
+                                : 'Out of stock',
+                            style: NileTypography.labelSmall.copyWith(
+                              color: product.variants.first.stockQuantity > 0
+                                  ? NileColors.success
+                                  : NileColors.error,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        NilePrice(amount: price),
+                      ],
+                    ),
                   ],
                 ),
               ),
