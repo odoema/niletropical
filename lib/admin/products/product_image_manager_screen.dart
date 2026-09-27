@@ -141,6 +141,151 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
     return sorted.first;
   }
 
+  Future<void> _showImageViewer(
+    Map<String, dynamic> product,
+    List<Map<String, dynamic>> images,
+    int initialIndex,
+  ) async {
+    if (images.isEmpty) return;
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: .88),
+      builder: (dialogContext) {
+        final controller = PageController(initialPage: initialIndex);
+        var activeIndex = initialIndex;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(18),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1100, maxHeight: 820),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: NileColors.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: const [BoxShadow(blurRadius: 40, spreadRadius: 4)],
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(_displayName(product), style: NileTypography.titleLarge),
+                                const SizedBox(height: 3),
+                                Text(
+                                  activeIndex.toString() + ' of ' + images.length.toString() + ' images',
+                                  style: NileTypography.bodySmall.copyWith(color: NileColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Close image viewer',
+                            onPressed: () => Navigator.pop(dialogContext),
+                            icon: const Icon(Icons.close),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          PageView.builder(
+                            controller: controller,
+                            itemCount: images.length,
+                            onPageChanged: (index) => setDialogState(() => activeIndex = index),
+                            itemBuilder: (_, index) {
+                              final url = StorageService.resolvePublicUrl(images[index]['storage_path']?.toString());
+                              return Padding(
+                                padding: const EdgeInsets.all(28),
+                                child: InteractiveViewer(
+                                  minScale: .8,
+                                  maxScale: 4,
+                                  child: AdminImageFrame(
+                                    url: url,
+                                    expand: true,
+                                    fit: BoxFit.contain,
+                                    borderRadius: 16,
+                                    backgroundColor: NileColors.surfaceVariant,
+                                    label: 'Product image',
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          if (images.length > 1)
+                            Positioned(
+                              left: 12,
+                              child: IconButton.filled(
+                                tooltip: 'Previous image',
+                                onPressed: activeIndex == 0 ? null : () => controller.previousPage(duration: const Duration(milliseconds: 220), curve: Curves.easeOut),
+                                icon: const Icon(Icons.chevron_left),
+                              ),
+                            ),
+                          if (images.length > 1)
+                            Positioned(
+                              right: 12,
+                              child: IconButton.filled(
+                                tooltip: 'Next image',
+                                onPressed: activeIndex == images.length - 1 ? null : () => controller.nextPage(duration: const Duration(milliseconds: 220), curve: Curves.easeOut),
+                                icon: const Icon(Icons.chevron_right),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (images.length > 1)
+                      SizedBox(
+                        height: 86,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: images.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 10),
+                          itemBuilder: (_, index) {
+                            final selected = index == activeIndex;
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: () => controller.animateToPage(index, duration: const Duration(milliseconds: 220), curve: Curves.easeOut),
+                              child: Container(
+                                width: 62,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: selected ? NileColors.primary : NileColors.border,
+                                    width: selected ? 2 : 1,
+                                  ),
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: AdminImageFrame(
+                                  url: StorageService.resolvePublicUrl(images[index]['storage_path']?.toString()),
+                                  fit: BoxFit.cover,
+                                  borderRadius: 9,
+                                  backgroundColor: NileColors.surfaceVariant,
+                                  label: 'Thumbnail',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _showImageGallery(
     Map<String, dynamic> product,
     List<Map<String, dynamic>> images,
@@ -180,7 +325,7 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
                       childAspectRatio: 1,
                     ),
                     itemCount: images.length,
-                    itemBuilder: (_, index) => _galleryImageTile(product, images[index]),
+                    itemBuilder: (_, index) => _galleryImageTile(product, images, index),
                   ),
                 ),
               ],
@@ -193,13 +338,22 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
 
   Widget _galleryImageTile(
     Map<String, dynamic> product,
-    Map<String, dynamic> image,
+    List<Map<String, dynamic>> images,
+    int index,
   ) {
+    final image = images[index];
     final url = StorageService.resolvePublicUrl(image['storage_path']?.toString());
     final isMain = image['is_main'] == true;
-    return Stack(
-      children: [
-        AdminImageFrame(
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _showImageViewer(product, images, index),
+        child: Stack(
+          children: [
+            AdminImageFrame(
           url: url,
           aspectRatio: 1,
           fit: BoxFit.contain,
@@ -266,7 +420,9 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
                   child: const Text('Set as main'),
                 ),
         ),
-      ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -345,7 +501,9 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
                     return Card(
                       margin: EdgeInsets.zero,
                       clipBehavior: Clip.antiAlias,
-                      elevation: 0,
+                      elevation: 1,
+                      shadowColor: Colors.black.withValues(alpha: .08),
+                      surfaceTintColor: Colors.white,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
                         child: Column(
@@ -399,13 +557,51 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
                                               ],
                                             ),
                                           )
-                                        : AdminImageFrame(
-                                            url: mainUrl,
-                                            expand: true,
-                                            fit: BoxFit.contain,
-                                            borderRadius: 12,
-                                            backgroundColor: NileColors.surfaceVariant,
-                                            label: 'Product image',
+                                        : Material(
+                                            color: Colors.transparent,
+                                            borderRadius: BorderRadius.circular(12),
+                                            clipBehavior: Clip.antiAlias,
+                                            child: InkWell(
+                                              onTap: () {
+                                                final initial = images.indexOf(mainImage);
+                                                _showImageViewer(product, images, initial < 0 ? 0 : initial);
+                                              },
+                                              borderRadius: BorderRadius.circular(12),
+                                              child: Stack(
+                                                fit: StackFit.expand,
+                                                children: [
+                                                  AdminImageFrame(
+                                                    url: mainUrl,
+                                                    expand: true,
+                                                    fit: BoxFit.contain,
+                                                    borderRadius: 12,
+                                                    backgroundColor: NileColors.surfaceVariant,
+                                                    label: 'Product image',
+                                                  ),
+                                                  Positioned(
+                                                    left: 12,
+                                                    bottom: 12,
+                                                    child: DecoratedBox(
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.black.withValues(alpha: .62),
+                                                        borderRadius: BorderRadius.circular(10),
+                                                      ),
+                                                      child: const Padding(
+                                                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            Icon(Icons.open_in_full, color: Colors.white, size: 15),
+                                                            SizedBox(width: 6),
+                                                            Text('Open gallery', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
                                   ),
                                   if (mainImage != null)
