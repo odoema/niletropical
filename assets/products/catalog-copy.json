@@ -1,1 +1,122 @@
-PLACEHOLDER
+{
+  "hand-sanitizer-gel-50ml": {
+    "name": "Hand Sanitizer Gel 50ml",
+    "description": "A convenient 50ml hand sanitizing gel for everyday use when soap and water are not immediately available.",
+    "ingredients": "Alcohol-based sanitizing gel",
+    "benefits": "Cleans hands on the go when soap and water are not available."
+  },
+  "nile-liquid-hand-sanitizer-1litre": {
+    "name": "Nile Liquid Hand Sanitizer – 1 Litre",
+    "description": "Nile Tropical liquid hand sanitizer in a practical 1-litre size for homes, offices, shops and shared spaces.",
+    "ingredients": "Alcohol-based liquid sanitizer",
+    "benefits": "Everyday hygiene for shared home and workplace spaces."
+  },
+  "nile-liquid-hand-sanitizer-5-litres": {
+    "name": "Nile Liquid Hand Sanitizer – 5 Litres",
+    "description": "Nile Tropical liquid hand sanitizer in a 5-litre bulk size, suitable for high-use locations and refill needs.",
+    "ingredients": "Alcohol-based liquid sanitizer",
+    "benefits": "Bulk size for high-use locations and refills."
+  },
+  "nile-liquid-hand-sanitizer-500ml": {
+    "name": "Nile Liquid Hand Sanitizer – 500ml",
+    "description": "Nile Tropical liquid hand sanitizer in a convenient 500ml size for everyday personal and workplace use.",
+    "ingredients": "Alcohol-based liquid sanitizer",
+    "benefits": "Convenient everyday personal and workplace hygiene."
+  },
+  "nile-sheabutter-lotion-apple-200ml": {
+    "name": "Nile Shea Butter Hand & Body Lotion – Apple 200ml",
+    "description": "A 200ml Nile Shea Butter hand and body lotion in Apple fragrance. Rich in healthy fats and naturally occurring vitamins A and E, it moisturizes dry skin, soothes tightness, and leaves skin feeling soft and nourished.",
+    "ingredients": "Shea butter, vitamins A and E, essential oils and plant extracts, Apple fragrance",
+    "benefits": "Moisturizes dry skin, soothes tightness, and leaves skin feeling soft and nourished."
+  },
+  "nile-sheabutter-lotion-lavender-200ml": {
+    "name": "Nile Shea Butter Hand & Body Lotion – Lavender 200ml",
+    "description": "A 200ml Nile Shea Butter hand and body lotion in Lavender fragrance. Rich in healthy fats and naturally occurring vitamins A and E, it moisturizes dry skin, soothes tightness, and leaves skin feeling soft and nourished.",
+    "ingredients": "Shea butter, vitamins A and E, essential oils and plant extracts, Lavender fragrance",
+    "benefits": "Moisturizes dry skin, soothes tightness, and leaves skin feeling soft and nourished."
+  },
+  "nile-sheabutter-lotion-lemon-200ml": {
+    "name": "Nile Shea Butter Hand & Body Lotion – Lemon 200ml",
+    "description": "A 200ml Nile Shea Butter hand and body lotion in Lemon fragrance. Rich in healthy fats and naturally occurring vitamins A and E, it moisturizes dry skin, soothes tightness, and leaves skin feeling soft and nourished.",
+    "ingredients": "Shea butter, vitamins A and E, essential oils and plant extracts, Lemon fragrance",
+    "benefits": "Moisturizes dry skin, soothes tightness, and leaves skin feeling soft and nourished."
+  },
+  "nile-sheabutter-lotion-sweetie-200ml": {
+    "name": "Nile Shea Butter Hand & Body Lotion – Sweetie 200ml",
+    "description": "A 200ml Nile Shea Butter hand and body lotion in the Sweetie fragrance. A daily moisturizer for hands and body, leaving skin feeling soft and nourished.",
+    "ingredients": "Shea butter, vitamins A and E, Sweetie fragrance",
+    "benefits": "Daily moisturizer for hands and body."
+  },
+  "sheabutter-baby-lotion-200ml": {
+    "name": "Shea Butter Baby Lotion 200ml",
+    "description": "A gentle 200ml shea butter lotion for everyday baby and family skin care. Softens and helps protect dry or delicate skin.",
+    "ingredients": "Shea butter",
+    "benefits": "Softens and helps protect dry or delicate skin."
+  },
+  "shea-butter-mosquito-repellent-jelly-150g": {
+    "name": "Shea Butter Mosquito Repellent Jelly 150g",
+    "description": "A skin-applied shea butter mosquito-repellent jelly with Neem oil, lemon eucalyptus and lemongrass essential oils. Moisturizes as it helps keep insects away.",
+    "ingredients": "Shea butter, Neem oil, lemon eucalyptus essential oil, lemongrass essential oil",
+    "benefits": "Moisturizes skin while helping keep insects away."
+  },
+  "eco-shea-butter": {
+    "name": "E.C.O. Shea Butter",
+    "description": "Environmentally friendly, cold-pressed Organic Shea Butter Nilotica from Northern Uganda, with naturally occurring vitamins A, E and F. Soothes rough, dry or chapped skin and is a versatile daily shea butter.",
+    "ingredients": "Cold-pressed organic Shea Butter Nilotica from Northern Uganda",
+    "benefits": "Soothes rough, dry or chapped skin. A versatile daily shea butter."
+  },
+  "eco-shea-butter-250g": {
+    "name": "E.C.O. Shea Butter – 250g",
+    "description": "250g of environmentally friendly, cold-pressed Organic Shea Butter Nilotica from Northern Uganda. Soothes rough, dry or chapped skin and is rich in naturally occurring vitamins A, E and F.",
+    "ingredients": "Cold-pressed organic Shea Butter Nilotica from Northern Uganda",
+    "benefits": "Soothes rough, dry or chapped skin."
+  },
+  "eco-shea-butter-500g": {
+    "name": "E.C.O. Shea Butter – 500g",
+    "description": "500g of environmentally friendly, cold-pressed Organic Shea Butter Nilotica from Northern Uganda. Soothes rough, dry or chapped skin and is rich in naturally occurring vitamins A, E and F.",
+    "ingredients": "Cold-pressed organic Shea Butter Nilotica from Northern Uganda",
+    "benefits": "Soothes rough, dry or chapped skin."
+  },
+  "pure-sheabutter-soap-120g": {
+    "name": "Pure Shea Butter Soap 120g",
+    "description": "Pure shea butter soap made from raw cold-pressed shea butter and lye, infused with essential oils and herbal extracts. Nourishes as it cleanses. No chemical or foam boosters added. Gentle enough for everyday use, including sensitive skin.",
+    "ingredients": "Raw cold-pressed shea butter, lye (sodium hydroxide), essential oils and herbal extracts",
+    "benefits": "Nourishes as it cleanses. No chemical or foam boosters added."
+  },
+  "shea-butter-tumeric-soap-120g": {
+    "name": "Shea Butter Turmeric Soap 120g",
+    "description": "Shea butter soap infused with turmeric powder, essential oils and herbal extracts. A deep-cleansing bar that leaves skin feeling fresh, soothed and cared for.",
+    "ingredients": "Raw cold-pressed shea butter, lye (sodium hydroxide), turmeric powder, essential oils and herbal extracts",
+    "benefits": "Deep-cleansing bar that leaves skin feeling fresh and soothed."
+  },
+  "sheabutter-facial-scrub-soap-120g": {
+    "name": "Shea Butter Facial Scrub Soap 120g",
+    "description": "Shea butter scrub soap with essential oils and herbal extracts. Helps exfoliate and renew the skin while cleansing. Can also be used as a natural shampoo.",
+    "ingredients": "Hot-pressed shea butter, lye (sodium hydroxide), potash, essential oils and herbal extracts",
+    "benefits": "Helps exfoliate and renew the skin while cleansing."
+  },
+  "sheabutter-herbal-soap-120g": {
+    "name": "Shea Butter Herbal Soap 120g",
+    "description": "A 120g shea butter herbal soap for everyday cleansing, with a plant-based herbal blend.",
+    "ingredients": "Shea butter, herbal extracts, essential oils",
+    "benefits": "Everyday cleansing with a plant-based herbal blend."
+  },
+  "tropisun-sunscreen-for-albinism-200g": {
+    "name": "Tropisun Sunscreen for Albinism 200g",
+    "description": "Tropisun sunscreen formulated for people with albinism, with zinc oxide and titanium dioxide as non-chemical sun filters. Shea butter, glycerin and aloe vera help moisturize and comfort sun-exposed skin.",
+    "ingredients": "Zinc oxide, titanium dioxide, shea butter, glycerin, aloe vera, essential oils",
+    "benefits": "Helps protect from UVA and UVB with non-chemical sun filters while moisturizing the skin."
+  },
+  "hibiscus-powder-150g": {
+    "name": "Hibiscus Powder 150g",
+    "description": "Hibiscus powder made from dried calyces of Hibiscus sabdariffa. Prepare hot or cold with honey or sugar. A tart, vibrant botanical drink high in vitamin C and antioxidants.",
+    "ingredients": "Dried Hibiscus sabdariffa calyces, ground",
+    "benefits": "A tart botanical drink naturally high in vitamin C and antioxidants."
+  },
+  "hibiscus-tea-150g": {
+    "name": "Hibiscus Tea 150g",
+    "description": "Hibiscus tea made from dried calyces of Hibiscus sabdariffa. Prepare hot or cold with honey or sugar. Tart, colourful and naturally high in vitamin C and antioxidants.",
+    "ingredients": "Dried Hibiscus sabdariffa calyces",
+    "benefits": "A tart botanical tea naturally high in vitamin C and antioxidants."
+  }
+}
