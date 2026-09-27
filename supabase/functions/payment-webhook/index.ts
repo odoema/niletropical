@@ -154,20 +154,27 @@ Deno.serve(async (req) => {
   }
 
   const callbackAmount = body.amount ?? body.transactionAmount;
+  const providerRequest = (tx.raw_response as Record<string, unknown> | null)?.request as Record<string, unknown> | undefined;
+  if (!providerRequest?.amount || !providerRequest?.currency) {
+    return json(
+      { ok: false, processed: false, reason: "PROVIDER_REQUEST_METADATA_MISSING" },
+      409,
+    );
+  }
+  const expectedProviderAmount = Number(providerRequest.amount);
+  const expectedProviderCurrency = String(providerRequest.currency).toUpperCase();
+
   if (
     callbackAmount !== undefined &&
-    Number(callbackAmount) !== Number(expectedProviderAmount)
+    Number(callbackAmount) !== expectedProviderAmount
   ) {
     return json(
-      { ok: false, processed: false, reason: "AMOUNT_MISMATCH" },
+      { ok: false, processed: false, reason: "AMOUNT_MISMATCH", expected_amount: expectedProviderAmount, received_amount: callbackAmount },
       409,
     );
   }
 
   const callbackCurrency = body.currency ?? body.transactionCurrency;
-  const providerRequest = (tx.raw_response as Record<string, unknown> | null)?.request as Record<string, unknown> | undefined;
-  const expectedProviderAmount = providerRequest?.amount ?? tx.amount;
-  const expectedProviderCurrency = String(providerRequest?.currency ?? MTN_GATEWAY_CURRENCY).toUpperCase();
   if (
     callbackCurrency !== undefined &&
     String(callbackCurrency).toUpperCase() !== expectedProviderCurrency
