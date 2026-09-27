@@ -14,6 +14,7 @@ import '../../shared/models/product.dart';
 import '../../shared/providers/cart_provider.dart';
 import '../../shared/providers/product_provider.dart';
 import '../../shared/services/storage_service.dart';
+import '../../shared/services/supabase_service.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
