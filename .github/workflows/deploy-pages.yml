@@ -52,8 +52,6 @@ jobs:
 
       - name: Use the official Nile Tropical logo for web branding
         run: |
-          # Use the source logo exactly as stored in assets/images/logo.png.
-          # Do not recolor, redraw, or alter the official artwork.
           cp assets/images/logo.png web/favicon.png
 
       - name: Generate Web Push public configuration
@@ -98,6 +96,13 @@ jobs:
           mkdir -p build/site/assets/website
           cp -R assets/website/. build/site/assets/website/
           cp -R build/web/. build/site/app/
+
+      - name: Verify Pages artifact
+        run: |
+          test -f build/site/index.html
+          test -f build/site/app/index.html
+          test -f build/site/CNAME
+          echo "Pages artifact verified: website + Flutter app present."
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
