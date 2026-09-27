@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          EXPECTED="https://tyhqwngqxbcivfphgxck.supabase.co"
+          EXPECTED="https://ououfhsswyqutcczdtnb.supabase.co"
           if [ "${SUPABASE_URL}" != "${EXPECTED}" ]; then
             echo "::error::SUPABASE_URL is not pointing to the current Nile Tropical Supabase project."
             echo "::error::Expected ${EXPECTED}"

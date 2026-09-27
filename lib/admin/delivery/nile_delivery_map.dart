@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_dragmarker/flutter_map_dragmarker.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../core/theme/app_theme.dart';
@@ -7,10 +8,9 @@ import '../../shared/services/location_search_service.dart';
 
 /// Interactive delivery map used by both checkout and the admin delivery console.
 ///
-/// The map deliberately uses a controller and re-fits whenever the origin,
-/// destination, or route changes. FlutterMap's initialCameraFit is only applied
-/// when the map is first created, so relying on it alone can leave a newly
-/// selected destination outside the viewport.
+/// The customer marker can be dragged to correct an address/landmark position.
+/// The parent owns the selected destination and should clear any route/quote
+/// when the marker moves.
 class NileDeliveryMap extends StatefulWidget {
   const NileDeliveryMap({
     super.key,
@@ -18,12 +18,14 @@ class NileDeliveryMap extends StatefulWidget {
     required this.destination,
     this.route,
     this.height = 360,
+    this.onDestinationChanged,
   });
 
   final GeoPlace origin;
   final GeoPlace destination;
   final RouteEstimate? route;
   final double height;
+  final ValueChanged<GeoPlace>? onDestinationChanged;
 
   @override
   State<NileDeliveryMap> createState() => _NileDeliveryMapState();
@@ -85,6 +87,16 @@ class _NileDeliveryMapState extends State<NileDeliveryMap> {
     );
   }
 
+  void _destinationMoved(LatLng point) {
+    widget.onDestinationChanged?.call(
+      GeoPlace.pinned(
+        latitude: point.latitude,
+        longitude: point.longitude,
+        name: 'Pinned delivery location',
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final routePoints = _routePoints;
@@ -117,6 +129,7 @@ class _NileDeliveryMapState extends State<NileDeliveryMap> {
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.niletropical.uganda',
+                  tileProvider: NetworkTileProvider(),
                 ),
                 if (routePoints.length >= 2)
                   PolylineLayer(
@@ -138,11 +151,40 @@ class _NileDeliveryMapState extends State<NileDeliveryMap> {
                       height: 44,
                       child: _pin(Icons.storefront_rounded, NileColors.primary),
                     ),
-                    Marker(
+                  ],
+                ),
+                DragMarkers(
+                  markers: [
+                    DragMarker(
                       point: LatLng(widget.destination.latitude, widget.destination.longitude),
-                      width: 44,
-                      height: 44,
-                      child: _pin(Icons.location_on_rounded, NileColors.accent),
+                      size: const Size(50, 58),
+                      offset: const Offset(0, -20),
+                      builder: (context, position, isDragging) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isDragging)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: const [
+                                  BoxShadow(blurRadius: 5, color: Colors.black26),
+                                ],
+                              ),
+                              child: const Text(
+                                'Move pin',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 42,
+                            color: NileColors.accent,
+                          ),
+                        ],
+                      ),
+                      onDragUpdate: (_, point) => _destinationMoved(point),
                     ),
                   ],
                 ),
@@ -182,15 +224,16 @@ class _NileDeliveryMapState extends State<NileDeliveryMap> {
                 ),
               ),
             ),
-            if (widget.route == null)
-              Positioned(
-                right: 12,
-                bottom: 12,
-                child: _statusChip(
-                  Icons.touch_app_outlined,
-                  'Interactive map • drag / zoom',
-                ),
+            Positioned(
+              right: 12,
+              bottom: 12,
+              child: _statusChip(
+                Icons.open_with_rounded,
+                widget.onDestinationChanged == null
+                    ? 'Interactive map • drag / zoom'
+                    : 'Drag the customer pin to adjust',
               ),
+            ),
           ],
         ),
       ),

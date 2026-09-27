@@ -13,16 +13,11 @@ class PaymentService {
   }) async {
     final normalized = PaymentMethods.normalize(method);
     if (!Env.isConfigured) {
-      return {
-        'reference': 'DEV-MOCK-${DateTime.now().millisecondsSinceEpoch}',
-        'status': 'pending',
-        'order_id': orderId,
-        'method': normalized,
-        'instructions': PaymentMethods.isMobileMoney(normalized)
-            ? 'Approve the prompt on your phone (dev mock)'
-            : 'Complete payment (dev mock)',
-      };
+      throw StateError(
+        'Supabase is not configured. Production payment initiation cannot use fabricated payment state.',
+      );
     }
+
     final res = await SupabaseService.client.functions.invoke(
       'payment-initiate',
       body: {

@@ -42,15 +42,9 @@ class OrderService {
         .toList();
 
     if (!Env.isConfigured) {
-      final orderNumber =
-          'NTI-${DateTime.now().year}-${(DateTime.now().millisecondsSinceEpoch % 1000000).toString().padLeft(6, '0')}';
-
-      return {
-        'order_id': key,
-        'order_number': orderNumber,
-        'total': cart.subtotal + 5000,
-        'idempotent': false,
-      };
+      throw StateError(
+        'Supabase is not configured. Production checkout cannot place an order without the live backend.',
+      );
     }
 
     final res = await SupabaseService.client.rpc(
@@ -83,26 +77,9 @@ class OrderService {
     required String phone,
   }) async {
     if (!Env.isConfigured) {
-      return {
-        'found': true,
-        'order_number': orderNumber,
-        'status': 'processing',
-        'payment_status': 'paid',
-        'total': 0,
-        'timeline': [
-          {
-            'status': 'new_order',
-            'note': 'Order created',
-            'created_at': DateTime.now().toIso8601String(),
-          },
-          {
-            'status': 'processing',
-            'note': 'Being prepared',
-            'created_at': DateTime.now().toIso8601String(),
-          },
-        ],
-        'shipment': null,
-      };
+      throw StateError(
+        'Supabase is not configured. Production order tracking cannot use fabricated data.',
+      );
     }
 
     final response = await SupabaseService.client.functions.invoke(

@@ -17,8 +17,7 @@ const cors = {
 };
 
 const STAFF_ROLES = new Set([
-  "super_admin", "admin", "manager", "inventory_officer", "inventory",
-  "sales", "sales_staff", "finance", "content", "content_manager",
+  "super_admin", "manager", "finance",
 ]);
 
 function json(data: unknown, status = 200) {

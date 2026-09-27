@@ -31,7 +31,7 @@ class InventoryService {
     String? createdBy,
   }) async {
     try {
-      final result = await SupabaseService.client.rpc('adjust_stock', params: {
+      final result = await SupabaseService.client.rpc('record_stock_movement', params: {
         'p_variant_id': productVariantId,
         'p_quantity': quantity,
         'p_movement_type': type.name == 'return_' ? 'return' : type.name,
@@ -41,9 +41,9 @@ class InventoryService {
         'p_created_by': createdBy,
       });
 
-      // adjust_stock returns a single-row table with new_stock_quantity.
-      final row = (result as List).first as Map<String, dynamic>;
-      return row['new_stock_quantity'] as int;
+      // record_stock_movement returns the updated product_variants row.
+      final row = Map<String, dynamic>.from(result as Map);
+      return (row['stock_quantity'] as num?)?.toInt() ?? 0;
     } on Object catch (e) {
       if (e.toString().contains('INSUFFICIENT_STOCK')) {
         throw InsufficientStockException(

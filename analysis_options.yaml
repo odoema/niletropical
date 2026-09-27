@@ -12,6 +12,8 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - build/**
+    - project_audit/**
+    - .project_cleanup_backup_2026_09_12_131637/**
     - android/**
     - ios/**
     - web/**

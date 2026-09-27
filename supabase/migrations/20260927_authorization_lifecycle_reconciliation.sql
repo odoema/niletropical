@@ -1,0 +1,5 @@
+-- HOLD: repository-only placeholder.
+-- Do not apply or deploy.
+-- The previous draft assumed live policy names that were not proven.
+-- Authorization/lifecycle changes require exact live policy reconciliation
+-- and role-fixture tests before an executable migration is created.

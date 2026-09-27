@@ -125,6 +125,14 @@ class _PaymentPageState extends State<PaymentPage> {
         });
         return;
       }
+      if (status == 'unsupported' || status == 'provider_not_configured') {
+        _poll?.cancel();
+        setState(() {
+          _phase = 'failed';
+          _error = res['message']?.toString() ?? 'This payment method is not configured yet.';
+        });
+        return;
+      }
       setState(() => _phase = 'pending');
     } catch (e) {
       if (!mounted) return;
