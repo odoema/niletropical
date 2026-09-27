@@ -43,13 +43,15 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
           Expanded(
             child: AnimatedBuilder(
               animation: _tabs,
-              builder: (context, _) => IndexedStack(
-                index: _tabs.index,
-                children: const [
-                  _CategoriesTab(),
-                  _CouponsTab(),
-                  _DeliveryTab(),
-                ],
+              builder: (context, _) => SizedBox.expand(
+                child: IndexedStack(
+                  index: _tabs.index,
+                  children: const [
+                    _CategoriesTab(),
+                    _CouponsTab(),
+                    _DeliveryTab(),
+                  ],
+                ),
               ),
             ),
           ),
