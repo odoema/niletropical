@@ -20,6 +20,7 @@ class NileImage extends StatelessWidget {
     this.semanticLabel,
     this.memCacheWidth,
     this.memCacheHeight,
+    this.onError,
   });
 
   final String? url;
@@ -32,6 +33,7 @@ class NileImage extends StatelessWidget {
   final String? semanticLabel;
   final int? memCacheWidth;
   final int? memCacheHeight;
+  final VoidCallback? onError;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,10 @@ class NileImage extends StatelessWidget {
             memCacheHeight: memCacheHeight,
             fadeInDuration: const Duration(milliseconds: 120),
             placeholder: (_, __) => const _Loading(),
-            errorWidget: (_, __, ___) => _State(icon: errorIcon),
+            errorWidget: (_, __, ___) {
+              onError?.call();
+              return _State(icon: errorIcon);
+            },
           );
 
     return ClipRRect(
