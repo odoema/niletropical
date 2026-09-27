@@ -1,0 +1,113 @@
+{
+  "_meta": {
+    "policy": "Create only high-confidence brochure SKUs that are not already live. Skip soap 100g duplicates, Mozzie 60g until the live 150g size is reconciled, and 400ml lotion fragrances until packaging is confirmed per scent.",
+    "stock_policy": "New SKUs are created active and marked is_new, with stock_quantity 0 so they appear in admin/storefront without inventing inventory."
+  },
+  "products": [
+    {
+      "slug": "shea-butter-anti-aging-cream-250g",
+      "name": "Shea Butter Anti-aging Cream 250g",
+      "category_hints": ["Lotions", "Cosmetics & Personal Care", "Personal Care"],
+      "variant_name": "250g",
+      "sku": "NT-ANTIAGE-250G",
+      "price": 20000,
+      "short_description": "A 250g shea butter cream with carrot, papaya and lemon, for daily moisturizing and a brighter-feeling complexion.",
+      "full_description": "Shea butter anti-aging cream with carrot, papaya and lemon. A rich daily cream that softens skin and helps it feel smooth and cared for.",
+      "ingredients": "Shea butter, carrot, papaya, lemon",
+      "benefits": "Softens skin and helps it feel smooth and bright.",
+      "how_to_use": "Massage a small amount onto clean face and body after bathing."
+    },
+    {
+      "slug": "eco-shea-hair-oil-100ml",
+      "name": "E.C.O Shea Hair Oil (Ten in One) 100ml",
+      "category_hints": ["Personal Care", "Hair", "Shea Butter"],
+      "variant_name": "100ml",
+      "sku": "NT-HAIR-OIL-100ML",
+      "price": 10000,
+      "short_description": "A 100ml ten-oil shea hair blend that absorbs without a heavy, greasy feel.",
+      "full_description": "Shea butter hair oil made from oleic fatty acid that stays liquid at room temperature, blending ten oils chosen for scalp and hair care.",
+      "ingredients": "Shea olea, coconut, olive, balanites, sunflower, avocado, neem, castor oil, tea tree, lemongrass; fragrance: lemon eucalyptus",
+      "benefits": "Nourishes the scalp, absorbs without a heavy residue, and helps hair feel more elastic and lustrous.",
+      "how_to_use": "Warm a few drops in the palms and work through scalp and lengths. Use on damp or dry hair."
+    },
+    {
+      "slug": "shea-butter-hair-food-150g",
+      "name": "Shea Butter Hair Food 150g",
+      "category_hints": ["Personal Care", "Hair", "Shea Butter"],
+      "variant_name": "150g",
+      "sku": "NT-HAIR-FOOD-150G",
+      "price": 20000,
+      "short_description": "A 150g deep-moisturizing shea butter hair food for dry or curly hair.",
+      "full_description": "Deep-moisturizing shea butter hair food with vitamins A and E and fatty acids. Helps hydrate dry hair, tame frizz and comfort a dry scalp.",
+      "ingredients": "Shea butter, vitamins A and E, fatty acids",
+      "benefits": "Hydrates dry hair, helps reduce frizz and split ends, and soothes a dry scalp.",
+      "how_to_use": "Work a small amount through damp hair or use as a pre-wash treatment."
+    },
+    {
+      "slug": "white-fox-sweet-hibiscus-cider-750ml",
+      "name": "White Fox — Sweet Hibiscus Cider 750ml",
+      "category_hints": ["Tea & Botanicals", "Foods & Beverages", "Beverages"],
+      "variant_name": "750ml",
+      "sku": "NT-WHITEFOX-750ML",
+      "price": 20000,
+      "short_description": "A 750ml non-alcoholic fermented hibiscus drink with ginger, pineapple and honey.",
+      "full_description": "Non-alcoholic fermented herbal drink made from Hibiscus sabdariffa calyces, ginger, pineapple, honey and sugar. Serve chilled.",
+      "ingredients": "Hibiscus sabdariffa, ginger, pineapple, honey, sugar",
+      "benefits": "A refreshing botanical cider with hibiscus, ginger and pineapple.",
+      "how_to_use": "Shake gently and serve chilled. Refrigerate after opening.",
+      "warnings": "Contains honey. Not a medicine."
+    },
+    {
+      "slug": "eco-shea-butter-150g",
+      "name": "E.C.O. Shea Butter – 150g",
+      "category_hints": ["Shea Butter"],
+      "variant_name": "150g",
+      "sku": "NT-ECO-SHEA-150G",
+      "price": 10000,
+      "short_description": "150g of environmentally friendly, cold-pressed Organic Shea Butter Nilotica from Northern Uganda.",
+      "full_description": "The smallest catalogue size of E.C.O Shea Butter — cold-pressed Organic Shea Butter Nilotica from Northern Uganda, with naturally occurring vitamins A, E and F.",
+      "ingredients": "Cold-pressed organic Shea Butter Nilotica from Northern Uganda",
+      "benefits": "Soothes rough, dry or chapped skin.",
+      "how_to_use": "Warm a little between the palms and smooth onto dry skin."
+    },
+    {
+      "slug": "eco-shea-butter-400g",
+      "name": "E.C.O. Shea Butter – 400g",
+      "category_hints": ["Shea Butter"],
+      "variant_name": "400g",
+      "sku": "NT-ECO-SHEA-400G",
+      "price": 25000,
+      "short_description": "400g of environmentally friendly, cold-pressed Organic Shea Butter Nilotica from Northern Uganda.",
+      "full_description": "Mid-size jar of E.C.O Shea Butter — cold-pressed Organic Shea Butter Nilotica from Northern Uganda, with naturally occurring vitamins A, E and F.",
+      "ingredients": "Cold-pressed organic Shea Butter Nilotica from Northern Uganda",
+      "benefits": "Soothes rough, dry or chapped skin.",
+      "how_to_use": "Warm a little between the palms and smooth onto dry skin."
+    },
+    {
+      "slug": "eco-shea-butter-1000g",
+      "name": "E.C.O. Shea Butter – 1000g",
+      "category_hints": ["Shea Butter"],
+      "variant_name": "1000g",
+      "sku": "NT-ECO-SHEA-1000G",
+      "price": 60000,
+      "short_description": "1kg of environmentally friendly, cold-pressed Organic Shea Butter Nilotica from Northern Uganda.",
+      "full_description": "The largest catalogue size of E.C.O Shea Butter — cold-pressed Organic Shea Butter Nilotica from Northern Uganda, with naturally occurring vitamins A, E and F.",
+      "ingredients": "Cold-pressed organic Shea Butter Nilotica from Northern Uganda",
+      "benefits": "Soothes rough, dry or chapped skin.",
+      "how_to_use": "Warm a little between the palms and smooth onto dry skin."
+    },
+    {
+      "slug": "tropisun-sunscreen-100ml",
+      "name": "Tropisun Sunscreen 100ml",
+      "category_hints": ["Sun Care"],
+      "variant_name": "100ml",
+      "sku": "NT-TROPISUN-100ML",
+      "price": 10000,
+      "short_description": "The smaller 100ml Tropisun sunscreen, with zinc oxide and titanium dioxide as non-chemical sun filters.",
+      "full_description": "Tropisun sunscreen in the travel-friendly 100ml size. Formulated for people with albinism, with zinc oxide and titanium dioxide plus shea butter, glycerin and aloe vera.",
+      "ingredients": "Zinc oxide, titanium dioxide, shea butter, glycerin, aloe vera, essential oils",
+      "benefits": "Helps protect from UVA and UVB with non-chemical sun filters while moisturizing the skin.",
+      "how_to_use": "Apply generously to exposed skin before sun exposure and reapply as needed."
+    }
+  ]
+}
