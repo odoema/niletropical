@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - '.github/workflows/upload-product-images.yml'
+      - 'scripts/sync_nile_catalogue.py'
       - 'assets/products/product-image-mapping.json'
       - 'assets/products/catalog-copy.json'
       - 'assets/products/catalog-new.json'
@@ -72,62 +73,14 @@ jobs:
             echo "$slug <- $wanted"
           done
 
-      - name: Update catalogue copy, create new SKUs, and upload verified images
+      - name: Update catalogue copy and create new SKUs
+        shell: bash
+        run: python3 scripts/sync_nile_catalogue.py
+
+      - name: Upload verified original photographs
         shell: bash
         run: |
           set -euo pipefail
-          echo "=== Updating product copy ==="
-          jq -c 'to_entries[] | {slug:.key} + .value' assets/products/catalog-copy.json |
-          while read -r row; do
-            slug="$(echo "$row" | jq -r '.slug')"
-            name="$(echo "$row" | jq -r '.name // empty')"
-            description="$(echo "$row" | jq -r '.description // empty')"
-            ingredients="$(echo "$row" | jq -r '.ingredients // empty')"
-            benefits="$(echo "$row" | jq -r '.benefits // empty')"
-            product_id="$(curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" | jq -r '.[0].id // empty')"
-            if [ -z "$product_id" ]; then
-              echo "::warning::Product slug not found in production: $slug — skipping copy update."
-              continue
-            fi
-            payload="$(jq -n --arg name "$name" --arg description "$description" --arg ingredients "$ingredients" --arg benefits "$benefits" '{name:$name,short_description:$description,full_description:$description} + (if $ingredients == "" then {} else {ingredients:$ingredients} end) + (if $benefits == "" then {} else {benefits:$benefits} end)')"
-            echo "$payload" | curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/products?id=eq.$product_id" -X PATCH -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d @-
-            echo "Updated copy: $slug"
-          done
-
-          echo "=== Creating high-confidence new products ==="
-          if [ -f assets/products/catalog-new.json ]; then
-            categories_json="$(curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/categories?select=id,name,slug,is_active&is_active=eq.true" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY")"
-            jq -c '.products[]' assets/products/catalog-new.json |
-            while read -r row; do
-              slug="$(echo "$row" | jq -r '.slug')"
-              existing="$(curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" | jq -r '.[0].id // empty')"
-              if [ -n "$existing" ]; then
-                echo "Already exists, skipping create: $slug"
-                continue
-              fi
-              category_id="$(jq -n --argjson cats "$categories_json" --argjson row "$row" '($row.category_hints // []) as $hints | ($cats[] | select((.slug as $s | $hints | map(ascii_downcase | gsub(" "; "-") | gsub("&"; "") | gsub("-+ "; "-") | gsub("-+ "; "-")) | index($s)) or (.name as $n | $hints | index($n)) or ((.name | ascii_downcase) as $n | $hints | map(ascii_downcase) | index($n))) | .id)' | head -n 1 || true)"
-              name="$(echo "$row" | jq -r '.name')"
-              short="$(echo "$row" | jq -r '.short_description // empty')"
-              full="$(echo "$row" | jq -r '.full_description // empty')"
-              ingredients="$(echo "$row" | jq -r '.ingredients // empty')"
-              benefits="$(echo "$row" | jq -r '.benefits // empty')"
-              how_to_use="$(echo "$row" | jq -r '.how_to_use // empty')"
-              warnings="$(echo "$row" | jq -r '.warnings // empty')"
-              sku="$(echo "$row" | jq -r '.sku')"
-              variant_name="$(echo "$row" | jq -r '.variant_name // "Default"')"
-              price="$(echo "$row" | jq -r '.price')"
-              product_payload="$(jq -n --arg name "$name" --arg slug "$slug" --arg short "$short" --arg full "$full" --arg ingredients "$ingredients" --arg benefits "$benefits" --arg how_to_use "$how_to_use" --arg warnings "$warnings" --arg category_id "${category_id:-}" '{name:$name,slug:$slug,short_description:$short,full_description:$full,brand:"Nile Tropical",is_active:true,is_new:true,is_featured:false,is_bestseller:false,is_promotional:false} + (if $ingredients == "" then {} else {ingredients:$ingredients} end) + (if $benefits == "" then {} else {benefits:$benefits} end) + (if $how_to_use == "" then {} else {how_to_use:$how_to_use} end) + (if $warnings == "" then {} else {warnings:$warnings} end) + (if $category_id == "" then {} else {category_id:$category_id} end)')"
-              created="$(echo "$product_payload" | curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/products" -X POST -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" -H "Prefer: return=representation" -d @-)"
-              product_id="$(echo "$created" | jq -r '.[0].id // .id // empty')"
-              if [ -z "$product_id" ]; then
-                echo "::error::Failed to create product $slug: $created"
-                exit 1
-              fi
-              jq -n --arg product_id "$product_id" --arg sku "$sku" --arg name "$variant_name" --argjson price "$price" '{product_id:$product_id,sku:$sku,name:$name,price:$price,stock_quantity:0,reorder_level:5,is_active:true}' | curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/product_variants" -X POST -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d @-
-              echo "Created product: $slug ($product_id) category=${category_id:-none} price=$price stock=0"
-            done
-          fi
-
           echo "=== Uploading verified original photographs ==="
           for file in /tmp/nile-matched/*.jpg; do
             slug="$(basename "$file" .jpg)"
