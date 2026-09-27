@@ -9,7 +9,8 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const q = (url.searchParams.get('q') ?? '').trim();
+    const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
+    const q = ((body?.q ?? url.searchParams.get('q') ?? '') as string).trim();
 
     if (q.length < 3 || q.length > 120) {
       return new Response(JSON.stringify({ error: 'q must be 3-120 characters' }), {
