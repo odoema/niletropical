@@ -41,6 +41,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   Map<String, dynamic>? _quote;
   List<GeoPlace> _locationResults = const [];
   bool _searchingLocation = false;
+  bool _usingCurrentLocation = false;
   bool _calculatingDelivery = false;
   String _paymentMethod = PaymentMethods.mtnMomo;
   String? _zoneId;
@@ -89,6 +90,39 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     _locationDebounce?.cancel();
 
     super.dispose();
+  }
+
+  Future<void> _useCurrentLocation() async {
+    setState(() => _usingCurrentLocation = true);
+    try {
+      final place = await LocationSearchService.currentLocation();
+      if (!mounted) return;
+      setState(() {
+        _destination = place;
+        _locationCtrl.text = place.name;
+        _address.text = 'Pinned delivery location';
+        _locationResults = const [];
+        _route = null;
+        _quote = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Bad state: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _usingCurrentLocation = false);
+    }
+  }
+
+  void _destinationPinMoved(GeoPlace place) {
+    setState(() {
+      _destination = place;
+      _locationCtrl.text = place.name;
+      _address.text = 'Pinned delivery location';
+      _route = null;
+      _quote = null;
+    });
   }
 
   void _searchDestination(String value) {
@@ -390,6 +424,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _usingCurrentLocation ? null : _useCurrentLocation,
+                icon: _usingCurrentLocation
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.my_location_rounded),
+                label: Text(_usingCurrentLocation ? 'Finding your location…' : 'Use my current location'),
+              ),
+            ),
             if (_locationResults.isNotEmpty)
               Card(
                 child: Column(
@@ -414,6 +459,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   destination: _destination!,
                   route: _route,
                   height: 280,
+                  onDestinationChanged: _destinationPinMoved,
                 ),
               const SizedBox(height: 10),
               SizedBox(
