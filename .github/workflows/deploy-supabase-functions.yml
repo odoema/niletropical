@@ -2,6 +2,11 @@ name: Deploy Supabase Edge Functions
 # Production MTN payment deployment for Nile Tropical.
 # IMPORTANT: track-order/notification-dispatch remain on their already-live versions.
 # This workflow deploys only the reconciled MTN payment functions.
+#
+# The CLI's deploy path first lists functions. Our existing deployment token is
+# intentionally write-capable but does not have edge_functions_read, so use the
+# Supabase Management API write endpoints directly. This avoids changing the
+# existing token or reconfiguring the MTN integration.
 
 on:
   push:
@@ -22,17 +27,13 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_ID: tyhqwngqxbcivfphgxck
+      SUPABASE_API_URL: https://api.supabase.com
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-
-      - name: Install Supabase CLI
-        uses: supabase/setup-cli@v2
-        with:
-          version: latest
 
       - name: Verify deployment credentials
         shell: bash
@@ -45,10 +46,30 @@ jobs:
           echo "Supabase project: ${SUPABASE_PROJECT_ID}"
 
       - name: Deploy payment-initiate
-        run: supabase functions deploy payment-initiate --project-ref "${SUPABASE_PROJECT_ID}" --use-api
+        shell: bash
+        run: |
+          set -euo pipefail
+          body_json="$(jq -n --rawfile body supabase/functions/payment-initiate/index.ts '{body: $body}')"
+          curl --fail-with-body --silent --show-error \
+            --request PATCH \
+            --url "${SUPABASE_API_URL}/v1/projects/${SUPABASE_PROJECT_ID}/functions/payment-initiate" \
+            --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data "${body_json}"
+          echo "payment-initiate deployed."
 
       - name: Deploy payment-status
-        run: supabase functions deploy payment-status --project-ref "${SUPABASE_PROJECT_ID}" --use-api
+        shell: bash
+        run: |
+          set -euo pipefail
+          body_json="$(jq -n --rawfile body supabase/functions/payment-status/index.ts '{body: $body}')"
+          curl --fail-with-body --silent --show-error \
+            --request PATCH \
+            --url "${SUPABASE_API_URL}/v1/projects/${SUPABASE_PROJECT_ID}/functions/payment-status" \
+            --header "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data "${body_json}"
+          echo "payment-status deployed."
 
       - name: Deployment complete
         run: |
