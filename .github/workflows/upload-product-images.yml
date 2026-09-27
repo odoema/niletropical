@@ -7,6 +7,7 @@ on:
       - '.github/workflows/upload-product-images.yml'
       - 'assets/products/product-image-mapping.json'
       - 'assets/products/catalog-copy.json'
+      - 'assets/products/catalog-new.json'
   workflow_dispatch:
 
 permissions:
@@ -51,9 +52,6 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nile-matched
-
-          # Only mappings that are both visually verified and currently present
-          # in the production catalogue are synchronized automatically.
           declare -A MAP=(
             [nile-sheabutter-lotion-apple-200ml]="Nile products Edits-23.jpg"
             [nile-sheabutter-lotion-lavender-200ml]="Nile products Edits-29.jpg"
@@ -63,7 +61,6 @@ jobs:
             [hibiscus-powder-150g]="Nile products Edits-63.jpg"
             [eco-shea-butter]="Nile products Edits-61.jpg"
           )
-
           for slug in "${!MAP[@]}"; do
             wanted="${MAP[$slug]}"
             found="$(find /tmp/nile-drive -type f -iname "$wanted" | head -n 1 || true)"
@@ -75,51 +72,76 @@ jobs:
             echo "$slug <- $wanted"
           done
 
-      - name: Update catalogue copy and verified real images in Supabase
+      - name: Update catalogue copy, create new SKUs, and upload verified images
         shell: bash
         run: |
           set -euo pipefail
-
           echo "=== Updating product copy ==="
-          jq -r 'to_entries[] | [.key, .value.name, .value.description] | @tsv' assets/products/catalog-copy.json |
-          while IFS=$'\t' read -r slug name description; do
-            product_id="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" |
-              jq -r '.[0].id // empty')"
-
+          jq -c 'to_entries[] | {slug:.key} + .value' assets/products/catalog-copy.json |
+          while read -r row; do
+            slug="$(echo "$row" | jq -r '.slug')"
+            name="$(echo "$row" | jq -r '.name // empty')"
+            description="$(echo "$row" | jq -r '.description // empty')"
+            ingredients="$(echo "$row" | jq -r '.ingredients // empty')"
+            benefits="$(echo "$row" | jq -r '.benefits // empty')"
+            product_id="$(curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" | jq -r '.[0].id // empty')"
             if [ -z "$product_id" ]; then
               echo "::warning::Product slug not found in production: $slug — skipping copy update."
               continue
             fi
-
-            jq -n --arg name "$name" --arg description "$description"               '{name:$name,short_description:$description,full_description:$description}' |
-              curl --fail-with-body --silent --show-error                 "$SUPABASE_URL/rest/v1/products?id=eq.$product_id"                 -X PATCH                 -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"                 -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"                 -H "Content-Type: application/json"                 -H "Prefer: return=minimal"                 -d @-
-
+            payload="$(jq -n --arg name "$name" --arg description "$description" --arg ingredients "$ingredients" --arg benefits "$benefits" '{name:$name,short_description:$description,full_description:$description} + (if $ingredients == "" then {} else {ingredients:$ingredients} end) + (if $benefits == "" then {} else {benefits:$benefits} end)')"
+            echo "$payload" | curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/products?id=eq.$product_id" -X PATCH -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d @-
             echo "Updated copy: $slug"
           done
+
+          echo "=== Creating high-confidence new products ==="
+          if [ -f assets/products/catalog-new.json ]; then
+            categories_json="$(curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/categories?select=id,name,slug,is_active&is_active=eq.true" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY")"
+            jq -c '.products[]' assets/products/catalog-new.json |
+            while read -r row; do
+              slug="$(echo "$row" | jq -r '.slug')"
+              existing="$(curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" | jq -r '.[0].id // empty')"
+              if [ -n "$existing" ]; then
+                echo "Already exists, skipping create: $slug"
+                continue
+              fi
+              category_id="$(jq -n --argjson cats "$categories_json" --argjson row "$row" '($row.category_hints // []) as $hints | ($cats[] | select((.slug as $s | $hints | map(ascii_downcase | gsub(" "; "-") | gsub("&"; "") | gsub("-+ "; "-") | gsub("-+ "; "-")) | index($s)) or (.name as $n | $hints | index($n)) or ((.name | ascii_downcase) as $n | $hints | map(ascii_downcase) | index($n))) | .id)' | head -n 1 || true)"
+              name="$(echo "$row" | jq -r '.name')"
+              short="$(echo "$row" | jq -r '.short_description // empty')"
+              full="$(echo "$row" | jq -r '.full_description // empty')"
+              ingredients="$(echo "$row" | jq -r '.ingredients // empty')"
+              benefits="$(echo "$row" | jq -r '.benefits // empty')"
+              how_to_use="$(echo "$row" | jq -r '.how_to_use // empty')"
+              warnings="$(echo "$row" | jq -r '.warnings // empty')"
+              sku="$(echo "$row" | jq -r '.sku')"
+              variant_name="$(echo "$row" | jq -r '.variant_name // "Default"')"
+              price="$(echo "$row" | jq -r '.price')"
+              product_payload="$(jq -n --arg name "$name" --arg slug "$slug" --arg short "$short" --arg full "$full" --arg ingredients "$ingredients" --arg benefits "$benefits" --arg how_to_use "$how_to_use" --arg warnings "$warnings" --arg category_id "${category_id:-}" '{name:$name,slug:$slug,short_description:$short,full_description:$full,brand:"Nile Tropical",is_active:true,is_new:true,is_featured:false,is_bestseller:false,is_promotional:false} + (if $ingredients == "" then {} else {ingredients:$ingredients} end) + (if $benefits == "" then {} else {benefits:$benefits} end) + (if $how_to_use == "" then {} else {how_to_use:$how_to_use} end) + (if $warnings == "" then {} else {warnings:$warnings} end) + (if $category_id == "" then {} else {category_id:$category_id} end)')"
+              created="$(echo "$product_payload" | curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/products" -X POST -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" -H "Prefer: return=representation" -d @-)"
+              product_id="$(echo "$created" | jq -r '.[0].id // .id // empty')"
+              if [ -z "$product_id" ]; then
+                echo "::error::Failed to create product $slug: $created"
+                exit 1
+              fi
+              jq -n --arg product_id "$product_id" --arg sku "$sku" --arg name "$variant_name" --argjson price "$price" '{product_id:$product_id,sku:$sku,name:$name,price:$price,stock_quantity:0,reorder_level:5,is_active:true}' | curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/product_variants" -X POST -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d @-
+              echo "Created product: $slug ($product_id) category=${category_id:-none} price=$price stock=0"
+            done
+          fi
 
           echo "=== Uploading verified original photographs ==="
           for file in /tmp/nile-matched/*.jpg; do
             slug="$(basename "$file" .jpg)"
-
-            product_id="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" |
-              jq -r '.[0].id // empty')"
-
+            product_id="$(curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/products?select=id&slug=eq.$slug&limit=1" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" | jq -r '.[0].id // empty')"
             if [ -z "$product_id" ]; then
               echo "::warning::Production product not found for verified image slug: $slug — skipping image."
               continue
             fi
-
-            curl --fail-with-body --silent --show-error               -X PUT "$SUPABASE_URL/storage/v1/object/product-images/$slug.jpg"               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: image/jpeg"               -H "x-upsert: true"               --data-binary "@$file"
-
-            payload="$(jq -n               --arg path "$slug.jpg"               --arg alt "$slug — original Nile Tropical product photograph"               '{storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}')"
-
-            updated="$(curl --fail-with-body --silent --show-error               "$SUPABASE_URL/rest/v1/product_images?product_id=eq.$product_id&is_main=eq.true"               -X PATCH               -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"               -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"               -H "Content-Type: application/json"               -H "Prefer: return=representation"               -d "$payload")"
-
+            curl --fail-with-body --silent --show-error -X PUT "$SUPABASE_URL/storage/v1/object/product-images/$slug.jpg" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: image/jpeg" -H "x-upsert: true" --data-binary "@$file"
+            payload="$(jq -n --arg path "$slug.jpg" --arg alt "$slug — original Nile Tropical product photograph" '{storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}')"
+            updated="$(curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/product_images?product_id=eq.$product_id&is_main=eq.true" -X PATCH -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" -H "Prefer: return=representation" -d "$payload")"
             if [ "$(echo "$updated" | jq 'length')" -eq 0 ]; then
-              jq -n                 --arg product_id "$product_id"                 --arg path "$slug.jpg"                 --arg alt "$slug — original Nile Tropical product photograph"                 '{product_id:$product_id,storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}' |
-                curl --fail-with-body --silent --show-error                   "$SUPABASE_URL/rest/v1/product_images"                   -X POST                   -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"                   -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"                   -H "Content-Type: application/json"                   -H "Prefer: return=minimal"                   -d @-
+              jq -n --arg product_id "$product_id" --arg path "$slug.jpg" --arg alt "$slug — original Nile Tropical product photograph" '{product_id:$product_id,storage_path:$path,alt_text:$alt,is_main:true,sort_order:0}' | curl --fail-with-body --silent --show-error "$SUPABASE_URL/rest/v1/product_images" -X POST -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" -H "Prefer: return=minimal" -d @-
             fi
-
             echo "Uploaded real image: $slug.jpg"
           done
 
@@ -129,7 +151,7 @@ jobs:
           set -euo pipefail
           for file in /tmp/nile-matched/*.jpg; do
             slug="$(basename "$file" .jpg)"
-            curl --fail-with-body --silent --show-error --head               "$SUPABASE_URL/storage/v1/object/public/product-images/$slug.jpg" >/dev/null
+            curl --fail-with-body --silent --show-error --head "$SUPABASE_URL/storage/v1/object/public/product-images/$slug.jpg" >/dev/null
             echo "VERIFIED: $slug.jpg"
           done
-          echo "Catalogue copy + verified original product photographs are now synchronized."
+          echo "Catalogue copy + new SKUs + verified photographs are now synchronized."
