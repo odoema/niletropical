@@ -2,6 +2,33 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// The MTN MoMo Developer sandbox accepts EUR only. The Oracle gateway should
+// translate this provider-facing currency according to its configured MTN
+// environment. Production MTN Uganda should set MTN_GATEWAY_CURRENCY=UGX.
+const MTN_GATEWAY_CURRENCY = (Deno.env.get("MTN_GATEWAY_CURRENCY") ?? "EUR").toUpperCase();
+const MTN_GATEWAY_MODE = (Deno.env.get("MTN_GATEWAY_MODE") ?? "sandbox").toLowerCase();
+const MTN_SANDBOX_UGX_PER_EUR = Number(Deno.env.get("MTN_SANDBOX_UGX_PER_EUR") ?? "4000");
+// MTN documents that any non-predefined MSISDN produces SUCCESS in sandbox.
+// This is an explicit sandbox-only test identity so checkout can exercise the
+// complete success path without depending on a real Uganda wallet prompt.
+const MTN_SANDBOX_TEST_MSISDN = String(
+  Deno.env.get("MTN_SANDBOX_TEST_MSISDN") ?? "46733123499",
+).trim();
+
+function providerAmountFromUgx(ugx: number): string {
+  if (!Number.isFinite(ugx) || ugx <= 0) throw new Error("INVALID_UGX_AMOUNT");
+  if (MTN_GATEWAY_MODE === "sandbox") {
+    if (MTN_GATEWAY_CURRENCY !== "EUR") throw new Error("MTN_SANDBOX_MUST_USE_EUR");
+    if (!Number.isFinite(MTN_SANDBOX_UGX_PER_EUR) || MTN_SANDBOX_UGX_PER_EUR <= 0) {
+      throw new Error("MTN_SANDBOX_FX_RATE_NOT_CONFIGURED");
+    }
+    const eur = ugx / MTN_SANDBOX_UGX_PER_EUR;
+    return eur.toFixed(2);
+  }
+  if (MTN_GATEWAY_CURRENCY !== "UGX") throw new Error("MTN_PRODUCTION_MUST_USE_UGX");
+  return Math.round(ugx).toString();
+}
+
 const METHODS = new Set([
   "mtn_momo",
   "airtel_money",
@@ -167,6 +194,65 @@ serve(async (req) => {
       }
 
       const reference = crypto.randomUUID();
+      let providerAmount: string;
+      try {
+        providerAmount = providerAmountFromUgx(Number(order.total));
+      } catch (error) {
+        return json({ error: "MTN_CURRENCY_CONFIGURATION_ERROR", message: String(error) }, 500);
+      }
+
+      const providerPayerPhone = MTN_GATEWAY_MODE === "sandbox"
+        ? MTN_SANDBOX_TEST_MSISDN
+        : payerPhone;
+
+      if (MTN_GATEWAY_MODE === "sandbox" && !/^[0-9]{8,15}$/.test(providerPayerPhone)) {
+        return json({
+          error: "MTN_SANDBOX_TEST_MSISDN_INVALID",
+          message: "Sandbox test MSISDN must contain 8-15 digits.",
+        }, 500);
+      }
+
+      const providerRequest = {
+        amount: providerAmount,
+        currency: MTN_GATEWAY_CURRENCY,
+        external_id: order.order_number,
+        payer_party_id_type: "MSISDN",
+        payer_party_id: providerPayerPhone,
+        transfer_type: "CUSTOM_PAYMENT",
+      };
+
+      const { data: paymentTx, error: paymentTxError } = await supabase
+        .from("payment_transactions")
+        .insert({
+          order_id: order.id,
+          provider: "mtn_gateway",
+          method: "mtn_momo",
+          provider_reference: reference,
+          idempotency_key: reference,
+          amount: order.total,
+          currency: "UGX",
+          status: "initiated",
+          raw_response: {
+            payment_environment: MTN_GATEWAY_MODE,
+            merchant_amount: Number(order.total),
+            merchant_currency: "UGX",
+            provider_currency: MTN_GATEWAY_CURRENCY,
+            provider_amount: Number(providerAmount),
+            provider_fx: MTN_GATEWAY_MODE === "sandbox"
+              ? { model: "fixed_test_rate", ugx_per_eur: MTN_SANDBOX_UGX_PER_EUR }
+              : null,
+            request: providerRequest,
+          },
+        })
+        .select("id")
+        .single();
+
+      if (paymentTxError) {
+        return json({
+          error: "PAYMENT_TRANSACTION_CREATE_FAILED",
+          message: paymentTxError.message,
+        }, 500);
+      }
 
       const gatewayResponse = await fetch(
         gatewayUrl.replace(/\/$/, "") + "/mtn/collection/request-to-pay",
@@ -180,10 +266,10 @@ serve(async (req) => {
           body: JSON.stringify({
             reference_id: reference,
             external_id: order.order_number,
-            amount: String(order.total),
-            currency: "UGX",
+            amount: providerAmount,
+            currency: MTN_GATEWAY_CURRENCY,
             payer_party_id_type: "MSISDN",
-            payer_party_id: payerPhone,
+            payer_party_id: providerPayerPhone,
             payer_message: "Nile Tropical payment",
             payee_note: "Nile Tropical order " + order.order_number,
             transfer_type: "CUSTOM_PAYMENT",
@@ -204,6 +290,16 @@ serve(async (req) => {
 
       if (!gatewayResponse.ok || upstreamStatus !== 202) {
         await supabase
+          .from("payment_transactions")
+          .update({
+            status: "failed",
+            raw_response: { request: providerRequest, response: gatewayData },
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", paymentTx.id);
+
+        await supabase
           .from("orders")
           .update({ payment_status: "failed" })
           .eq("id", order.id);
@@ -218,51 +314,47 @@ serve(async (req) => {
         }, 502);
       }
 
+      await supabase
+        .from("payment_transactions")
+        .update({
+          status: "pending",
+          raw_response: { request: providerRequest, response: gatewayData },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", paymentTx.id);
+
       return json({
         reference,
         status: "pending",
         order_id: order.id,
         order_number: order.order_number,
         method: "mtn_momo",
-        instructions: "Approve the MTN Mobile Money prompt.",
+        instructions: MTN_GATEWAY_MODE === "sandbox"
+          ? "Sandbox payment submitted using the MTN success test identity; waiting for the sandbox final status."
+          : "Approve the MTN Mobile Money prompt.",
       });
     }
 
-    const reference =
-      "NTI-PAY-" + order.order_number + "-" + Date.now();
-
-    // Keep non-MTN methods isolated from the MTN path. If the legacy payments
-    // table is unavailable in production, report that cleanly instead of
-    // pretending the payment was initiated.
-    const { error: insertError } = await supabase.from("payments").insert({
-      order_id: order.id,
-      method,
-      amount: order.total,
-      status: "pending",
-      provider: method,
-      provider_reference: reference,
-    });
-
-    if (insertError) {
+    if (method === "cash_on_delivery") {
       return json({
-        error: "PAYMENT_RECORD_FAILED",
-        message: insertError.message,
-      }, 500);
+        error: "COD_PAYMENT_INITIATION_NOT_ALLOWED",
+        message: "Cash on delivery is confirmed at checkout and does not use the payment gateway.",
+      }, 409);
+    }
+
+    if (method === "airtel_money" || method === "card") {
+      return json({
+        error: "PAYMENT_PROVIDER_NOT_CONFIGURED",
+        message: `The ${method === "airtel_money" ? "Airtel Money" : "card"} payment provider is not configured yet. No payment was recorded as successful.`,
+        method,
+      }, 503);
     }
 
     return json({
-      reference,
-      status: "pending",
-      order_id: order.id,
-      order_number: order.order_number,
+      error: "UNSUPPORTED_PAYMENT_METHOD",
+      message: "This payment method is not supported.",
       method,
-      instructions:
-        method === "airtel_money"
-          ? "Complete the Airtel Money payment."
-          : method === "cash_on_delivery"
-          ? "Payment will be collected on delivery."
-          : "Complete the payment.",
-    });
+    }, 400);
   } catch (error) {
     return json({ error: String(error) }, 500);
   }
