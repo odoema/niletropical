@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_ID: tyhqwngqxbcivfphgxck
+      SUPABASE_PROJECT_ID: ououfhsswyqutcczdtnb
       SUPABASE_API_URL: https://api.supabase.com
 
     steps:
