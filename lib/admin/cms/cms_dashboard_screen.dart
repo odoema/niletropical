@@ -196,6 +196,20 @@ class _CmsDashboardScreenState extends State<CmsDashboardScreen> {
               ),
             ),
             const SizedBox(height: 8),
+            Text('Store App presentation', style: NileTypography.titleLarge),
+            const SizedBox(height: 8),
+            _section(
+              context,
+              const _CmsSection(
+                'Store App HERO',
+                'website_media_slots',
+                Icons.slideshow_outlined,
+                '/admin/cms/app-hero',
+              ),
+              null,
+              subtitle: 'Replace the four images shown on the shopping app HOME slider.',
+            ),
+            const SizedBox(height: 8),
             Text('Website presentation', style: NileTypography.titleLarge),
             const SizedBox(height: 8),
             _section(
