@@ -48,7 +48,7 @@ class _AdminProductListScreenState extends ConsumerState<AdminProductListScreen>
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(
-      adminProductsProvider(_search.isEmpty ? null : _search),
+      productsProvider(_search.isEmpty ? null : _search),
     );
 
     return Scaffold(
