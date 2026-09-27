@@ -105,6 +105,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         _route = null;
         _quote = null;
       });
+      _resolveZoneForDestination(place);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -112,6 +113,26 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
     } finally {
       if (mounted) setState(() => _usingCurrentLocation = false);
+    }
+  }
+
+  Future<void> _resolveZoneForDestination(GeoPlace place) async {
+    try {
+      final resolved = await DeliveryService.resolveZone(
+        latitude: place.latitude,
+        longitude: place.longitude,
+      );
+      if (!mounted || resolved == null) return;
+      final resolvedId = resolved['zone_id']?.toString();
+      if (resolvedId == null) return;
+      setState(() {
+        _zoneId = resolvedId;
+        _quote = null;
+        _route = null;
+      });
+    } catch (_) {
+      // Geographic zone metadata is optional until production zones are
+      // configured. The explicit zone selector remains the safe fallback.
     }
   }
 
@@ -123,6 +144,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       _route = null;
       _quote = null;
     });
+    _resolveZoneForDestination(place);
   }
 
   void _searchDestination(String value) {
@@ -442,12 +464,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     dense: true,
                     leading: const Icon(Icons.place_outlined, color: NileColors.primary),
                     title: Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-                    onTap: () => setState(() {
-                      _destination = p;
-                      _locationCtrl.text = p.name;
-                      _address.text = p.name;
-                      _locationResults = const [];
-                    }),
+                    onTap: () {
+                      setState(() {
+                        _destination = p;
+                        _locationCtrl.text = p.name;
+                        _address.text = p.name;
+                        _locationResults = const [];
+                        _route = null;
+                        _quote = null;
+                      });
+                      _resolveZoneForDestination(p);
+                    },
                   )).toList(),
                 ),
               ),
