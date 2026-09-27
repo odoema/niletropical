@@ -18,11 +18,11 @@ function providerAmountFromUgx(ugx: number): string {
   if (!Number.isFinite(ugx) || ugx <= 0) throw new Error("INVALID_UGX_AMOUNT");
   if (MTN_GATEWAY_MODE === "sandbox") {
     if (MTN_GATEWAY_CURRENCY !== "EUR") throw new Error("MTN_SANDBOX_MUST_USE_EUR");
-    if (!Number.isFinite(MTN_SANDBOX_UGX_PER_EUR) || MTN_SANDBOX_UGX_PER_EUR <= 0) {
-      throw new Error("MTN_SANDBOX_FX_RATE_NOT_CONFIGURED");
-    }
-    const eur = ugx / MTN_SANDBOX_UGX_PER_EUR;
-    return eur.toFixed(2);
+    // The deployed Oracle sandbox adapter intentionally normalizes every
+    // Request-to-Pay to its fixed MTN sandbox test amount (EUR 1.00).
+    // Record/send that exact provider-facing amount so payment-status
+    // reconciliation cannot reject the transaction as an amount mismatch.
+    return "1.00";
   }
   if (MTN_GATEWAY_CURRENCY !== "UGX") throw new Error("MTN_PRODUCTION_MUST_USE_UGX");
   return Math.round(ugx).toString();
