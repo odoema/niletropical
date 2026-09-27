@@ -6,6 +6,22 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // translate this provider-facing currency according to its configured MTN
 // environment. Production MTN Uganda should set MTN_GATEWAY_CURRENCY=UGX.
 const MTN_GATEWAY_CURRENCY = (Deno.env.get("MTN_GATEWAY_CURRENCY") ?? "EUR").toUpperCase();
+const MTN_GATEWAY_MODE = (Deno.env.get("MTN_GATEWAY_MODE") ?? "sandbox").toLowerCase();
+const MTN_SANDBOX_UGX_PER_EUR = Number(Deno.env.get("MTN_SANDBOX_UGX_PER_EUR") ?? "4000");
+
+function providerAmountFromUgx(ugx: number): string {
+  if (!Number.isFinite(ugx) || ugx <= 0) throw new Error("INVALID_UGX_AMOUNT");
+  if (MTN_GATEWAY_MODE === "sandbox") {
+    if (MTN_GATEWAY_CURRENCY !== "EUR") throw new Error("MTN_SANDBOX_MUST_USE_EUR");
+    if (!Number.isFinite(MTN_SANDBOX_UGX_PER_EUR) || MTN_SANDBOX_UGX_PER_EUR <= 0) {
+      throw new Error("MTN_SANDBOX_FX_RATE_NOT_CONFIGURED");
+    }
+    const eur = ugx / MTN_SANDBOX_UGX_PER_EUR;
+    return eur.toFixed(2);
+  }
+  if (MTN_GATEWAY_CURRENCY !== "UGX") throw new Error("MTN_PRODUCTION_MUST_USE_UGX");
+  return Math.round(ugx).toString();
+}
 
 const METHODS = new Set([
   "mtn_momo",
@@ -172,6 +188,18 @@ serve(async (req) => {
       }
 
       const reference = crypto.randomUUID();
+      let providerAmount: string;
+      try {
+        providerAmount = providerAmountFromUgx(Number(order.total));
+      } catch (error) {
+        return json({ error: "MTN_CURRENCY_CONFIGURATION_ERROR", message: String(error) }, 500);
+      }
+
+      const providerRequest = {
+        amount: providerAmount,
+        currency: MTN_GATEWAY_CURRENCY,
+        external_id: order.order_number,
+      };
 
       const { data: paymentTx, error: paymentTxError } = await supabase
         .from("payment_transactions")
@@ -185,9 +213,15 @@ serve(async (req) => {
           currency: "UGX",
           status: "initiated",
           raw_response: {
-            payment_environment: "mtn_sandbox",
+            payment_environment: MTN_GATEWAY_MODE,
+            merchant_amount: Number(order.total),
+            merchant_currency: "UGX",
             provider_currency: MTN_GATEWAY_CURRENCY,
-            provider_amount: order.total,
+            provider_amount: Number(providerAmount),
+            provider_fx: MTN_GATEWAY_MODE === "sandbox"
+              ? { model: "fixed_test_rate", ugx_per_eur: MTN_SANDBOX_UGX_PER_EUR }
+              : null,
+            request: providerRequest,
           },
         })
         .select("id")
@@ -212,7 +246,7 @@ serve(async (req) => {
           body: JSON.stringify({
             reference_id: reference,
             external_id: order.order_number,
-            amount: String(order.total),
+            amount: providerAmount,
             currency: MTN_GATEWAY_CURRENCY,
             payer_party_id_type: "MSISDN",
             payer_party_id: payerPhone,
@@ -239,7 +273,7 @@ serve(async (req) => {
           .from("payment_transactions")
           .update({
             status: "failed",
-            raw_response: gatewayData,
+            raw_response: { request: providerRequest, response: gatewayData },
             completed_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
@@ -264,7 +298,7 @@ serve(async (req) => {
         .from("payment_transactions")
         .update({
           status: "pending",
-          raw_response: gatewayData,
+          raw_response: { request: providerRequest, response: gatewayData },
           updated_at: new Date().toISOString(),
         })
         .eq("id", paymentTx.id);
