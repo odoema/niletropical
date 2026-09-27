@@ -38,6 +38,24 @@ class DeliveryService {
     return List<Map<String, dynamic>>.from(rows).map(Courier.fromJson).toList();
   }
 
+  static Future<Map<String, dynamic>?> resolveZone({
+    required double latitude,
+    required double longitude,
+  }) async {
+    if (!Env.isConfigured) return null;
+
+    final result = await SupabaseService.client.rpc(
+      'resolve_delivery_zone',
+      params: {
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+      },
+    );
+
+    final rows = List<Map<String, dynamic>>.from(result as List);
+    return rows.isEmpty ? null : rows.first;
+  }
+
   static Future<Map<String, dynamic>> quoteDelivery({
     required String deliveryZoneId,
     required double distanceKm,
