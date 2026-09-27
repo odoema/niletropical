@@ -23,6 +23,21 @@ The broad policy issue is confirmed: is_staff() currently means any assigned app
 - notification_logs — narrow after confirming operational/finance reporting needs.
 - website_media_slots — content_manager/manager/super_admin.
 
+## ORDERS — REPOSITORY REPAIR PREPARED
+
+Live policy names and expressions were verified directly in production before creating the migration.
+
+Repository-only migration:
+supabase/migrations/20260927_repair_orders_rls_roles.sql
+
+Proposed role boundary:
+- Orders/order items/history read: super_admin, manager, sales_staff, finance.
+- Orders/order items/history direct mutation: super_admin, manager, sales_staff.
+- Customer-owned read policies remain separate.
+- No production role assignments are changed.
+
+This migration is REPOSITORY / PENDING REVIEW / NOT DEPLOYED.
+
 ## KEEP
 
 - Owner policies for customer-owned records.
@@ -33,12 +48,17 @@ The broad policy issue is confirmed: is_staff() currently means any assigned app
 
 ## FUNCTION GRANT HARDENING — REPAIR CANDIDATE
 
-Live metadata shows apply_pricing_recommendation(uuid) is executable by anon as well as authenticated, although its function body requires manager/finance/super_admin. This is defense-in-depth, not an observed authorization bypass. Candidate repository repair: revoke anonymous EXECUTE while retaining authenticated/service-role execution. Do not apply until reviewed.
+Live metadata shows apply_pricing_recommendation(uuid) is executable by anon as well as authenticated, although its function body requires manager/finance/super_admin. This is defense-in-depth, not an observed authorization bypass. Candidate repository repair exists separately. Do not apply until reviewed.
 
 ## HOLD
 
-Do not mechanically replace is_staff() policies, mutate production role assignments, deploy lifecycle repairs, or deploy Edge Functions during this reconciliation stage.
+Do not mechanically replace remaining is_staff() policies, mutate production role assignments, deploy lifecycle repairs, or deploy Edge Functions during this reconciliation stage.
 
-## Next testable unit
+## Next testable units
 
-Reconcile Page → Component → Button → Flutter action → table/RPC/function → minimum role, starting with Orders, Inventory, Delivery/Courier, then Notifications/Audit.
+1. Validate Orders policy role boundary in a non-production fixture environment.
+2. Reconcile Inventory direct reads/mutations.
+3. Reconcile Delivery/Courier direct reads/mutations.
+4. Reconcile Customers/COD/Finance.
+5. Reconcile Notifications/Audit/Analytics.
+6. Run security/performance advisors after any approved production RLS changes.
