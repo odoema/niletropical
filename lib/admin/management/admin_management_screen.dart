@@ -151,13 +151,38 @@ class _CategoriesTabState extends State<_CategoriesTab> {
     title: 'Product categories', loading: loading, error: error, onRefresh: _load,
     onAdd: () => _edit(), empty: 'No categories configured.',
     children: rows.map((row) => ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       leading: const CircleAvatar(child: Icon(Icons.category_outlined)),
-      title: Text(row['name']?.toString() ?? 'Category'),
-      subtitle: Text((row['slug']?.toString() ?? '') + ' • Order ' + (row['sort_order']?.toString() ?? '0')),
-      trailing: Wrap(children: [
-        Switch(value: row['is_active'] == true, onChanged: (_) => _edit(row)),
-        IconButton(onPressed: () => _delete(row), icon: const Icon(Icons.delete_outline)),
-      ]),
+      title: Text(
+        row['name']?.toString() ?? 'Category',
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        (row['slug']?.toString() ?? '') + ' • Order ' + (row['sort_order']?.toString() ?? '0'),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: SizedBox(
+        width: 112,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Switch(
+              value: row['is_active'] == true,
+              onChanged: (_) => _edit(row),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              onPressed: () => _delete(row),
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Delete',
+            ),
+          ],
+        ),
+      ),
       onTap: () => _edit(row),
     )).toList(),
   );
@@ -277,13 +302,43 @@ class _CouponsTabState extends State<_CouponsTab> {
       final usage = 'Used ' + (row['used_count']?.toString() ?? '0') +
           (row['max_uses'] == null ? '' : ' / ' + row['max_uses'].toString());
       return ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: const CircleAvatar(child: Icon(Icons.local_offer_outlined)),
-        title: Text(row['code']?.toString() ?? 'Coupon'),
-        subtitle: Text(discount + ' • ' + usage),
-        trailing: Wrap(children: [
-          Chip(label: Text(row['is_active'] == true ? 'Active' : 'Inactive')),
-          IconButton(onPressed: () => _delete(row), icon: const Icon(Icons.delete_outline)),
-        ]),
+        title: Text(
+          row['code']?.toString() ?? 'Coupon',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          discount + ' • ' + usage,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: SizedBox(
+          width: 128,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Chip(
+                  label: Text(
+                    row['is_active'] == true ? 'Active' : 'Inactive',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () => _delete(row),
+                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Delete',
+              ),
+            ],
+          ),
+        ),
         onTap: () => _edit(row),
       );
     }).toList(),
@@ -531,13 +586,44 @@ abstract class _SimpleTableState<T extends _SimpleTableTab> extends State<T> {
       final primary = display(row, columns.first);
       final details = columns.skip(1).take(3).map((key) => display(row, key)).join(' • ');
       return ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: const CircleAvatar(child: Icon(Icons.local_shipping_outlined)),
-        title: Text(primary),
-        subtitle: Text(details),
-        trailing: Wrap(children: [
-          if (row.containsKey('is_active')) Chip(label: Text(row['is_active'] == true ? 'Active' : 'Inactive')),
-          IconButton(onPressed: () => remove(row), icon: const Icon(Icons.delete_outline)),
-        ]),
+        title: Text(
+          primary,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          details,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: SizedBox(
+          width: row.containsKey('is_active') ? 128 : 48,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (row.containsKey('is_active'))
+                Flexible(
+                  child: Chip(
+                    label: Text(
+                      row['is_active'] == true ? 'Active' : 'Inactive',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: () => remove(row),
+                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Delete',
+              ),
+            ],
+          ),
+        ),
         onTap: () => editRow(row),
       );
     }).toList(),
