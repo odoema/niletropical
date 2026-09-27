@@ -132,60 +132,141 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
     }
   }
 
-  Widget _imageTile(Map<String, dynamic> product, Map<String, dynamic> image) {
-    final path = image['storage_path']?.toString();
-    final url = StorageService.resolvePublicUrl(path);
-    final isMain = image['is_main'] == true;
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Stack(
-        children: [
-          AdminImageFrame(
-            url: url,
-            aspectRatio: 4 / 3,
-            fit: BoxFit.cover,
-            borderRadius: 10,
-            label: 'Image',
-          ),
-          if (isMain)
-            Positioned(left: 7, top: 7, child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-              decoration: BoxDecoration(color: NileColors.primary, borderRadius: BorderRadius.circular(6)),
-              child: const Text('MAIN', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
-            )),
-          Positioned(
-            right: 4, top: 4,
-            child: IconButton(
-              tooltip: 'Delete image',
-              style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: .92), padding: const EdgeInsets.all(7), minimumSize: const Size(34, 34)),
-              onPressed: () => _deleteImage(product['id'].toString(), image),
-              icon: const Icon(Icons.delete_outline, color: NileColors.error, size: 18),
-            ),
-          ),
-          Positioned(
-            left: 5, right: 5, bottom: 5,
-            child: SizedBox(
-              height: 32,
-              child: isMain
-                  ? const DecoratedBox(
-                      decoration: BoxDecoration(color: Colors.white70),
-                      child: Center(child: Text('Main image', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
-                    )
-                  : TextButton(
-                      style: TextButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: .92), padding: EdgeInsets.zero),
-                      onPressed: () => _setMain(product['id'].toString(), image['id'].toString()),
-                      child: const Text('Set as main', style: TextStyle(fontSize: 11)),
+  Map<String, dynamic>? _mainImage(List<Map<String, dynamic>> images) {
+    if (images.isEmpty) return null;
+    final mains = images.where((image) => image['is_main'] == true).toList();
+    if (mains.isNotEmpty) return mains.first;
+    final sorted = [...images]
+      ..sort((a, b) => ((a['sort_order'] as num?) ?? 0).compareTo((b['sort_order'] as num?) ?? 0));
+    return sorted.first;
+  }
+
+  Future<void> _showImageGallery(
+    Map<String, dynamic> product,
+    List<Map<String, dynamic>> images,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 920, maxHeight: 720),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _displayName(product),
+                        style: NileTypography.titleLarge,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: MediaQuery.sizeOf(context).width >= 800 ? 3 : 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: images.length,
+                    itemBuilder: (_, index) => _galleryImageTile(product, images[index]),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _galleryImageTile(
+    Map<String, dynamic> product,
+    Map<String, dynamic> image,
+  ) {
+    final url = StorageService.resolvePublicUrl(image['storage_path']?.toString());
+    final isMain = image['is_main'] == true;
+    return Stack(
+      children: [
+        AdminImageFrame(
+          url: url,
+          aspectRatio: 1,
+          fit: BoxFit.contain,
+          borderRadius: 12,
+          backgroundColor: NileColors.surfaceVariant,
+          label: 'Product image',
+        ),
+        if (isMain)
+          Positioned(
+            left: 10,
+            top: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+              decoration: BoxDecoration(
+                color: NileColors.primary,
+                borderRadius: BorderRadius.circular(7),
+              ),
+              child: const Text(
+                'MAIN',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+        Positioned(
+          right: 6,
+          top: 6,
+          child: IconButton(
+            tooltip: 'Delete image',
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white.withValues(alpha: .94),
+              minimumSize: const Size(38, 38),
+            ),
+            onPressed: () => _deleteImage(product['id'].toString(), image),
+            icon: const Icon(Icons.delete_outline, color: NileColors.error),
+          ),
+        ),
+        Positioned(
+          left: 8,
+          right: 8,
+          bottom: 8,
+          child: isMain
+              ? Container(
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .94),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Main image',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                )
+              : FilledButton(
+                  onPressed: () => _setMain(
+                    product['id'].toString(),
+                    image['id'].toString(),
+                  ),
+                  child: const Text('Set as main'),
+                ),
+        ),
+      ],
     );
   }
 
@@ -193,19 +274,37 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Image Manager', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Product Image Manager',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
         foregroundColor: Colors.white,
         backgroundColor: NileColors.primary,
         iconTheme: const IconThemeData(color: Colors.white),
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/admin/products')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/admin/products'),
+        ),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _products,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-          if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Could not load products: ${snapshot.error}')));
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text('Could not load products: ${snapshot.error}'),
+              ),
+            );
+          }
+
           final products = snapshot.data ?? const [];
-          if (products.isEmpty) return const Center(child: Text('No products found.'));
+          if (products.isEmpty) {
+            return const Center(child: Text('No products found.'));
+          }
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -214,67 +313,202 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
             },
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final columns = constraints.maxWidth >= 1300 ? 3 : constraints.maxWidth >= 820 ? 2 : 1;
+                final columns = constraints.maxWidth >= 1450
+                    ? 4
+                    : constraints.maxWidth >= 980
+                        ? 3
+                        : constraints.maxWidth >= 620
+                            ? 2
+                            : 1;
+
                 return GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: columns,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    mainAxisExtent: columns == 1 ? 320 : 300,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    mainAxisExtent: 405,
                   ),
                   itemCount: products.length,
                   itemBuilder: (context, index) {
                     final product = products[index];
                     final images = (product['product_images'] as List?)
                             ?.map((x) => Map<String, dynamic>.from(x as Map))
-                            .toList() ?? <Map<String, dynamic>>[];
+                            .toList() ??
+                        <Map<String, dynamic>>[];
+                    final mainImage = _mainImage(images);
                     final busy = _busyProductId == product['id'];
+                    final mainUrl = StorageService.resolvePublicUrl(
+                      mainImage?['storage_path']?.toString(),
+                    );
 
                     return Card(
                       margin: EdgeInsets.zero,
                       clipBehavior: Clip.antiAlias,
+                      elevation: 0,
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Row(
                               children: [
-                                Expanded(child: Text(_displayName(product), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800))),
+                                Expanded(
+                                  child: Text(
+                                    _displayName(product),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
                                 const SizedBox(width: 8),
                                 IconButton(
-                                  tooltip: 'Add images',
+                                  tooltip: 'Add product images',
                                   onPressed: busy ? null : () => _addImages(product),
-                                  icon: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.add_photo_alternate_outlined),
+                                  icon: busy
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        )
+                                      : const Icon(Icons.add_photo_alternate_outlined),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 9),
+                            const SizedBox(height: 8),
                             Expanded(
-                              child: images.isEmpty
-                                  ? Container(
-                                      decoration: BoxDecoration(color: NileColors.surfaceVariant, borderRadius: BorderRadius.circular(10)),
-                                      child: const Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.image_not_supported_outlined, size: 34), SizedBox(height: 6), Text('No images yet')]),
-                                    )
-                                  : GridView.builder(
-                                      physics: const NeverScrollableScrollPhysics(),
-                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: images.length == 1 ? 1 : images.length == 2 ? 2 : 3,
-                                        crossAxisSpacing: 8,
-                                        mainAxisSpacing: 8,
-                                        childAspectRatio: images.length == 1 ? 4 / 3 : 1,
-                                      ),
-                                      itemCount: images.length > 6 ? 6 : images.length,
-                                      itemBuilder: (_, i) => _imageTile(product, images[i]),
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: NileColors.surfaceVariant,
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: mainImage == null
+                                        ? const Center(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(Icons.image_not_supported_outlined, size: 38),
+                                                SizedBox(height: 8),
+                                                Text('No images yet'),
+                                              ],
+                                            ),
+                                          )
+                                        : AdminImageFrame(
+                                            url: mainUrl,
+                                            expand: true,
+                                            fit: BoxFit.contain,
+                                            borderRadius: 12,
+                                            backgroundColor: NileColors.surfaceVariant,
+                                            label: 'Product image',
+                                          ),
+                                  ),
+                                  if (mainImage != null)
+                                    Positioned(
+                                      left: 10,
+                                      top: 10,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: NileColors.primary,
+                                          borderRadius: BorderRadius.circular(7),
+                                        ),
+                                        child: const Text(
+                                          'MAIN',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  if (mainImage != null)
+                                    Positioned(
+                                      right: 8,
+                                      top: 8,
+                                      child: IconButton(
+                                        tooltip: 'Delete main image',
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: Colors.white.withValues(alpha: .94),
+                                          minimumSize: const Size(38, 38),
+                                        ),
+                                        onPressed: () => _deleteImage(
+                                          product['id'].toString(),
+                                          mainImage,
+                                        ),
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          color: NileColors.error,
+                                          size: 19,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 7),
+                            const SizedBox(height: 10),
                             Row(
                               children: [
-                                Text('${images.length} image${images.length == 1 ? '' : 's'}', style: Theme.of(context).textTheme.bodySmall),
+                                Text(
+                                  '${images.length} image${images.length == 1 ? '' : 's'}',
+                                  style: NileTypography.bodySmall.copyWith(
+                                    color: NileColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                                 const Spacer(),
-                                if (product['is_active'] == true) const Text('ACTIVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: NileColors.success)),
+                                if (product['is_active'] == true)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: NileColors.success.withValues(alpha: .10),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Text(
+                                      'ACTIVE',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: NileColors.success,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 9),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: images.isEmpty
+                                        ? () => _addImages(product)
+                                        : () => _showImageGallery(product, images),
+                                    icon: const Icon(Icons.photo_library_outlined, size: 18),
+                                    label: Text(images.isEmpty ? 'Add Images' : 'Manage Images'),
+                                    style: OutlinedButton.styleFrom(
+                                      minimumSize: const Size(0, 44),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: FilledButton.icon(
+                                    onPressed: busy ? null : () => _addImages(product),
+                                    icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
+                                    label: const Text('Add'),
+                                    style: FilledButton.styleFrom(
+                                      minimumSize: const Size(0, 44),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -290,4 +524,3 @@ class _ProductImageManagerScreenState extends ConsumerState<ProductImageManagerS
       ),
     );
   }
-}
