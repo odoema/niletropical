@@ -68,55 +68,9 @@ class HomeScreen extends ConsumerWidget {
             ],
           ),
 
-          // Hero
-          SliverToBoxAdapter(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 28, 20, 36),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [NileColors.primary, NileColors.primaryDark],
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Natural. Premium.\nFrom Nebbi.',
-                    style: NileTypography.displaySmall.copyWith(
-                      color: Colors.white,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Shea, oils & wellness products crafted in Uganda.',
-                    style: NileTypography.bodyLarge.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: 180,
-                    child: ElevatedButton(
-                      onPressed: () => context.go('/shop'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: NileColors.primary,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: NileRadius.borderMd,
-                        ),
-                      ),
-                      child: Text('Shop now', style: NileTypography.button),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          // Hero story carousel — four slides introducing Nile Tropical Industries.
+          const SliverToBoxAdapter(
+            child: _NileTropicalHeroCarousel(),
           ),
 
           const SliverToBoxAdapter(child: SizedBox(height: NileSpacing.md)),
