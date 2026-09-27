@@ -1,8 +1,6 @@
 /// Nile Tropical - Admin Product List
 /// Copyright © Hon. Dr. Betty Udongo Pacutho
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,44 +10,12 @@ import '../../shared/models/product.dart';
 import '../../shared/services/storage_service.dart';
 import '../widgets/admin_image_frame.dart';
 
-class AdminProductListScreen extends ConsumerStatefulWidget {
+class AdminProductListScreen extends ConsumerWidget {
   const AdminProductListScreen({super.key});
 
   @override
-  ConsumerState<AdminProductListScreen> createState() => _AdminProductListScreenState();
-}
-
-class _AdminProductListScreenState extends ConsumerState<AdminProductListScreen> {
-  final _searchController = TextEditingController();
-  Timer? _searchDebounce;
-  String _search = '';
-
-  @override
-  void dispose() {
-    _searchDebounce?.cancel();
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _onSearchChanged(String value) {
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
-      if (!mounted) return;
-      setState(() => _search = value.trim());
-    });
-  }
-
-  void _clearSearch() {
-    _searchDebounce?.cancel();
-    _searchController.clear();
-    setState(() => _search = '');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final productsAsync = ref.watch(
-      productsProvider(_search.isEmpty ? null : _search),
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final productsAsync = ref.watch(productsProvider(null));
 
     return Scaffold(
       appBar: AppBar(
@@ -57,7 +23,7 @@ class _AdminProductListScreenState extends ConsumerState<AdminProductListScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(adminProductsProvider(_search.isEmpty ? null : _search)),
+            onPressed: () => ref.invalidate(productsProvider(null)),
           ),
         ],
       ),
@@ -66,34 +32,12 @@ class _AdminProductListScreenState extends ConsumerState<AdminProductListScreen>
         icon: const Icon(Icons.add),
         label: const Text('Add Product'),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: 'Search products…',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: 'Clear search',
-                        icon: const Icon(Icons.clear),
-                        onPressed: _clearSearch,
-                      ),
-                border: const OutlineInputBorder(),
-              ),
-            ),
-          ),
-          Expanded(child: productsAsync.when(
+      body: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (products) {
           if (products.isEmpty) {
-            return Center(child: Text(_search.isEmpty ? 'No products yet. Add your first product.' : 'No products found for “$_search”.'));
+            return const Center(child: Text('No products yet. Add your first product.'));
           }
           return ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
@@ -147,12 +91,11 @@ class _AdminProductListScreenState extends ConsumerState<AdminProductListScreen>
             },
           );
         },
-          }),
-        ),
-      ],
+      ),
     );
   }
 }
+
 class _Badge extends StatelessWidget {
   final String label;
   final Color color;
