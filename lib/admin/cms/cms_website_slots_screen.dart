@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../shared/services/image_quality_service.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
 import '../widgets/admin_image_frame.dart';
@@ -115,6 +117,65 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Could not save image details: ' + e.toString()),
+          backgroundColor: NileColors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _uploadAndAssign(Map<String, dynamic> slot) async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+
+    try {
+      final bytes = await picked.readAsBytes();
+      final quality = await ImageQualityService.inspect(
+        bytes: bytes,
+        folder: 'website',
+      );
+      if (!quality.passes) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Image rejected: ${quality.dimensions} (${quality.sizeLabel}). '
+              'Minimum is ${quality.minWidth} × ${quality.minHeight}px.',
+            ),
+            backgroundColor: NileColors.error,
+          ),
+        );
+        return;
+      }
+
+      final safe = picked.name
+          .replaceAll(RegExp(r'[^a-zA-Z0-9._-]+'), '-')
+          .replaceAll(RegExp(r'-+'), '-');
+      final path =
+          'website/${slot['slot_key']}-${DateTime.now().microsecondsSinceEpoch}-$safe';
+
+      await StorageService.upload(
+        bucket: StorageService.cms,
+        objectPath: path,
+        bytes: bytes,
+        contentType: picked.mimeType ?? 'image/jpeg',
+      );
+
+      await SupabaseService.client.from('website_media_slots').update({
+        'storage_path': path,
+        'is_active': true,
+        'updated_by': SupabaseService.client.auth.currentUser?.id,
+      }).eq('slot_key', slot['slot_key']);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${slot['label']} replaced successfully.')),
+      );
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not upload image: $e'),
           backgroundColor: NileColors.error,
         ),
       );
@@ -335,10 +396,15 @@ class _CmsWebsiteSlotsScreenState extends State<CmsWebsiteSlotsScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
+                FilledButton.icon(
+                  onPressed: () => _uploadAndAssign(slot),
+                  icon: const Icon(Icons.upload_outlined, size: 18),
+                  label: Text(active ? 'Upload & replace' : 'Upload image'),
+                ),
                 OutlinedButton.icon(
                   onPressed: () => _choose(slot),
                   icon: const Icon(Icons.photo_library_outlined, size: 18),
-                  label: Text(active ? 'Change image' : 'Choose image'),
+                  label: const Text('Choose existing'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => _editDetails(slot),
