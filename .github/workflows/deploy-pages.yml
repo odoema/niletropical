@@ -98,7 +98,8 @@ jobs:
           cp privacy.html build/site/privacy.html
           cp terms.html build/site/terms.html
           cp CNAME build/site/CNAME
-          cp -R assets/images build/site/assets/images
+          mkdir -p build/site/assets/images
+          cp -R assets/images/. build/site/assets/images/
           cp -R build/seo-site/. build/site/
           mkdir -p build/site/assets/website
           cp -R assets/website/. build/site/assets/website/
