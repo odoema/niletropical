@@ -50,12 +50,18 @@ class CustomerShell extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const ClipOval(
-                    child: Image(
-                      image: AssetImage('assets/images/logo.png'),
-                      width: 47,
-                      height: 47,
-                      fit: BoxFit.cover,
+                  ClipOval(
+                    child: ColorFiltered(
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
+                      ),
+                      child: const Image(
+                        image: AssetImage('assets/images/logo.png'),
+                        width: 47,
+                        height: 47,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
