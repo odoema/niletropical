@@ -75,8 +75,8 @@ class _CodReconciliationScreenState
           // Match the proven Management fix: never allow the operations
           // workspace to collapse to a narrow inherited constraint.
           final width = constraints.maxWidth.isFinite
-              ? constraints.maxWidth.clamp(640.0, double.infinity)
-              : 640.0;
+              ? (constraints.maxWidth < 720.0 ? 720.0 : constraints.maxWidth)
+              : 720.0;
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: width <= constraints.maxWidth
@@ -201,6 +201,8 @@ class _CodReconciliationScreenState
                             : FilledButton(
                                 style: FilledButton.styleFrom(
                                   backgroundColor: _Nile.primary,
+                                  minimumSize: const Size(0, 44),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
                                 ),
                                 onPressed: () => _recordDialog(
                                   context,
@@ -216,13 +218,16 @@ class _CodReconciliationScreenState
               },
             ),
           ),
-        ],
                 ],
               ),
             ),
           );
         },
-      ),  Future<void> _recordDialog(
+      ),
+    );
+  }
+
+  Future<void> _recordDialog(
     BuildContext context, {
     required String orderId,
     required double amountDue,
