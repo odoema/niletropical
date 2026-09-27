@@ -157,8 +157,7 @@ class _NileDeliveryMapState extends State<NileDeliveryMap> {
                   markers: [
                     DragMarker(
                       point: LatLng(widget.destination.latitude, widget.destination.longitude),
-                      width: 50,
-                      height: 58,
+                      size: const Size(50, 58),
                       offset: const Offset(0, -20),
                       builder: (context, position, isDragging) => Column(
                         mainAxisSize: MainAxisSize.min,
