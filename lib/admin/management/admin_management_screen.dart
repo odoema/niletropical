@@ -645,7 +645,9 @@ class _ManagementList extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => Column(children: [
+  Widget build(BuildContext context) => SizedBox(
+    width: double.infinity,
+    child: Column(children: [
     Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
       child: Row(children: [
@@ -666,7 +668,8 @@ class _ManagementList extends StatelessWidget {
           itemBuilder: (_, index) => Card(child: children[index]),
         ),
     ),
-  ]);
+    ]),
+  );
 }
 
 Future<Map<String, dynamic>?> _zoneForm(BuildContext context, [Map<String, dynamic>? row]) async {
