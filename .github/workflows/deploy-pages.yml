@@ -87,6 +87,9 @@ jobs:
           };
           EOF
 
+      - name: Validate SEO catalogue contract
+        run: node scripts/validate_seo_catalogue.mjs
+
       - name: Generate crawlable SEO pages, sitemap and robots.txt
         run: node scripts/generate_seo_site.mjs
 
