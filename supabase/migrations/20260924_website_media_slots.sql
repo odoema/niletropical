@@ -13,6 +13,10 @@ insert into public.website_media_slots (slot_key, label, storage_path, alt_text)
 values
   ('logo','Website logo','website/niletropical-logo.jpg','Nile Tropical Industries Ltd logo'),
   ('hero','Homepage hero',null,'Nile Tropical Industries homepage'),
+  ('hero_1','Homepage HERO 1','website/mozzie.jpg','Nile Tropical Shea Butter product in a natural setting'),
+  ('hero_2','Homepage HERO 2',null,'Traditional processing of shea ingredients'),
+  ('hero_3','Homepage HERO 3','website/founder.jpg','African woman using a shea butter skincare product'),
+  ('hero_4','Homepage HERO 4',null,'Women selling produce in a Ugandan market'),
   ('mozzie','Mozzie product image','website/mozzie.jpg','Mozzie-Guard Jelly'),
   ('founder','Founder image','website/founder.jpg','Nile Tropical Industries founder'),
   ('story','Our story image',null,'Nile Tropical Industries story'),
