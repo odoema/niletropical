@@ -510,6 +510,7 @@ class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
   final PageController _controller = PageController();
   Timer? _timer;
   int _index = 0;
+  late final Future<Map<String, String>> _imagesFuture;
 
   static const _slides = [
     (
@@ -557,6 +558,7 @@ class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
   @override
   void initState() {
     super.initState();
+    _imagesFuture = _loadImages();
     _timer = Timer.periodic(const Duration(seconds: 6), (_) {
       if (!mounted || !_controller.hasClients) return;
       final next = (_index + 1) % _slides.length;
@@ -578,7 +580,7 @@ class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, String>>(
-      future: _loadImages(),
+      future: _imagesFuture,
       builder: (context, snapshot) {
         final customImages = snapshot.data ?? const <String, String>{};
         return SizedBox(
