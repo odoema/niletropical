@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 class GeoPlace {
@@ -6,6 +7,14 @@ class GeoPlace {
   final String name;
   final double latitude;
   final double longitude;
+
+  factory GeoPlace.pinned({required double latitude, required double longitude, String? name}) {
+    return GeoPlace(
+      name: name ?? 'Pinned delivery location',
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
 }
 
 class RouteEstimate {
@@ -29,7 +38,7 @@ class LocationSearchService {
     if (trimmed.length < 3) return const [];
 
     final uri = Uri.parse(_photon).replace(queryParameters: {
-      'q': '${trimmed}, Uganda',
+      'q': '\${trimmed}, Uganda',
       'limit': '6',
       'lang': 'en',
     });
@@ -59,9 +68,36 @@ class LocationSearchService {
     }).where((p) => p.name.isNotEmpty).toList();
   }
 
+  static Future<GeoPlace> currentLocation() async {
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      throw StateError('Location services are turned off. You can search for your location instead.');
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      throw StateError('Location permission was not granted. You can search for your location instead.');
+    }
+
+    final position = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 12),
+      ),
+    );
+
+    return GeoPlace.pinned(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      name: 'Current location',
+    );
+  }
+
   static Future<RouteEstimate> route({required GeoPlace origin, required GeoPlace destination}) async {
     final uri = Uri.parse(
-      '$_osrm/${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}',
+      '\$_osrm/${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}',
     ).replace(queryParameters: {
       'overview': 'full',
       'geometries': 'geojson',
