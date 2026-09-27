@@ -127,3 +127,25 @@ jobs:
         with:
           artifact_name: github-pages-${{ github.run_id }}
         id: deployment
+
+  verify:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Verify public production site
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --location --max-time 20 https://niletropicaluganda.com/ > /tmp/home.html; then
+              if grep -qi "Nile Tropical" /tmp/home.html; then
+                echo "Production site verification passed."
+                exit 0
+              fi
+            fi
+            echo "Production site not ready yet (attempt ${attempt}); waiting 15s."
+            sleep 15
+          done
+          echo "::error::Production site did not return the expected Nile Tropical homepage after deployment."
+          exit 1
