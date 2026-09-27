@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          EXPECTED="https://tyhqwngqxbcivfphgxck.supabase.co"
+          EXPECTED="https://ououfhsswyqutcczdtnb.supabase.co"
           if [ "${SUPABASE_URL}" != "${EXPECTED}" ]; then
             echo "::error::SUPABASE_URL is not pointing to the current Nile Tropical Supabase project."
             echo "::error::Expected ${EXPECTED}"
@@ -62,7 +62,10 @@ jobs:
 
       - name: Build Flutter commerce app
         run: |
-          flutter build web --release             --dart-define=APP_ENV=production             --dart-define=SUPABASE_URL="$SUPABASE_URL"             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          flutter build web --release \
+            --dart-define=APP_ENV=production \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
 
       - name: Convert Flutter build to portable relative base path
         run: |
