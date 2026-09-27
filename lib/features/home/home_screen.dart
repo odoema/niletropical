@@ -513,26 +513,46 @@ class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
 
   static const _slides = [
     (
-      image: 'assets/products/eco-shea-butter-250g.svg',
+      slot: 'app_hero_1',
+      fallback: 'assets/products/eco-shea-butter-250g.svg',
       heading: 'Nile Tropical Industries',
       text: 'A Ugandan enterprise creating natural, practical products for everyday life.',
     ),
     (
-      image: 'assets/products/hibiscus-tea-150g.svg',
+      slot: 'app_hero_2',
+      fallback: 'assets/products/hibiscus-tea-150g.svg',
       heading: 'From Uganda, With Purpose',
       text: 'We bring together local inspiration, natural ingredients and thoughtful product development.',
     ),
     (
-      image: 'assets/products/nile-sheabutter-lotion-apple-200ml.svg',
+      slot: 'app_hero_3',
+      fallback: 'assets/products/nile-sheabutter-lotion-apple-200ml.svg',
       heading: 'Natural Care For Everyday Living',
       text: 'Our growing range spans personal care, hygiene, wellness and botanical products.',
     ),
     (
-      image: 'assets/products/shea-butter-mosquito-repellent-jelly-150g.svg',
+      slot: 'app_hero_4',
+      fallback: 'assets/products/shea-butter-mosquito-repellent-jelly-150g.svg',
       heading: 'Growing With Our Community',
       text: 'Nile Tropical Industries is building a modern Ugandan brand focused on quality, accessibility and value.',
     ),
   ];
+
+  Future<Map<String, String>> _loadImages() async {
+    final rows = await SupabaseService.client
+        .from('website_media_slots')
+        .select('slot_key,storage_path,is_active')
+        .inFilter('slot_key', _slides.map((s) => s.slot).toList());
+    final result = <String, String>{};
+    for (final row in rows) {
+      final path = row['storage_path']?.toString();
+      if (row['is_active'] == true && path != null && path.isNotEmpty) {
+        final url = StorageService.resolvePublicUrl(path, bucket: StorageService.cms);
+        if (url.isNotEmpty) result[row['slot_key'].toString()] = url;
+      }
+    }
+    return result;
+  }
 
   @override
   void initState() {
@@ -557,104 +577,114 @@ class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 390,
-      child: PageView.builder(
-        controller: _controller,
-        itemCount: _slides.length,
-        onPageChanged: (value) => setState(() => _index = value),
-        itemBuilder: (context, index) {
-          final slide = _slides[index];
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              Image.asset(
-                slide.image,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: NileColors.primary,
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.image_not_supported_outlined, color: Colors.white, size: 48),
-                ),
-              ),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [
-                      NileColors.primary.withValues(alpha: 0.92),
-                      NileColors.primary.withValues(alpha: 0.48),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 560),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          slide.heading,
-                          style: NileTypography.displaySmall.copyWith(
-                            color: Colors.white,
-                            height: 1.12,
+    return FutureBuilder<Map<String, String>>(
+      future: _loadImages(),
+      builder: (context, snapshot) {
+        final customImages = snapshot.data ?? const <String, String>{};
+        return SizedBox(
+          height: 390,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: _slides.length,
+            onPageChanged: (value) => setState(() => _index = value),
+            itemBuilder: (context, index) {
+              final slide = _slides[index];
+              final customUrl = customImages[slide.slot];
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  customUrl != null
+                      ? Image.network(
+                          customUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Image.asset(slide.fallback, fit: BoxFit.cover),
+                        )
+                      : Image.asset(
+                          slide.fallback,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: NileColors.primary,
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.image_not_supported_outlined, color: Colors.white, size: 48),
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        Text(
-                          slide.text,
-                          style: NileTypography.bodyLarge.copyWith(
-                            color: Colors.white.withValues(alpha: 0.94),
-                            height: 1.45,
-                          ),
-                        ),
-                        const SizedBox(height: 22),
-                        ElevatedButton(
-                          onPressed: () => context.go('/shop'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: NileColors.primary,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: NileRadius.borderMd),
-                          ),
-                          child: Text('Explore our products', style: NileTypography.button),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 24,
-                bottom: 18,
-                child: Row(
-                  children: List.generate(
-                    _slides.length,
-                    (dot) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.only(right: 6),
-                      width: dot == _index ? 24 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: dot == _index ? Colors.white : Colors.white.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          NileColors.primary.withValues(alpha: 0.92),
+                          NileColors.primary.withValues(alpha: 0.48),
+                          Colors.transparent,
+                        ],
                       ),
                     ),
                   ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 560),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              slide.heading,
+                              style: NileTypography.displaySmall.copyWith(color: Colors.white, height: 1.12),
+                            ),
+                            const SizedBox(height: 14),
+                            Text(
+                              slide.text,
+                              style: NileTypography.bodyLarge.copyWith(
+                                color: Colors.white.withValues(alpha: 0.94),
+                                height: 1.45,
+                              ),
+                            ),
+                            const SizedBox(height: 22),
+                            ElevatedButton(
+                              onPressed: () => context.go('/shop'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: NileColors.primary,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: NileRadius.borderMd),
+                              ),
+                              child: Text('Explore our products', style: NileTypography.button),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 24,
+                    bottom: 18,
+                    child: Row(
+                      children: List.generate(
+                        _slides.length,
+                        (dot) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: const EdgeInsets.only(right: 6),
+                          width: dot == _index ? 24 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: dot == _index ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
