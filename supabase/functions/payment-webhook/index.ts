@@ -1,6 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+const MTN_GATEWAY_CURRENCY = (Deno.env.get("MTN_GATEWAY_CURRENCY") ?? "EUR").toUpperCase();
+
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "content-type,x-reference-id,x-callback-url",
@@ -133,7 +135,7 @@ Deno.serve(async (req) => {
 
   const { data: tx, error: txError } = await admin
     .from("payment_transactions")
-    .select("id,order_id,provider_reference,amount,currency,status")
+    .select("id,order_id,provider_reference,amount,currency,status,raw_response")
     // payment-initiate records the local transaction under the canonical
     // gateway provider identifier. The callback event itself remains
     // mtn_uganda in payment_webhook_events because that identifies the
@@ -154,7 +156,7 @@ Deno.serve(async (req) => {
   const callbackAmount = body.amount ?? body.transactionAmount;
   if (
     callbackAmount !== undefined &&
-    Number(callbackAmount) !== Number(tx.amount)
+    Number(callbackAmount) !== Number(expectedProviderAmount)
   ) {
     return json(
       { ok: false, processed: false, reason: "AMOUNT_MISMATCH" },
@@ -163,12 +165,15 @@ Deno.serve(async (req) => {
   }
 
   const callbackCurrency = body.currency ?? body.transactionCurrency;
+  const providerRequest = (tx.raw_response as Record<string, unknown> | null)?.request as Record<string, unknown> | undefined;
+  const expectedProviderAmount = providerRequest?.amount ?? tx.amount;
+  const expectedProviderCurrency = String(providerRequest?.currency ?? MTN_GATEWAY_CURRENCY).toUpperCase();
   if (
     callbackCurrency !== undefined &&
-    String(callbackCurrency) !== String(tx.currency)
+    String(callbackCurrency).toUpperCase() !== expectedProviderCurrency
   ) {
     return json(
-      { ok: false, processed: false, reason: "CURRENCY_MISMATCH" },
+      { ok: false, processed: false, reason: "CURRENCY_MISMATCH", expected_currency: expectedProviderCurrency, received_currency: callbackCurrency },
       409,
     );
   }
