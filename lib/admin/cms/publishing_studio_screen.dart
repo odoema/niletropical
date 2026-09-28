@@ -215,7 +215,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
       if (mounted) setState(() => _loading = false);
     } catch (e) {
       if (mounted) {
-        setState(() { _loading = false; _canEdit = true; });
+        setState(() { _loading = false; _canEdit = false; });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Publishing item could not be opened: ' + e.toString())));
       }
     }
