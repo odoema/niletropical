@@ -41,24 +41,11 @@ class DeliveryService {
   static Future<Map<String, dynamic>> quoteDelivery({
     required String deliveryZoneId,
     required double distanceKm,
+    double? durationMinutes,
+    String deliveryMethod = 'default',
   }) async {
     if (!Env.isConfigured) {
-      // Production benchmark: SafeBoda-like Kampala ride pricing.
-      // The authoritative production quote comes from Supabase; this fallback
-      // intentionally mirrors the same formula so local/dev behavior cannot
-      // silently revert to the old zone-base + 3 km pricing.
-      const baseFare = 2500.0;
-      const perKmRate = 450.0;
-      final safeDistanceKm = distanceKm < 0 ? 0 : distanceKm;
-      final deliveryFee = (baseFare + safeDistanceKm * perKmRate).roundToDouble();
-      return {
-        'zone_id': deliveryZoneId,
-        'distance_km': safeDistanceKm,
-        'base_fee': baseFare,
-        'extra_km_rate': perKmRate,
-        'delivery_fee': deliveryFee,
-        'pricing_model': 'safeboda_like',
-      };
+      throw StateError('Delivery pricing requires Supabase configuration.');
     }
 
     final result = await SupabaseService.client.rpc(
@@ -66,6 +53,8 @@ class DeliveryService {
       params: {
         'p_delivery_zone_id': deliveryZoneId,
         'p_distance_km': distanceKm,
+        if (durationMinutes != null) 'p_duration_minutes': durationMinutes,
+        'p_delivery_method': deliveryMethod,
       },
     );
     return Map<String, dynamic>.from(result as Map);
