@@ -1,4 +1,5 @@
 -- Publishing target permissions: editors can manage editable items; managers can manage all workflow states.
+drop policy if exists "publishing_targets_editor_insert" on public.publishing_targets;
 drop policy if exists "publishing_targets_editor_delete" on public.publishing_targets;
 drop policy if exists "publishing_targets_manager_delete" on public.publishing_targets;
 create policy "publishing_targets_manage_insert"
