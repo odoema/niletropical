@@ -20,10 +20,7 @@ class ArticlesService {
     return SupabaseService.client
         .from('published_articles')
         .select('id,title,slug,body,caption,byline,cover_media_path,tags,published_at,created_at')
-        .eq('status', 'published')
-        .eq('content_type', 'news_story')
         .eq('slug', slug)
-        .lte('published_at', DateTime.now().toUtc().toIso8601String())
         .maybeSingle();
   }
 }
