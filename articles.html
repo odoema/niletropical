@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Articles | Nile Tropical Industries (U) Ltd</title>
+<meta name="description" content="News, stories, announcements and updates from Nile Tropical Industries (U) Ltd, Nebbi, West Nile, Uganda.">
+<meta name="theme-color" content="#005090">
+<style>
+:root{--blue:#005090;--deep:#003d70;--green:#08783d;--ink:#17212b;--muted:#66717c;--line:#dfe5e9;--soft:#f4f7f8;--cream:#faf9f4;--max:1080px}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);line-height:1.7;background:#fff}a{color:inherit;text-decoration:none}.wrap{width:min(var(--max),calc(100% - 32px));margin:auto}
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}.nav{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:11px}.logo{width:48px;height:48px;border-radius:50%;object-fit:contain}.brand b{display:block;color:var(--deep);font-size:14px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.navlinks{display:flex;gap:18px;font-size:13px;font-weight:700}.navlinks a:hover{color:var(--blue)}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 16px;background:var(--blue);color:#fff;border-radius:11px;font-size:12px;font-weight:800;text-transform:uppercase}
+.hero{background:var(--blue);color:#fff;padding:72px 0}.hero .label{color:#a9dfbd;text-transform:uppercase;letter-spacing:.13em;font-size:12px;font-weight:800}.hero h1{font-size:clamp(40px,6vw,68px);line-height:1.03;letter-spacing:-.04em;margin:12px 0}.hero p{max-width:680px;color:#dce8ef;font-size:17px}
+main{padding:55px 0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.card{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 8px 26px rgba(0,45,84,.07);transition:transform .2s ease,box-shadow .2s ease}.card:hover{transform:translateY(-3px);box-shadow:0 15px 35px rgba(0,45,84,.11)}.cover{height:210px;background:var(--soft);overflow:hidden}.cover img{width:100%;height:100%;object-fit:cover}.card-body{padding:20px}.meta{font-size:11px;color:var(--green);font-weight:800;text-transform:uppercase;letter-spacing:.07em}.card h2{color:var(--deep);font-size:21px;line-height:1.18;margin:8px 0}.card p{color:var(--muted);font-size:13px;margin:0 0 16px}.empty,.error{padding:38px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);text-align:center}.article{max-width:820px;margin:auto}.article .meta{margin-bottom:10px}.article h1{color:var(--deep);font-size:clamp(36px,5vw,60px);line-height:1.06;letter-spacing:-.035em;margin:0 0 16px}.byline{color:var(--muted);font-size:13px;margin-bottom:26px}.article-cover{width:100%;max-height:560px;object-fit:cover;border-radius:20px;background:var(--soft);margin-bottom:34px}.caption{font-size:16px;color:var(--muted);font-weight:700;margin-bottom:24px}.body{font-size:18px;line-height:1.85;white-space:pre-wrap}.back{display:inline-flex;margin-bottom:28px;color:var(--blue);font-weight:800;font-size:13px}.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:30px}.tag{padding:6px 10px;background:#eef5f8;border-radius:20px;color:var(--deep);font-size:11px;font-weight:700}
+footer{background:#002e54;color:#cbd9e3;margin-top:70px;padding:35px 0;font-size:12px}
+@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.navlinks{display:none}}
+@media(max-width:560px){.wrap{width:calc(100% - 24px)}.grid{grid-template-columns:1fr}.hero{padding:52px 0}.cover{height:190px}.article .body{font-size:16px}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav">
+<a class="brand" href="./"><img id="logo" class="logo" src="assets/website/niletropical-logo.jpg" alt="Nile Tropical logo"><span><b>Nile Tropical Industries (U) Ltd</b><small>Nebbi, West Nile, Uganda</small></span></a>
+<nav class="navlinks"><a href="./">Home</a><a href="./#story">Our Story</a><a href="./#products">Products</a><a href="./articles.html">Articles</a><a href="./app/">Shop</a></nav>
+</div></header>
+<section class="hero"><div class="wrap"><div class="label">Nile Tropical newsroom</div><h1>Stories from West Nile.</h1><p>News, community stories, company announcements and editorial updates published by Nile Tropical Industries (U) Ltd.</p></div></section>
+<main class="wrap"><div id="app"><div class="empty">Loading published stories…</div></div></main>
+<footer><div class="wrap">© 2026 Nile Tropical Industries (U) Ltd · Nebbi, West Nile, Uganda</div></footer>
+<script src="assets/website/cms-config.js"></script>
+<script>
+(function(){
+ const cfg=window.NILE_CMS||{}, root=document.getElementById('app'), params=new URLSearchParams(location.search), slug=params.get('slug');
+ if(!cfg.url||!cfg.anonKey){root.innerHTML='<div class="error">The newsroom configuration is temporarily unavailable.</div>';return;}
+ const base=cfg.url.replace(/\/$/,'');
+ const headers={apikey:cfg.anonKey,Authorization:'Bearer '+cfg.anonKey};
+ const storage=p=>base+'/storage/v1/object/public/cms/'+String(p||'').split('/').map(encodeURIComponent).join('/');
+ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+ const date=v=>v?new Date(v).toLocaleDateString('en-UG',{year:'numeric',month:'long',day:'numeric'}):'';
+ function cover(path,title){return path?'<img src="'+storage(path)+'" alt="'+esc(title)+'" loading="lazy">':'';}
+ async function load(){
+   let url=base+'/rest/v1/published_articles?select=id,title,content_type,slug,body,caption,byline,cover_media_path,tags,scheduled_at,published_at,created_at&order=published_at.desc.nullslast,created_at.desc';
+   if(slug) url+='&slug=eq.'+encodeURIComponent(slug);
+   const r=await fetch(url,{cache:'no-store',headers}); if(!r.ok) throw new Error('newsroom unavailable'); return r.json();
+ }
+ function renderList(rows){
+   if(!rows.length){root.innerHTML='<div class="empty">No published stories yet. Check back soon.</div>';return;}
+   root.innerHTML='<div class="grid">'+rows.map(x=>{
+     const text=(x.body||x.caption||'').replace(/\s+/g,' ').trim();
+     return '<article class="card"><a href="./articles.html?slug='+encodeURIComponent(x.slug)+'">'+
+       '<div class="cover">'+cover(x.cover_media_path,x.title)+'</div><div class="card-body">'+
+       '<div class="meta">'+esc((x.content_type||'story').replace(/_/g,' '))+' · '+esc(date(x.published_at||x.created_at))+'</div>'+
+       '<h2>'+esc(x.title)+'</h2><p>'+esc(text.slice(0,180))+(text.length>180?'…':'')+'</p><span class="btn">Read story</span>'+
+       '</div></a></article>';
+   }).join('')+'</div>';
+ }
+ function renderArticle(x){
+   document.title=esc(x.title)+' | Nile Tropical Industries (U) Ltd';
+   const tags=Array.isArray(x.tags)?x.tags.filter(Boolean):[];
+   root.innerHTML='<article class="article"><a class="back" href="./articles.html">← All stories</a>'+
+     '<div class="meta">'+esc((x.content_type||'story').replace(/_/g,' '))+' · '+esc(date(x.published_at||x.created_at))+'</div>'+
+     '<h1>'+esc(x.title)+'</h1>'+
+     '<div class="byline">'+(x.byline?'By '+esc(x.byline):'Nile Tropical Industries (U) Ltd')+'</div>'+
+     (x.cover_media_path?'<img class="article-cover" src="'+storage(x.cover_media_path)+'" alt="'+esc(x.title)+'">':'')+
+     (x.caption?'<div class="caption">'+esc(x.caption)+'</div>':'')+
+     '<div class="body">'+esc(x.body||'')+'</div>'+
+     (tags.length?'<div class="tags">'+tags.map(t=>'<span class="tag">'+esc(t)+'</span>').join('')+'</div>':'')+
+     '</article>';
+ }
+ load().then(rows=>slug ? (rows[0]?renderArticle(rows[0]):root.innerHTML='<div class="error">This story is not available.</div>') : renderList(rows))
+ .catch(()=>root.innerHTML='<div class="error">We could not load the newsroom right now. Please try again shortly.</div>');
+})();
+</script>
+</body>
+</html>
