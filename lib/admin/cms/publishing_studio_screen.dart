@@ -42,10 +42,15 @@ class _PublishingStudioScreenState extends State<PublishingStudioScreen> {
     setState(() => _loading = true);
     try {
       final rows = await SupabaseService.client.from('publishing_items')
-          .select('id,title,content_type,status,byline,scheduled_at,updated_at,slug,source_note,cover_media_path,tags,embargo_until,published_at')
-          .order('updated_at', ascending: false);
+          .select('id,title,content_type,slug,body,caption,byline,source_note,cover_media_path,tags,published_at,created_at')
+          .order('published_at', ascending: false, nullsFirst: false);
       if (!mounted) return;
-      setState(() { _items = List<Map<String, dynamic>>.from(rows); _loading = false; });
+      final normalized = List<Map<String, dynamic>>.from(rows).map((row) {
+        final copy = Map<String, dynamic>.from(row);
+        copy['_ui_status'] = copy['published_at'] != null ? 'published' : 'draft';
+        return copy;
+      }).toList();
+      setState(() { _items = normalized; _loading = false; });
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -64,7 +69,7 @@ class _PublishingStudioScreenState extends State<PublishingStudioScreen> {
   List<Map<String, dynamic>> get _visible {
     final q = _search.text.trim().toLowerCase();
     return _items.where((x) {
-      final status = x['status']?.toString() ?? '';
+      final status = x['_ui_status']?.toString() ?? '';
       final title = x['title']?.toString().toLowerCase() ?? '';
       return (_filter == 'all' || status == _filter) && (q.isEmpty || title.contains(q));
     }).toList();
@@ -122,7 +127,7 @@ class _PublishingStudioScreenState extends State<PublishingStudioScreen> {
         Text((item['content_type']?.toString() ?? 'content') + ' · ' + (item['byline']?.toString() ?? 'No byline'), style: NileTypography.bodySmall),
         if (item['scheduled_at'] != null) Text('Scheduled: ' + item['scheduled_at'].toString(), style: NileTypography.bodySmall),
       ])),
-      _StatusPill(item['status']?.toString() ?? 'draft'),
+      _StatusPill(item['_ui_status']?.toString() ?? 'draft'),
       const Icon(Icons.chevron_right, color: NileColors.textTertiary),
     ]),
   );
@@ -166,6 +171,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
   String? _coverPath;
   DateTime? _scheduledAt;
   DateTime? _embargoUntil;
+  DateTime? _publishedAt;
   bool _saving = false;
   bool _loading = true;
   bool _canReview = false;
@@ -199,7 +205,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
       if (widget.item != null) {
         final id = widget.item!['id'].toString();
         final item = await SupabaseService.client.from('publishing_items')
-          .select('title,body,caption,byline,tags,review_note,slug,source_note,cover_media_path,scheduled_at,embargo_until,status,content_type')
+          .select('title,body,caption,byline,tags,slug,source_note,cover_media_path,published_at,content_type')
           .eq('id', id).single();
         final targets = await SupabaseService.client.from('publishing_targets')
           .select('channel,copy,media_paths').eq('item_id', id).order('channel');
@@ -211,13 +217,14 @@ class _PublishingEditorState extends State<_PublishingEditor> {
         _caption.text = item['caption']?.toString() ?? '';
         _byline.text = item['byline']?.toString() ?? '';
         _tags.text = item['tags'] is List ? (item['tags'] as List).join(', ') : '';
-        _reviewNote.text = item['review_note']?.toString() ?? '';
+        _reviewNote.clear();
         _source.text = item['source_note']?.toString() ?? '';
         _slug.text = item['slug']?.toString() ?? '';
         _coverPath = item['cover_media_path']?.toString();
-        _scheduledAt = DateTime.tryParse(item['scheduled_at']?.toString() ?? '');
-        _embargoUntil = DateTime.tryParse(item['embargo_until']?.toString() ?? '');
-        _status = item['status']?.toString() ?? 'draft';
+        _scheduledAt = null;
+        _embargoUntil = null;
+        _publishedAt = DateTime.tryParse(item['published_at']?.toString() ?? '');
+        _status = item['published_at'] != null ? 'published' : 'draft';
         _type = item['content_type']?.toString() ?? 'social_post';
         for (final row in List<Map<String,dynamic>>.from(targets)) {
           final c = row['channel']?.toString();
@@ -389,90 +396,85 @@ class _PublishingEditorState extends State<_PublishingEditor> {
   Future<void> _save() async {
     if (!_canEdit) return;
     if (_title.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Headline / working title is required.'))); return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Headline / working title is required.')),
+      );
+      return;
     }
-    if (_status == 'scheduled' && _scheduledAt == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Choose a publication date and time before scheduling.'))); return;
-    }
+
     setState(() => _saving = true);
     try {
-      final uid = SupabaseService.client.auth.currentUser?.id;
-      if (_status == 'published') {
-        _selectedChannels.add('website');
-      }
-      final payload = <String,dynamic>{
-        'title':_title.text.trim(),
-        'slug':_slug.text.trim().isEmpty ? null : _slug.text.trim(),
-        'content_type':_type,
-        'body':_body.text.trim(),
-        'caption':_caption.text.trim(),
-        'byline':_byline.text.trim(),
-        'source_note':_source.text.trim(),
-        'cover_media_path':_coverPath,
-        'tags':_tags.text.split(',').map((e)=>e.trim()).where((e)=>e.isNotEmpty).toList(),
-        'status':_status,
-        'updated_by':uid,
-        'scheduled_at':_scheduledAt?.toUtc().toIso8601String(),
-        'embargo_until':_embargoUntil?.toUtc().toIso8601String(),
-        'published_at':_status == 'published' ? DateTime.now().toUtc().toIso8601String() : null,
-        'review_note':_reviewNote.text.trim().isEmpty ? null : _reviewNote.text.trim(),
+      // Match the live production publishing_items schema. Published
+      // articles are editable rows; obsolete workflow columns are not sent.
+      final payload = <String, dynamic>{
+        'title': _title.text.trim(),
+        'slug': _slug.text.trim().isEmpty ? null : _slug.text.trim(),
+        'content_type': _type,
+        'body': _body.text.trim(),
+        'caption': _caption.text.trim(),
+        'byline': _byline.text.trim(),
+        'source_note': _source.text.trim(),
+        'cover_media_path': _coverPath,
+        'tags': _tags.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+        'published_at': _status == 'published'
+            ? (_publishedAt ?? DateTime.now().toUtc()).toUtc().toIso8601String()
+            : null,
       };
+
       String id;
       if (widget.item == null) {
-        payload['created_by'] = uid;
-        final created = await SupabaseService.client.from('publishing_items').insert(payload).select('id').single();
+        final created = await SupabaseService.client
+            .from('publishing_items')
+            .insert(payload)
+            .select('id')
+            .single();
         id = created['id'].toString();
       } else {
         id = widget.item!['id'].toString();
-        await SupabaseService.client.from('publishing_items').update(payload).eq('id',id);
+        await SupabaseService.client.from('publishing_items').update(payload).eq('id', id);
       }
-      await SupabaseService.client.from('publishing_targets').delete().eq('item_id',id);
-      if (_selectedChannels.isNotEmpty) {
-        await SupabaseService.client.from('publishing_targets').insert(_selectedChannels.map((c) {
-          final website = c == 'website';
-          final targetStatus = website
-              ? (_status == 'scheduled' ? 'scheduled' : (_status == 'published' ? 'published' : 'ready'))
-              : 'ready';
-          return {
-            'item_id':id,'channel':c,'headline':_title.text.trim(),
-            'copy':_channelCopies[c]!.text.trim().isEmpty ? _caption.text.trim() : _channelCopies[c]!.text.trim(),
-            'media_paths':_mediaPaths.toList(),'status':targetStatus,
-            'scheduled_at':website ? _scheduledAt?.toUtc().toIso8601String() : null,
-            'published_at':website && _status == 'published' ? DateTime.now().toUtc().toIso8601String() : null,
-          };
-        }).toList());
-      }
-      if (mounted) Navigator.pop(context,true);
+
+      // Keep an existing website target in sync when present. A target-sync
+      // failure must never prevent the article itself from being saved.
+      try {
+        await SupabaseService.client
+            .from('publishing_targets')
+            .update({
+              'headline': _title.text.trim(),
+              'copy': _channelCopies['website']!.text.trim().isEmpty
+                  ? _caption.text.trim()
+                  : _channelCopies['website']!.text.trim(),
+              'media_paths': _mediaPaths.toList(),
+            })
+            .eq('item_id', id)
+            .eq('channel', 'website');
+      } catch (_) {}
+
+      if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      if (mounted) { setState(()=>_saving=false); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('Could not save: ' + e.toString()))); }
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not save article: ' + e.toString())),
+        );
+      }
     }
   }
 
   Future<void> _changeWorkflowStatus(String next) async {
-    if (_saving || !_canEdit) return;
-    if (next == 'in_review' && !_canEdit) return;
-    if ((next == 'approved' || next == 'scheduled' || next == 'published' || next == 'archived') && !_canReview) return;
-    if (next == 'scheduled' && _scheduledAt == null) {
-      await _chooseDate(embargo: false);
-      if (_scheduledAt == null) return;
-    }
-    if (next == 'published' && _embargoUntil != null && _embargoUntil!.isAfter(DateTime.now())) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Embargo is still active. Choose a later publication time or clear the embargo.')));
-      return;
-    }
+    if (!_canEdit) return;
     setState(() {
       _status = next;
-      if (next == 'published') _selectedChannels.add('website');
+      if (next == 'published') {
+        _selectedChannels.add('website');
+        _publishedAt ??= DateTime.now().toUtc();
+      }
     });
     await _save();
   }
 
   Future<void> _publishToWebsite() async {
-    if (!_canReview) return;
-    if (_status != 'approved' && _status != 'scheduled') {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Content must be approved or scheduled before publication.')));
-      return;
-    }
+    if (!_canEdit) return;
     await _changeWorkflowStatus('published');
   }
 
@@ -643,59 +645,33 @@ class _PublishingEditorState extends State<_PublishingEditor> {
     }
 
     editorChildren.addAll([
-      Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: _canEdit ? () => _chooseDate(embargo: false) : null,
-              icon: const Icon(Icons.schedule_outlined),
-              label: Text(
-                _scheduledAt == null
-                    ? 'Set publication time'
-                    : 'Schedule: ' + _scheduledAt!.toLocal().toString(),
+      const SizedBox(height: 10),
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: NileColors.primaryContainer,
+          borderRadius: NileRadius.borderMd,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              _status == 'published' ? Icons.public : Icons.edit_note_outlined,
+              color: NileColors.primary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _status == 'published'
+                    ? 'Published article — title and all editorial fields remain editable. Save changes to update the live article. The original publication time is preserved.'
+                    : 'Draft article — edit the content and save when ready.',
+                style: NileTypography.bodySmall,
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: _canEdit ? () => _chooseDate(embargo: true) : null,
-              icon: const Icon(Icons.lock_clock_outlined),
-              label: Text(
-                _embargoUntil == null
-                    ? 'Set embargo'
-                    : 'Embargo: ' + _embargoUntil!.toLocal().toString(),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-      const SizedBox(height: 10),
-      TextField(
-        controller: _reviewNote,
-        maxLines: 3,
-        decoration: const InputDecoration(labelText: 'Editorial/review note'),
-      ),
-      const SizedBox(height: 10),
-      DropdownButtonFormField<String>(
-        value: _allowedStatuses.contains(_status) ? _status : 'draft',
-        decoration: const InputDecoration(labelText: 'Workflow status'),
-        items: _allowedStatuses.map((s) {
-          return DropdownMenuItem(
-            value: s,
-            child: Text(s.replaceAll('_', ' ')),
-          );
-        }).toList(),
-        onChanged: _canEdit ? (v) => setState(() => _status = v!) : null,
-      ),
-      const SizedBox(height: 8),
-      Text(
-        _canReview
-            ? 'Manager/super admin review is enabled. External social connectors are not assumed; publication status records an editorial decision.'
-            : 'Journalists/content editors can draft and submit. Approval, scheduling and publication require a manager or super admin.',
-        style: NileTypography.bodySmall,
-      ),
-    ]);
+);
 
     if (_events.isNotEmpty) {
       editorChildren.add(
@@ -741,30 +717,6 @@ class _PublishingEditorState extends State<_PublishingEditor> {
             icon: const Icon(Icons.public),
             label: const Text('Open website'),
           ),
-        if (widget.item != null && _status == 'draft' && _canEdit)
-          OutlinedButton.icon(
-            onPressed: _saving ? null : () => _changeWorkflowStatus('in_review'),
-            icon: const Icon(Icons.send_outlined),
-            label: const Text('Submit for review'),
-          ),
-        if (widget.item != null && _status == 'in_review' && _canReview)
-          FilledButton.icon(
-            onPressed: _saving ? null : () => _changeWorkflowStatus('approved'),
-            icon: const Icon(Icons.verified_outlined),
-            label: const Text('Approve'),
-          ),
-        if (widget.item != null && _status == 'approved' && _canReview)
-          OutlinedButton.icon(
-            onPressed: _saving ? null : () => _changeWorkflowStatus('scheduled'),
-            icon: const Icon(Icons.schedule_outlined),
-            label: const Text('Schedule'),
-          ),
-        if (widget.item != null && (_status == 'approved' || _status == 'scheduled') && _canReview)
-          FilledButton.icon(
-            onPressed: _saving ? null : _publishToWebsite,
-            icon: const Icon(Icons.publish_outlined),
-            label: const Text('Publish to Website'),
-          ),
         TextButton(
           onPressed: _saving ? null : () => Navigator.pop(context),
           child: const Text('Close'),
@@ -774,7 +726,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
           icon: const Icon(Icons.save_outlined),
           label: Text(_saving ? 'Saving…' : 'Save changes'),
         ),
-      ],
+,
     );
   }}
 
