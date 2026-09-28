@@ -14,6 +14,7 @@ class CustomerShell extends StatelessWidget {
   static const _destinations = [
     NileSideNavItem(label: 'Home', icon: Icons.home_outlined, selectedIcon: Icons.home, route: '/'),
     NileSideNavItem(label: 'Shop', icon: Icons.storefront_outlined, selectedIcon: Icons.storefront, route: '/shop'),
+    NileSideNavItem(label: 'Articles', icon: Icons.article_outlined, selectedIcon: Icons.article, route: '/articles'),
     NileSideNavItem(label: 'Cart', icon: Icons.shopping_cart_outlined, selectedIcon: Icons.shopping_cart, route: '/cart'),
     NileSideNavItem(label: 'Track', icon: Icons.local_shipping_outlined, selectedIcon: Icons.local_shipping, route: '/track'),
     NileSideNavItem(label: 'Account', icon: Icons.person_outline, selectedIcon: Icons.person, route: '/account'),
@@ -21,9 +22,10 @@ class CustomerShell extends StatelessWidget {
 
   int get _index {
     if (location.startsWith('/shop') || location.startsWith('/product')) return 1;
-    if (location.startsWith('/cart') || location.startsWith('/checkout')) return 2;
-    if (location.startsWith('/track')) return 3;
-    if (location.startsWith('/account')) return 4;
+    if (location.startsWith('/articles')) return 2;
+    if (location.startsWith('/cart') || location.startsWith('/checkout')) return 3;
+    if (location.startsWith('/track')) return 4;
+    if (location.startsWith('/account')) return 5;
     return 0;
   }
 
