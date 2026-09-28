@@ -57,8 +57,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     // Keep the pre-quote display aligned with the production pricing model.
     // The order cannot be placed until the authoritative server quote exists.
-    const baseFare = 2500.0;
-    return baseFare;
+    return 0;
   }
 
   @override
@@ -349,7 +348,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Delivery quote: UGX 2,500 + UGX 450 per road kilometre.',
+              'Delivery is calculated from the active Nile Tropical pricing rule using the road route.',
               style: NileTypography.bodySmall,
             ),
             const SizedBox(
