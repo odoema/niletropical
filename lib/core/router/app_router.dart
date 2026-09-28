@@ -13,6 +13,8 @@ import '../../features/home/home_screen.dart';
 import '../../features/shop/shop_screen.dart';
 import '../../features/shop/category_screen.dart';
 import '../../features/content/faq_screen.dart';
+import '../../features/content/articles_screen.dart';
+import '../../features/content/article_detail_screen.dart';
 import '../../features/content/cms_page_screen.dart';
 import '../../features/cart/cart_screen.dart';
 import '../../features/checkout/checkout_screen.dart';
@@ -117,6 +119,8 @@ final appRouter = GoRouter(
               CategoryScreen(slug: state.pathParameters['slug']!),
         ),
         GoRoute(path: '/faq', name: 'faq', builder: (_, __) => const FaqScreen()),
+        GoRoute(path: '/articles', name: 'articles', builder: (_, __) => const ArticlesScreen()),
+        GoRoute(path: '/articles/:slug', name: 'article-detail', builder: (context, state) => ArticleDetailScreen(slug: state.pathParameters['slug']!)),
         GoRoute(
           path: '/pages/:slug',
           name: 'cms-page',
