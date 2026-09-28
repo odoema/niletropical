@@ -1,3 +1,4 @@
+# Production deployment workflow — verified after Publishing Studio merge
 name: Deploy Nile Tropical Website + Flutter App
 
 on:
