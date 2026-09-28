@@ -115,6 +115,7 @@ class AuthService {
       'finance',
       'content',
       'content_manager',
+      'journalist',
       'courier',
     };
     return staff.contains(role);
