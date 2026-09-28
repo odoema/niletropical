@@ -416,10 +416,20 @@ class _PublishingEditorState extends State<_PublishingEditor> {
         'source_note': _source.text.trim(),
         'cover_media_path': _coverPath,
         'tags': _tags.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
-        'published_at': _status == 'published'
-            ? (_publishedAt ?? DateTime.now().toUtc()).toUtc().toIso8601String()
-            : null,
       };
+
+      // Do not include published_at when editing an already-published item.
+      // The production workflow trigger fires on UPDATE OF published_at;
+      // ordinary editorial/media edits must not be interpreted as a new
+      // publication transition. Only a new item or an actual publish action
+      // should write the publication timestamp.
+      if (widget.item == null) {
+        payload['published_at'] = _status == 'published'
+            ? (_publishedAt ?? DateTime.now().toUtc()).toUtc().toIso8601String()
+            : null;
+      } else if (_publishedAt == null && _status == 'published') {
+        payload['published_at'] = DateTime.now().toUtc().toIso8601String();
+      }
 
       String id;
       if (widget.item == null) {
