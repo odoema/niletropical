@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
@@ -298,6 +299,9 @@ class _PublishingEditorState extends State<_PublishingEditor> {
     setState(() => _saving = true);
     try {
       final uid = SupabaseService.client.auth.currentUser?.id;
+      if (_status == 'published') {
+        _selectedChannels.add('website');
+      }
       final payload = <String,dynamic>{
         'title':_title.text.trim(),
         'slug':_slug.text.trim().isEmpty ? null : _slug.text.trim(),
@@ -326,19 +330,44 @@ class _PublishingEditorState extends State<_PublishingEditor> {
       }
       await SupabaseService.client.from('publishing_targets').delete().eq('item_id',id);
       if (_selectedChannels.isNotEmpty) {
-        final targetStatus = _status == 'scheduled' ? 'scheduled' : (_status == 'published' ? 'published' : 'ready');
-        await SupabaseService.client.from('publishing_targets').insert(_selectedChannels.map((c)=> {
-          'item_id':id,'channel':c,'headline':_title.text.trim(),
-          'copy':_channelCopies[c]!.text.trim().isEmpty ? _caption.text.trim() : _channelCopies[c]!.text.trim(),
-          'media_paths':_mediaPaths.toList(),'status':targetStatus,
-          'scheduled_at':_scheduledAt?.toUtc().toIso8601String(),
-          'published_at':_status == 'published' ? DateTime.now().toUtc().toIso8601String() : null,
+        await SupabaseService.client.from('publishing_targets').insert(_selectedChannels.map((c) {
+          final website = c == 'website';
+          final targetStatus = website
+              ? (_status == 'scheduled' ? 'scheduled' : (_status == 'published' ? 'published' : 'ready'))
+              : 'ready';
+          return {
+            'item_id':id,'channel':c,'headline':_title.text.trim(),
+            'copy':_channelCopies[c]!.text.trim().isEmpty ? _caption.text.trim() : _channelCopies[c]!.text.trim(),
+            'media_paths':_mediaPaths.toList(),'status':targetStatus,
+            'scheduled_at':website ? _scheduledAt?.toUtc().toIso8601String() : null,
+            'published_at':website && _status == 'published' ? DateTime.now().toUtc().toIso8601String() : null,
+          };
         }).toList());
       }
       if (mounted) Navigator.pop(context,true);
     } catch (e) {
       if (mounted) { setState(()=>_saving=false); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('Could not save: ' + e.toString()))); }
     }
+  }
+
+  Future<void> _publishToWebsite() async {
+    if (!_canReview) return;
+    setState(() {
+      _selectedChannels.add('website');
+      _status = 'published';
+    });
+    await _save();
+  }
+
+  Future<void> _openPublishedWebsite() async {
+    final id = widget.item?['id']?.toString();
+    if (id == null || id.isEmpty) return;
+    final slug = _slug.text.trim();
+    final uri = Uri.https('niletropicaluganda.com', '/stories/article.html', {
+      'id': id,
+      if (slug.isNotEmpty) 'slug': slug,
+    });
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   List<String> get _allowedStatuses => _canReview ? const ['draft','in_review','approved','scheduled','published','archived'] : const ['draft','in_review'];
@@ -587,6 +616,18 @@ class _PublishingEditorState extends State<_PublishingEditor> {
         ),
       ),
       actions: [
+        if (widget.item != null && _status == 'published')
+          TextButton.icon(
+            onPressed: _saving ? null : _openPublishedWebsite,
+            icon: const Icon(Icons.public),
+            label: const Text('Open website'),
+          ),
+        if (widget.item != null && _canReview && _status != 'published')
+          FilledButton.icon(
+            onPressed: _saving ? null : _publishToWebsite,
+            icon: const Icon(Icons.publish_outlined),
+            label: const Text('Publish to Website'),
+          ),
         TextButton(
           onPressed: _saving ? null : () => Navigator.pop(context),
           child: const Text('Cancel'),
