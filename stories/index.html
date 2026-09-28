@@ -38,7 +38,7 @@ function publicMedia(path){return path?SUPABASE_URL+'/storage/v1/object/public/c
 function date(v){const d=new Date(v);return Number.isNaN(d.valueOf())?'':d.toLocaleDateString('en-UG',{year:'numeric',month:'long',day:'numeric'});}
 async function load(){
  try{
-  const u=SUPABASE_URL+'/rest/v1/publishing_items?select=id,title,content_type,slug,body,caption,byline,cover_media_path,published_at,embargo_until,tags&status=eq.published&order=published_at.desc';
+  const u=SUPABASE_URL+'/rest/v1/published_articles?select=id,title,content_type,slug,body,caption,byline,cover_media_path,published_at,tags&order=published_at.desc';
   const res=await fetch(u,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY},cache:'no-store'});
   if(!res.ok)throw new Error('HTTP '+res.status);
   const rows=await res.json();
