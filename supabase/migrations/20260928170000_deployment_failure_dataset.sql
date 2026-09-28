@@ -108,3 +108,37 @@ values
 ('github_actions','odoema/niletropical','Deploy Nile Tropical Website + Flutter App',36340592592,17,'49746e8ad5c32b66afb24f387330481bdd13e38b','master','push','failure','SUPABASE_API_SYNC','rest_api','Supabase REST API returned HTTP 400 during high-confidence product creation.','curl HTTP 400','https://github.com/odoema/niletropical/actions/runs/36340592592','{"verified_from_job_logs":true}'::jsonb,'catalogue_sync','confirmed','SUPABASE_API_SYNC','2026-09-27T18:25:31Z'),
 ('github_actions','odoema/niletropical','Deploy Nile Tropical Website + Flutter App',36351054899,748,'1ef8af2ec2648fd57b7943e509b57f720687a326','master','push','failure','UNCLASSIFIED','evidence_gap','GitHub reports failure but job details are unavailable through the connected API.','job evidence unavailable','https://github.com/odoema/niletropical/actions/runs/36351054899','{"verified_from_job_logs":false}'::jsonb,'unknown','unclassified','UNCLASSIFIED','2026-09-27T21:15:45Z')
 on conflict do nothing;
+
+create table if not exists public.deployment_run_records (
+  id uuid primary key default gen_random_uuid(),
+  provider text not null default 'github_actions',
+  repository text not null,
+  workflow_name text,
+  run_id bigint,
+  run_number integer,
+  commit_sha text,
+  branch text,
+  event_name text,
+  attempt integer,
+  status text,
+  conclusion text,
+  run_url text,
+  started_at timestamptz,
+  completed_at timestamptz,
+  recorded_at timestamptz not null default now(),
+  unique(provider,run_id,attempt)
+);
+create index if not exists deployment_run_records_conclusion_idx
+  on public.deployment_run_records(conclusion,recorded_at desc);
+create index if not exists deployment_run_records_workflow_idx
+  on public.deployment_run_records(workflow_name,run_number desc);
+
+alter table public.deployment_run_records enable row level security;
+revoke all on public.deployment_run_records from anon, authenticated;
+grant select, insert on public.deployment_run_records to authenticated;
+
+drop policy if exists deployment_run_records_staff on public.deployment_run_records;
+create policy deployment_run_records_staff
+  on public.deployment_run_records for all to authenticated
+  using ((select public.is_staff()))
+  with check ((select public.is_staff()));
