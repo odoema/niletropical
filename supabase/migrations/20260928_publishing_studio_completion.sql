@@ -127,7 +127,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  actor uuid := coalesce(new.updated_by, new.created_by, auth.uid());
+  actor uuid := auth.uid();
   privileged boolean := exists (
     select 1
     from public.user_roles
@@ -219,7 +219,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  actor uuid := coalesce(new.updated_by, new.created_by, old.updated_by, old.created_by, auth.uid());
+  actor uuid := auth.uid();
   event_name text;
 begin
   if tg_op = 'INSERT' then
@@ -262,10 +262,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  actor uuid := coalesce(
-    (select updated_by from public.publishing_items where id = coalesce(new.item_id, old.item_id)),
-    auth.uid()
-  );
+  actor uuid := auth.uid();
 begin
   insert into public.publishing_item_events(item_id,actor_id,event_type,note)
   values (
