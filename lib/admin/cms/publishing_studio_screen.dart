@@ -149,6 +149,8 @@ class _PublishingEditor extends StatefulWidget {
 class _PublishingEditorState extends State<_PublishingEditor> {
   late final TextEditingController _title, _body, _caption, _byline, _tags;
   String _type = 'social_post', _status = 'draft';
+  final Set<String> _channels = {'facebook', 'instagram'};
+  DateTime? _scheduledAt;
   bool _saving = false;
 
   @override void initState() {
@@ -161,6 +163,8 @@ class _PublishingEditorState extends State<_PublishingEditor> {
     _tags = TextEditingController();
     _type = x?['content_type']?.toString() ?? 'social_post';
     _status = x?['status']?.toString() ?? 'draft';
+    final raw = x?['scheduled_at']?.toString();
+    _scheduledAt = raw == null ? null : DateTime.tryParse(raw);
   }
 
   @override void dispose() { _title.dispose(); _body.dispose(); _caption.dispose(); _byline.dispose(); _tags.dispose(); super.dispose(); }
@@ -175,11 +179,33 @@ class _PublishingEditorState extends State<_PublishingEditor> {
         'tags': _tags.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
         'status': _status, 'updated_by': SupabaseService.client.auth.currentUser?.id,
       };
+      if (_status == 'scheduled' && _scheduledAt == null) {
+        throw StateError('Choose a publishing date and time before scheduling.');
+      }
+      payload['scheduled_at'] = _scheduledAt?.toUtc().toIso8601String();
+      payload['published_at'] = _status == 'published' ? DateTime.now().toUtc().toIso8601String() : null;
+      String itemId;
       if (widget.item == null) {
         payload['created_by'] = SupabaseService.client.auth.currentUser?.id;
-        await SupabaseService.client.from('publishing_items').insert(payload);
+        final created = await SupabaseService.client.from('publishing_items').insert(payload).select('id').single();
+        itemId = created['id'].toString();
       } else {
-        await SupabaseService.client.from('publishing_items').update(payload).eq('id', widget.item!['id']);
+        itemId = widget.item!['id'].toString();
+        await SupabaseService.client.from('publishing_items').update(payload).eq('id', itemId);
+      }
+      await SupabaseService.client.from('publishing_targets').delete().eq('item_id', itemId);
+      if (_channels.isNotEmpty) {
+        await SupabaseService.client.from('publishing_targets').insert(
+          _channels.map((channel) => {
+            'item_id': itemId,
+            'channel': channel,
+            'headline': _title.text.trim(),
+            'copy': _caption.text.trim().isEmpty ? _body.text.trim() : _caption.text.trim(),
+            'status': _status == 'scheduled' ? 'scheduled' : (_status == 'published' ? 'published' : 'ready'),
+            'scheduled_at': _scheduledAt?.toUtc().toIso8601String(),
+            'published_at': _status == 'published' ? DateTime.now().toUtc().toIso8601String() : null,
+          }).toList(),
+        );
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -214,6 +240,37 @@ class _PublishingEditorState extends State<_PublishingEditor> {
       TextField(controller: _body, minLines: 8, maxLines: 14, decoration: const InputDecoration(labelText: 'Story / editorial copy')),
       const SizedBox(height: 10),
       TextField(controller: _tags, decoration: const InputDecoration(labelText: 'Tags', hintText: 'uganda, shea, community')),
+      const SizedBox(height: 14),
+      Align(alignment: Alignment.centerLeft, child: Text('Publishing channels', style: NileTypography.titleSmall)),
+      const SizedBox(height: 6),
+      Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        children: ['website','facebook','instagram','linkedin','x','youtube','whatsapp','newsletter','press'].map(
+          (channel) => FilterChip(
+            label: Text(channel),
+            selected: _channels.contains(channel),
+            onSelected: (selected) => setState(() => selected ? _channels.add(channel) : _channels.remove(channel)),
+          ),
+        ).toList(),
+      ),
+      const SizedBox(height: 10),
+      OutlinedButton.icon(
+        onPressed: () async {
+          final date = await showDatePicker(
+            context: context,
+            firstDate: DateTime.now(),
+            lastDate: DateTime.now().add(const Duration(days: 365)),
+            initialDate: _scheduledAt ?? DateTime.now(),
+          );
+          if (date == null || !mounted) return;
+          final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(_scheduledAt ?? DateTime.now()));
+          if (time == null || !mounted) return;
+          setState(() => _scheduledAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+        },
+        icon: const Icon(Icons.schedule_outlined),
+        label: Text(_scheduledAt == null ? 'Set publication date & time' : 'Schedule: ' + _scheduledAt!.toLocal().toString()),
+      ),
       const SizedBox(height: 10),
       DropdownButtonFormField<String>(
         value: _status, decoration: const InputDecoration(labelText: 'Workflow status'),
