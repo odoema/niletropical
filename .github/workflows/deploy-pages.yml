@@ -118,6 +118,39 @@ jobs:
         with:
           path: build/site
 
+      - name: Record deployment run telemetry
+        if: always()
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          payload = {
+            "provider": "github_actions",
+            "repository": os.environ["GITHUB_REPOSITORY"],
+            "workflow_name": os.environ["GITHUB_WORKFLOW"],
+            "run_id": int(os.environ["GITHUB_RUN_ID"]),
+            "run_number": int(os.environ["GITHUB_RUN_NUMBER"]),
+            "commit_sha": os.environ["GITHUB_SHA"],
+            "branch": os.environ["GITHUB_REF_NAME"],
+            "event_name": os.environ["GITHUB_EVENT_NAME"],
+            "attempt": int(os.environ.get("GITHUB_RUN_ATTEMPT", "1")),
+            "status": "completed",
+            "conclusion": os.environ.get("JOB_STATUS", "unknown"),
+            "run_url": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+          }
+          url = os.environ["SUPABASE_URL"] + "/rest/v1/deployment_run_records"
+          req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers={
+            "Authorization": "Bearer " + os.environ["SUPABASE_SERVICE_ROLE_KEY"],
+            "apikey": os.environ["SUPABASE_SERVICE_ROLE_KEY"],
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates"
+          }, method="POST")
+          urllib.request.urlopen(req, timeout=10).read()
+          PY
+
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     environment:
