@@ -21,7 +21,7 @@ class _PublishingStudioScreenState extends State<PublishingStudioScreen> {
     setState(() => _loading = true);
     try {
       final rows = await SupabaseService.client.from('publishing_items')
-        .select('id,title,content_type,status,byline,scheduled_at,updated_at')
+        .select('id,title,content_type,status,byline,scheduled_at,updated_at,slug,source_note,cover_media_path,tags')
         .order('updated_at', ascending: false);
       if (!mounted) return;
       setState(() { _items = List<Map<String, dynamic>>.from(rows); _loading = false; });
@@ -147,7 +147,7 @@ class _PublishingEditor extends StatefulWidget {
 }
 
 class _PublishingEditorState extends State<_PublishingEditor> {
-  late final TextEditingController _title, _body, _caption, _byline, _tags;
+  late final TextEditingController _title, _body, _caption, _byline, _tags, _source, _slug, _cover;
   String _type = 'social_post', _status = 'draft';
   final Set<String> _channels = {'facebook', 'instagram'};
   DateTime? _scheduledAt;
@@ -160,22 +160,25 @@ class _PublishingEditorState extends State<_PublishingEditor> {
     _body = TextEditingController(text: x?['body']?.toString() ?? '');
     _caption = TextEditingController(text: x?['caption']?.toString() ?? '');
     _byline = TextEditingController(text: x?['byline']?.toString() ?? '');
-    _tags = TextEditingController();
+    _tags = TextEditingController(text: x?['tags'] is List ? (x!['tags'] as List).join(', ') : '');
+    _source = TextEditingController(text: x?['source_note']?.toString() ?? '');
+    _slug = TextEditingController(text: x?['slug']?.toString() ?? '');
+    _cover = TextEditingController(text: x?['cover_media_path']?.toString() ?? '');
     _type = x?['content_type']?.toString() ?? 'social_post';
     _status = x?['status']?.toString() ?? 'draft';
     final raw = x?['scheduled_at']?.toString();
     _scheduledAt = raw == null ? null : DateTime.tryParse(raw);
   }
 
-  @override void dispose() { _title.dispose(); _body.dispose(); _caption.dispose(); _byline.dispose(); _tags.dispose(); super.dispose(); }
+  @override void dispose() { _title.dispose(); _body.dispose(); _caption.dispose(); _byline.dispose(); _tags.dispose(); _source.dispose(); _slug.dispose(); _cover.dispose(); super.dispose(); }
 
   Future<void> _save() async {
     if (_title.text.trim().isEmpty) return;
     setState(() => _saving = true);
     try {
       final payload = <String, dynamic>{
-        'title': _title.text.trim(), 'content_type': _type, 'body': _body.text.trim(),
-        'caption': _caption.text.trim(), 'byline': _byline.text.trim(),
+        'title': _title.text.trim(), 'slug': _slug.text.trim().isEmpty ? null : _slug.text.trim(), 'content_type': _type, 'body': _body.text.trim(),
+        'caption': _caption.text.trim(), 'byline': _byline.text.trim(), 'source_note': _source.text.trim(), 'cover_media_path': _cover.text.trim().isEmpty ? null : _cover.text.trim(),
         'tags': _tags.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
         'status': _status, 'updated_by': SupabaseService.client.auth.currentUser?.id,
       };
@@ -194,6 +197,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
         await SupabaseService.client.from('publishing_items').update(payload).eq('id', itemId);
       }
       await SupabaseService.client.from('publishing_targets').delete().eq('item_id', itemId);
+      await SupabaseService.client.from('publishing_item_events').insert({'item_id': itemId, 'actor_id': SupabaseService.client.auth.currentUser?.id, 'event_type': _status == 'in_review' ? 'submitted' : _status == 'approved' ? 'approved' : _status == 'scheduled' ? 'scheduled' : _status == 'published' ? 'published' : _status == 'archived' ? 'archived' : 'updated', 'to_status': _status});
       if (_channels.isNotEmpty) {
         await SupabaseService.client.from('publishing_targets').insert(
           _channels.map((channel) => {
@@ -220,6 +224,8 @@ class _PublishingEditorState extends State<_PublishingEditor> {
     title: Text(widget.item == null ? 'New publishing item' : 'Edit publishing item'),
     content: SizedBox(width: 720, child: SingleChildScrollView(child: Column(children: [
       TextField(controller: _title, decoration: const InputDecoration(labelText: 'Headline / working title')),
+      const SizedBox(height: 10), TextField(controller: _slug, decoration: const InputDecoration(labelText: 'Slug')),
+      const SizedBox(height: 10),
       const SizedBox(height: 10),
       DropdownButtonFormField<String>(
         value: _type, decoration: const InputDecoration(labelText: 'Content type'),
@@ -234,6 +240,8 @@ class _PublishingEditorState extends State<_PublishingEditor> {
       ),
       const SizedBox(height: 10),
       TextField(controller: _byline, decoration: const InputDecoration(labelText: 'Byline / journalist')),
+      const SizedBox(height: 10), TextField(controller: _source, decoration: const InputDecoration(labelText: 'Source / attribution note')),
+      const SizedBox(height: 10), TextField(controller: _cover, decoration: const InputDecoration(labelText: 'Cover media path (CMS library)')),
       const SizedBox(height: 10),
       TextField(controller: _caption, maxLines: 4, decoration: const InputDecoration(labelText: 'Social caption / standfirst')),
       const SizedBox(height: 10),
