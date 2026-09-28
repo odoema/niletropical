@@ -47,6 +47,7 @@ import '../../admin/cms/cms_banners_screen.dart';
 import '../../admin/cms/cms_media_library_screen.dart';
 import '../../admin/cms/cms_website_slots_screen.dart';
 import '../../admin/cms/cms_app_hero_slots_screen.dart';
+import '../../admin/cms/publishing_studio_screen.dart';
 import '../../admin/customers/customers_screen.dart';
 import '../../admin/customers/customer_detail_screen.dart';
 import '../../admin/finance/cod_reconciliation_screen.dart';
@@ -238,6 +239,7 @@ final appRouter = GoRouter(
         GoRoute(path: '/admin/cms/media', builder: (_, __) => const CmsMediaLibraryScreen()),
         GoRoute(path: '/admin/cms/website-slots', builder: (_, __) => const CmsWebsiteSlotsScreen()),
         GoRoute(path: '/admin/cms/app-hero', builder: (_, __) => const CmsAppHeroSlotsScreen()),
+        GoRoute(path: '/admin/cms/publishing', builder: (_, __) => const PublishingStudioScreen()),
         GoRoute(path: '/admin/cms/pages', builder: (_, __) => const CmsCollectionScreen(title: 'Pages', table: 'pages', titleField: 'title', subtitleField: 'slug')),
         GoRoute(path: '/admin/cms/faqs', builder: (_, __) => const CmsCollectionScreen(title: 'FAQs', table: 'faqs', titleField: 'question', subtitleField: 'answer')),
         GoRoute(path: '/admin/cms/testimonials', builder: (_, __) => const CmsCollectionScreen(title: 'Testimonials', table: 'testimonials', titleField: 'customer_name', subtitleField: 'testimonial')),
