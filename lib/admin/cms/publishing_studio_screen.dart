@@ -386,7 +386,13 @@ class _PublishingEditorState extends State<_PublishingEditor> {
         DropdownButtonFormField<String>(value:_allowedStatuses.contains(_status)?_status:'draft',decoration:const InputDecoration(labelText:'Workflow status'),items:_allowedStatuses.map((s)=>DropdownMenuItem(value:s,child:Text(s.replaceAll('_',' ')))).toList(),onChanged:_canEdit?(v)=>setState(()=>_status=v!):null),
         const SizedBox(height:8),
         Text(_canReview?'Manager/super admin review is enabled. External social connectors are not assumed; publication status records an editorial decision.':'Journalists/content editors can draft and submit. Approval, scheduling and publication require a manager or super admin.',style:NileTypography.bodySmall),
-        if(_events.isNotEmpty)Padding(padding:const EdgeInsets.only(top:8),child:Text(_events.length.toString()+' audit events recorded',style:NileTypography.bodySmall)),
+        if (_events.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            _events.length.toString() + ' audit events recorded',
+            style: NileTypography.bodySmall,
+          ),
+        ],
       ]))),
       actions:[TextButton(onPressed:_saving?null:()=>Navigator.pop(context),child:const Text('Cancel')),FilledButton.icon(onPressed:_saving||!_canEdit?null:_save,icon:const Icon(Icons.save_outlined),label:Text(_saving?'Saving…':'Save'))],
     );
@@ -424,7 +430,24 @@ class _MediaPickerDialogState extends State<_MediaPickerDialog> {
   @override Widget build(BuildContext context)=>AlertDialog(
     title:Text(widget.single?'Choose cover media':'Choose story media'),
     content:SizedBox(width:820,height:520,child:Column(children:[
-      SingleChildScrollView(scrollDirection:Axis.horizontal,child:Row(children:folders.map((f)=>Padding(padding:const EdgeInsets.only(right:8),child:ChoiceChip(label:Text(f),selected:_folder==f,onSelected:(_){setState(()=>_folder=f);_load();}})).toList())),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: folders.map((f) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(f),
+                selected: _folder == f,
+                onSelected: (_) {
+                  setState(() => _folder = f);
+                  _load();
+                },
+              ),
+            );
+          }).toList(),
+        ),
+      ),
       const SizedBox(height:10),if(_loading)const LinearProgressIndicator(),
       Expanded(child:_files.isEmpty&&!_loading?const Center(child:Text('No media in this folder.')):GridView.builder(
         gridDelegate:const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent:230,mainAxisExtent:92,crossAxisSpacing:8,mainAxisSpacing:8),
