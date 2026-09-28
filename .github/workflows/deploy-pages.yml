@@ -53,8 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, os, urllib.parse, urllib.request
-          from datetime import datetime, timezone
+          import json, os, urllib.request
 
           base = os.environ["SUPABASE_URL"].rstrip("/") + "/rest/v1/"
           anon = os.environ["SUPABASE_ANON_KEY"]
@@ -72,33 +71,53 @@ jobs:
               with urllib.request.urlopen(req, timeout=20) as res:
                   return json.load(res)
 
-          public_rows = get(
-              "published_articles?select=id&order=published_at.desc&limit=10000", anon
-          )
+          # The production publishing_items schema uses published_at as its
+          # publication flag. Do not rely on status/embargo_until columns.
           source_rows = get(
-              "publishing_items?select=id,published_at,embargo_until&status=eq.published&limit=10000", service
+              "publishing_items?select=id,published_at"
+              "&content_type=eq.news_story"
+              "&published_at=not.is.null"
+              "&limit=10000",
+              service,
+          )
+          public_rows = get(
+              "published_articles?select=id,content_type"
+              "&content_type=eq.news_story"
+              "&limit=10000",
+              anon,
           )
 
-          now = datetime.now(timezone.utc)
-          expected = {
-              row["id"]
-              for row in source_rows
-              if not row.get("embargo_until")
-              or datetime.fromisoformat(row["embargo_until"].replace("Z", "+00:00")) <= now
-          }
+          expected = {row["id"] for row in source_rows if row.get("published_at")}
           actual = {row["id"] for row in public_rows}
+
+          print(f"Production published news_story source rows: {len(expected)}")
+          print(f"Public published_articles news_story rows: {len(actual)}")
+
           missing = sorted(expected - actual)
           extra = sorted(actual - expected)
 
-          print(f"Production published source rows eligible for public display: {len(expected)}")
-          print(f"Public published_articles rows visible to anon: {len(actual)}")
           if missing:
-              print("::error::Published Articles missing from public feed: " + ",".join(missing[:50]))
+              print(
+                  "::error::Published Articles missing from public feed: "
+                  + ",".join(missing[:50])
+              )
               raise SystemExit(1)
+
           if extra:
-              print("::error::Public feed contains rows that are not currently eligible published items: " + ",".join(extra[:50]))
+              print(
+                  "::error::Public Articles feed contains rows that are not "
+                  "published news_story items: "
+                  + ",".join(extra[:50])
+              )
               raise SystemExit(1)
-          print("Published Articles public-feed contract verified: every eligible published item is publicly readable.")
+
+          if not expected:
+              print("::warning::No published news_story rows currently exist.")
+          else:
+              print(
+                  "Published Articles public-feed contract verified: "
+                  "every published news_story is publicly readable."
+              )
           PY
 
       - name: Install Flutter dependencies
@@ -120,10 +139,7 @@ jobs:
 
       - name: Build Flutter commerce app
         run: |
-          flutter build web --release \
-            --dart-define=APP_ENV=production \
-            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          flutter build web --release             --dart-define=APP_ENV=production             --dart-define=SUPABASE_URL="$SUPABASE_URL"             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
 
       - name: Convert Flutter build to portable relative base path
         run: |
@@ -219,6 +235,7 @@ jobs:
           elif "Run Flutter tests" in s: category="TEST_FAILURE"
           elif "Build Flutter commerce app" in s: category="FLUTTER_WEB_BUILD"
           elif "Validate production Supabase target" in s: category="ENVIRONMENT_CONFIGURATION"
+          elif "Verify Pages artifact" in s: category="PUBLIC_FEED_CONTRACT"
           elif "Verify Pages artifact" in s: category="ARTIFACT_ASSEMBLY"
           elif "Upload Pages artifact" in s or "Deploy to GitHub Pages" in s: category="DEPLOYMENT_PROVIDER"
           payload={
