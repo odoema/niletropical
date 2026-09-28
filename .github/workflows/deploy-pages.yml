@@ -118,39 +118,6 @@ jobs:
         with:
           path: build/site
 
-      - name: Record deployment run telemetry
-        if: always()
-        continue-on-error: true
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          python3 - <<'PY'
-          import json, os, urllib.request
-          payload = {
-            "provider": "github_actions",
-            "repository": os.environ["GITHUB_REPOSITORY"],
-            "workflow_name": os.environ["GITHUB_WORKFLOW"],
-            "run_id": int(os.environ["GITHUB_RUN_ID"]),
-            "run_number": int(os.environ["GITHUB_RUN_NUMBER"]),
-            "commit_sha": os.environ["GITHUB_SHA"],
-            "branch": os.environ["GITHUB_REF_NAME"],
-            "event_name": os.environ["GITHUB_EVENT_NAME"],
-            "attempt": int(os.environ.get("GITHUB_RUN_ATTEMPT", "1")),
-            "status": "completed",
-            "conclusion": os.environ.get("JOB_STATUS", "unknown"),
-            "run_url": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
-          }
-          url = os.environ["SUPABASE_URL"] + "/rest/v1/deployment_run_records"
-          req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers={
-            "Authorization": "Bearer " + os.environ["SUPABASE_SERVICE_ROLE_KEY"],
-            "apikey": os.environ["SUPABASE_SERVICE_ROLE_KEY"],
-            "Content-Type": "application/json",
-            "Prefer": "resolution=merge-duplicates"
-          }, method="POST")
-          urllib.request.urlopen(req, timeout=10).read()
-          PY
-
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     environment:
@@ -162,3 +129,65 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
         id: deployment
+
+  record-deployment:
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Record deployment outcome and failed stage
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, urllib.request
+          repo=os.environ["GITHUB_REPOSITORY"]
+          run_id=int(os.environ["GITHUB_RUN_ID"])
+          api=f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100"
+          req=urllib.request.Request(api,headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json"})
+          jobs=json.load(urllib.request.urlopen(req))
+          failed=[]
+          for j in jobs.get("jobs",[]):
+              if j.get("conclusion")=="failure":
+                  step=next((s for s in reversed(j.get("steps",[])) if s.get("conclusion")=="failure"),None)
+                  failed.append((j.get("name"), step.get("name") if step else None))
+          failed_job,failed_step=(failed[0] if failed else (None,None))
+          s=(failed_step or "")+" "+(failed_job or "")
+          category="UNCLASSIFIED"
+          if "Analyze Flutter code" in s: category="CODE_ANALYSIS"
+          elif "Run Flutter tests" in s: category="TEST_FAILURE"
+          elif "Build Flutter commerce app" in s: category="FLUTTER_WEB_BUILD"
+          elif "Validate production Supabase target" in s: category="ENVIRONMENT_CONFIGURATION"
+          elif "Verify Pages artifact" in s: category="ARTIFACT_ASSEMBLY"
+          elif "Upload Pages artifact" in s or "Deploy to GitHub Pages" in s: category="DEPLOYMENT_PROVIDER"
+          payload={
+            "provider":"github_actions","repository":repo,"workflow_name":os.environ["GITHUB_WORKFLOW"],
+            "run_id":run_id,"run_number":int(os.environ["GITHUB_RUN_NUMBER"]),
+            "commit_sha":os.environ["GITHUB_SHA"],"branch":os.environ["GITHUB_REF_NAME"],
+            "event_name":os.environ["GITHUB_EVENT_NAME"],"attempt":int(os.environ.get("GITHUB_RUN_ATTEMPT","1")),
+            "status":"completed","conclusion":("failure" if os.environ["BUILD_RESULT"]=="failure" or os.environ["DEPLOY_RESULT"]=="failure" else "success"),
+            "failed_job":failed_job,"failed_step":failed_step,
+            "root_cause_category":category,
+            "evidence_url":f"https://github.com/{repo}/actions/runs/{run_id}",
+            "evidence":{"build_result":os.environ["BUILD_RESULT"],"deploy_result":os.environ["DEPLOY_RESULT"],"failed_jobs":failed},
+            "detection_stage":failed_step or ("deploy" if os.environ["DEPLOY_RESULT"]!="success" else "none"),
+            "evidence_confidence":"confirmed" if failed else "unclassified",
+            "recurrence_key":category
+          }
+          url=os.environ["SUPABASE_URL"]+"/rest/v1/deployment_failure_records"
+          req=urllib.request.Request(url,data=json.dumps(payload).encode(),headers={
+            "Authorization":"Bearer "+os.environ["SUPABASE_SERVICE_ROLE_KEY"],
+            "apikey":os.environ["SUPABASE_SERVICE_ROLE_KEY"],
+            "Content-Type":"application/json",
+            "Prefer":"resolution=merge-duplicates"
+          },method="POST")
+          urllib.request.urlopen(req,timeout=10).read()
+          PY
