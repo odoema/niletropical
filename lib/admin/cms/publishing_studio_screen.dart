@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
+import '../../shared/services/auth_service.dart';
+import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
 
 class PublishingStudioScreen extends StatefulWidget {
@@ -22,8 +25,8 @@ class _PublishingStudioScreenState extends State<PublishingStudioScreen> {
     setState(() => _loading = true);
     try {
       final rows = await SupabaseService.client.from('publishing_items')
-        .select('id,title,content_type,status,byline,scheduled_at,updated_at,slug,source_note,cover_media_path,tags')
-        .order('updated_at', ascending: false);
+          .select('id,title,content_type,status,byline,scheduled_at,updated_at,slug,source_note,cover_media_path,tags,embargo_until,published_at')
+          .order('updated_at', ascending: false);
       if (!mounted) return;
       setState(() { _items = List<Map<String, dynamic>>.from(rows); _loading = false; });
     } catch (e) {
@@ -31,6 +34,14 @@ class _PublishingStudioScreenState extends State<PublishingStudioScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Publishing workspace could not load: ' + e.toString())));
     }
+  }
+
+  Future<void> _openEditor([Map<String, dynamic>? item]) async {
+    final saved = await showDialog<bool>(
+      context: context, barrierDismissible: false,
+      builder: (_) => _PublishingEditor(item: item),
+    );
+    if (saved == true) _load();
   }
 
   List<Map<String, dynamic>> get _visible {
@@ -42,84 +53,62 @@ class _PublishingStudioScreenState extends State<PublishingStudioScreen> {
     }).toList();
   }
 
-  Future<void> _newItem() async {
-    final saved = await showDialog<bool>(context: context, builder: (_) => const _PublishingEditor());
-    if (saved == true) _load();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  @override Widget build(BuildContext context) {
     final visible = _visible;
     return Scaffold(
       appBar: NileAppBar(title: 'Publishing Studio', actions: [
         IconButton(onPressed: _load, icon: const Icon(Icons.refresh), tooltip: 'Refresh'),
       ]),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _newItem, icon: const Icon(Icons.edit_outlined), label: const Text('New story'),
+        onPressed: () => _openEditor(),
+        icon: const Icon(Icons.edit_outlined), label: const Text('New story'),
       ),
       body: RefreshIndicator(
         onRefresh: _load,
-        child: ListView(
-          padding: const EdgeInsets.all(NileSpacing.md),
-          children: [
-            Text('Newsroom & social publishing', style: NileTypography.headlineSmall),
-            const SizedBox(height: 6),
-            Text('Draft, edit, review, schedule and record publication across social and media channels.', style: NileTypography.bodyMedium),
-            const SizedBox(height: 8),
-            Align(alignment: Alignment.centerLeft, child: OutlinedButton.icon(onPressed: () => context.push('/admin/cms/publishing/calendar'), icon: const Icon(Icons.calendar_month_outlined), label: const Text('Editorial calendar'))),
-            const SizedBox(height: NileSpacing.md),
-            TextField(
-              controller: _search,
-              onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search stories, releases and posts…'),
-            ),
-            const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: ['all','draft','in_review','approved','scheduled','published'].map((s) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  label: Text(s == 'all' ? 'All' : s.replaceAll('_',' ')),
-                  selected: _filter == s,
-                  onSelected: (_) => setState(() => _filter = s),
-                ),
-              )).toList()),
-            ),
-            const SizedBox(height: 12),
-            if (_loading) const LinearProgressIndicator(),
-            if (!_loading && visible.isEmpty)
-              const NileCard(child: Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No publishing items yet. Create the first story or social post.')))),
-            ...visible.map(_itemCard),
-          ],
-        ),
+        child: ListView(padding: const EdgeInsets.all(NileSpacing.md), children: [
+          Text('Newsroom & social publishing', style: NileTypography.headlineSmall),
+          const SizedBox(height: 6),
+          Text('Write once, prepare channel-specific media and copy, submit for review, schedule and keep an accountable publication record.', style: NileTypography.bodyMedium),
+          const SizedBox(height: 10),
+          Wrap(spacing: 8, children: [
+            OutlinedButton.icon(onPressed: () => context.push('/admin/cms/publishing/calendar'), icon: const Icon(Icons.calendar_month_outlined), label: const Text('Editorial calendar')),
+            OutlinedButton.icon(onPressed: () => context.go('/admin/cms/media'), icon: const Icon(Icons.perm_media_outlined), label: const Text('Media library')),
+          ]),
+          const SizedBox(height: NileSpacing.md),
+          TextField(controller: _search, onChanged: (_) => setState(() {}), decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search stories, releases and posts…')),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: ['all','draft','in_review','approved','scheduled','published','archived'].map((s) => Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(label: Text(s == 'all' ? 'All' : s.replaceAll('_',' ')), selected: _filter == s, onSelected: (_) => setState(() => _filter = s)),
+            )).toList()),
+          ),
+          const SizedBox(height: 12),
+          if (_loading) const LinearProgressIndicator(),
+          if (!_loading && visible.isEmpty) const NileCard(child: Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No publishing items yet.')))),
+          ...visible.map(_itemCard),
+        ]),
       ),
     );
   }
 
-  Widget _itemCard(Map<String, dynamic> item) {
-    final status = item['status']?.toString() ?? 'draft';
-    final scheduled = item['scheduled_at']?.toString();
-    return NileCard(
-      margin: const EdgeInsets.only(bottom: 10),
-      onTap: () async {
-        final saved = await showDialog<bool>(context: context, builder: (_) => _PublishingEditor(item: item));
-        if (saved == true) _load();
-      },
-      child: Row(children: [
-        Container(width: 46, height: 46, decoration: BoxDecoration(color: NileColors.primaryContainer, borderRadius: NileRadius.borderMd),
-          child: Icon(_iconFor(item['content_type']?.toString()), color: NileColors.primary)),
-        const SizedBox(width: 12),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(item['title']?.toString() ?? 'Untitled', style: NileTypography.titleMedium),
-          const SizedBox(height: 3),
-          Text((item['content_type']?.toString() ?? 'content') + ' · ' + (item['byline']?.toString() ?? 'No byline'), style: NileTypography.bodySmall),
-          if (scheduled != null) Text('Scheduled: ' + scheduled, style: NileTypography.bodySmall),
-        ])),
-        _StatusPill(status), const SizedBox(width: 4),
-        const Icon(Icons.chevron_right, color: NileColors.textTertiary),
-      ]),
-    );
-  }
+  Widget _itemCard(Map<String, dynamic> item) => NileCard(
+    margin: const EdgeInsets.only(bottom: 10),
+    onTap: () => _openEditor(item),
+    child: Row(children: [
+      Container(width: 46, height: 46, decoration: BoxDecoration(color: NileColors.primaryContainer, borderRadius: NileRadius.borderMd),
+        child: Icon(_iconFor(item['content_type']?.toString()), color: NileColors.primary)),
+      const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(item['title']?.toString() ?? 'Untitled', style: NileTypography.titleMedium),
+        Text((item['content_type']?.toString() ?? 'content') + ' · ' + (item['byline']?.toString() ?? 'No byline'), style: NileTypography.bodySmall),
+        if (item['scheduled_at'] != null) Text('Scheduled: ' + item['scheduled_at'].toString(), style: NileTypography.bodySmall),
+      ])),
+      _StatusPill(item['status']?.toString() ?? 'draft'),
+      const Icon(Icons.chevron_right, color: NileColors.textTertiary),
+    ]),
+  );
 
   static IconData _iconFor(String? type) {
     switch (type) {
@@ -150,11 +139,21 @@ class _PublishingEditor extends StatefulWidget {
 }
 
 class _PublishingEditorState extends State<_PublishingEditor> {
-  late final TextEditingController _title, _body, _caption, _byline, _tags, _source, _slug, _cover;
-  String _type = 'social_post', _status = 'draft';
-  final Set<String> _channels = {'facebook', 'instagram'};
+  static const channels = ['website','facebook','instagram','linkedin','x','youtube','whatsapp','newsletter','press'];
+  late final TextEditingController _title, _body, _caption, _byline, _tags, _source, _slug, _reviewNote;
+  String _type = 'social_post';
+  String _status = 'draft';
+  final Set<String> _selectedChannels = {'facebook','instagram'};
+  final Set<String> _mediaPaths = {};
+  final Map<String, TextEditingController> _channelCopies = {};
+  String? _coverPath;
   DateTime? _scheduledAt;
+  DateTime? _embargoUntil;
   bool _saving = false;
+  bool _loading = true;
+  bool _canReview = false;
+  bool _canEdit = false;
+  List<Map<String, dynamic>> _events = [];
 
   @override void initState() {
     super.initState();
@@ -166,72 +165,209 @@ class _PublishingEditorState extends State<_PublishingEditor> {
     _tags = TextEditingController(text: x?['tags'] is List ? (x!['tags'] as List).join(', ') : '');
     _source = TextEditingController(text: x?['source_note']?.toString() ?? '');
     _slug = TextEditingController(text: x?['slug']?.toString() ?? '');
-    _cover = TextEditingController(text: x?['cover_media_path']?.toString() ?? '');
-    _type = x?['content_type']?.toString() ?? 'social_post';
+    _reviewNote = TextEditingController();
+    _scheduledAt = DateTime.tryParse(x?['scheduled_at']?.toString() ?? '');
+    _embargoUntil = DateTime.tryParse(x?['embargo_until']?.toString() ?? '');
     _status = x?['status']?.toString() ?? 'draft';
-    final raw = x?['scheduled_at']?.toString();
-    _scheduledAt = raw == null ? null : DateTime.tryParse(raw);
+    for (final c in channels) _channelCopies[c] = TextEditingController();
+    _initialize();
   }
 
-  @override void dispose() { _title.dispose(); _body.dispose(); _caption.dispose(); _byline.dispose(); _tags.dispose(); _source.dispose(); _slug.dispose(); _cover.dispose(); super.dispose(); }
-
-  Future<void> _save() async {
-    if (_title.text.trim().isEmpty) return;
-    setState(() => _saving = true);
+  Future<void> _initialize() async {
     try {
-      final payload = <String, dynamic>{
-        'title': _title.text.trim(), 'slug': _slug.text.trim().isEmpty ? null : _slug.text.trim(), 'content_type': _type, 'body': _body.text.trim(),
-        'caption': _caption.text.trim(), 'byline': _byline.text.trim(), 'source_note': _source.text.trim(), 'cover_media_path': _cover.text.trim().isEmpty ? null : _cover.text.trim(),
-        'tags': _tags.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
-        'status': _status, 'updated_by': SupabaseService.client.auth.currentUser?.id,
-      };
-      if (_status == 'scheduled' && _scheduledAt == null) {
-        throw StateError('Choose a publishing date and time before scheduling.');
+      final roles = await AuthService.rolesForCurrentUser();
+      final manager = roles.contains('manager') || roles.contains('super_admin');
+      _canReview = manager;
+      _canEdit = manager || roles.contains('journalist') || roles.contains('content_manager');
+      if (widget.item != null) {
+        final id = widget.item!['id'].toString();
+        final item = await SupabaseService.client.from('publishing_items')
+          .select('title,body,caption,byline,tags,review_note,slug,source_note,cover_media_path,scheduled_at,embargo_until,status,content_type')
+          .eq('id', id).single();
+        final targets = await SupabaseService.client.from('publishing_targets')
+          .select('channel,copy,media_paths').eq('item_id', id).order('channel');
+        final events = await SupabaseService.client.from('publishing_item_events')
+          .select('event_type,from_status,to_status,note,created_at').eq('item_id', id)
+          .order('created_at', ascending: false).limit(50);
+        _title.text = item['title']?.toString() ?? '';
+        _body.text = item['body']?.toString() ?? '';
+        _caption.text = item['caption']?.toString() ?? '';
+        _byline.text = item['byline']?.toString() ?? '';
+        _tags.text = item['tags'] is List ? (item['tags'] as List).join(', ') : '';
+        _reviewNote.text = item['review_note']?.toString() ?? '';
+        _source.text = item['source_note']?.toString() ?? '';
+        _slug.text = item['slug']?.toString() ?? '';
+        _coverPath = item['cover_media_path']?.toString();
+        _scheduledAt = DateTime.tryParse(item['scheduled_at']?.toString() ?? '');
+        _embargoUntil = DateTime.tryParse(item['embargo_until']?.toString() ?? '');
+        _status = item['status']?.toString() ?? 'draft';
+        _type = item['content_type']?.toString() ?? 'social_post';
+        for (final row in List<Map<String,dynamic>>.from(targets)) {
+          final c = row['channel']?.toString();
+          if (c == null || !channels.contains(c)) continue;
+          _selectedChannels.add(c);
+          _channelCopies[c]!.text = row['copy']?.toString() ?? '';
+          final media = row['media_paths'];
+          if (media is List) _mediaPaths.addAll(media.map((e) => e.toString()));
+        }
+        _events = List<Map<String,dynamic>>.from(events);
       }
-      payload['scheduled_at'] = _scheduledAt?.toUtc().toIso8601String();
-      payload['published_at'] = _status == 'published' ? DateTime.now().toUtc().toIso8601String() : null;
-      String itemId;
-      if (widget.item == null) {
-        payload['created_by'] = SupabaseService.client.auth.currentUser?.id;
-        final created = await SupabaseService.client.from('publishing_items').insert(payload).select('id').single();
-        itemId = created['id'].toString();
-      } else {
-        itemId = widget.item!['id'].toString();
-        await SupabaseService.client.from('publishing_items').update(payload).eq('id', itemId);
-      }
-      await SupabaseService.client.from('publishing_targets').delete().eq('item_id', itemId);
-      await SupabaseService.client.from('publishing_item_events').insert({'item_id': itemId, 'actor_id': SupabaseService.client.auth.currentUser?.id, 'event_type': _status == 'in_review' ? 'submitted' : _status == 'approved' ? 'approved' : _status == 'scheduled' ? 'scheduled' : _status == 'published' ? 'published' : _status == 'archived' ? 'archived' : 'updated', 'to_status': _status});
-      if (_channels.isNotEmpty) {
-        await SupabaseService.client.from('publishing_targets').insert(
-          _channels.map((channel) => {
-            'item_id': itemId,
-            'channel': channel,
-            'headline': _title.text.trim(),
-            'copy': _caption.text.trim().isEmpty ? _body.text.trim() : _caption.text.trim(),
-            'status': _status == 'scheduled' ? 'scheduled' : (_status == 'published' ? 'published' : 'ready'),
-            'scheduled_at': _scheduledAt?.toUtc().toIso8601String(),
-            'published_at': _status == 'published' ? DateTime.now().toUtc().toIso8601String() : null,
-          }).toList(),
-        );
-      }
-      if (!mounted) return;
-      Navigator.pop(context, true);
+      if (mounted) setState(() => _loading = false);
     } catch (e) {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not save: ' + e.toString())));
+      if (mounted) {
+        setState(() { _loading = false; _canEdit = false; });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Publishing item could not be opened: ' + e.toString())));
+      }
     }
   }
 
-  @override Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.item == null ? 'New publishing item' : 'Edit publishing item'),
-    content: SizedBox(width: 720, child: SingleChildScrollView(child: Column(children: [
-      TextField(controller: _title, decoration: const InputDecoration(labelText: 'Headline / working title')),
-      const SizedBox(height: 10), TextField(controller: _slug, decoration: const InputDecoration(labelText: 'Slug')),
+  @override void dispose() {
+    _title.dispose(); _body.dispose(); _caption.dispose(); _byline.dispose(); _tags.dispose(); _source.dispose(); _slug.dispose(); _reviewNote.dispose();
+    for (final c in _channelCopies.values) c.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickMedia({required bool cover}) async {
+    final picked = await showDialog<List<String>>(
+      context: context,
+      builder: (_) => _MediaPickerDialog(initial: cover ? (_coverPath == null ? <String>{} : {_coverPath!}) : _mediaPaths, single: cover),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      if (cover) _coverPath = picked.isEmpty ? null : picked.first;
+      else { _mediaPaths..clear()..addAll(picked); }
+    });
+  }
+
+  Future<void> _chooseDate({required bool embargo}) async {
+    final now = DateTime.now();
+    final current = embargo ? _embargoUntil : _scheduledAt;
+    final initial = current != null && current.isAfter(now) ? current : now;
+    final date = await showDatePicker(context: context, firstDate: now.subtract(const Duration(minutes:1)), lastDate: now.add(const Duration(days:730)), initialDate: initial);
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(initial));
+    if (time == null || !mounted) return;
+    final value = DateTime(date.year,date.month,date.day,time.hour,time.minute);
+    setState(() { if (embargo) _embargoUntil = value; else _scheduledAt = value; });
+  }
+
+  Future<void> _editChannelCopy(String channel) async {
+    final copy = TextEditingController(text: _channelCopies[channel]!.text);
+    final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
+      title: Text(channel.toUpperCase() + ' version'),
+      content: SizedBox(width:620,child:TextField(controller:copy,minLines:8,maxLines:14,decoration:const InputDecoration(labelText:'Channel-specific copy'))),
+      actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Save version'))],
+    ));
+    if (ok == true && mounted) { _channelCopies[channel]!.text = copy.text; setState(() {}); }
+    copy.dispose();
+  }
+
+  Future<void> _showAudit() async {
+    if (widget.item == null) return;
+    final rows = await SupabaseService.client.from('publishing_item_events')
+      .select('event_type,from_status,to_status,note,created_at').eq('item_id', widget.item!['id'].toString())
+      .order('created_at', ascending: false).limit(50);
+    if (!mounted) return;
+    await showDialog<void>(context: context, builder: (_) => AlertDialog(
+      title: const Text('Editorial history'),
+      content: SizedBox(width:650,height:430,child:rows.isEmpty ? const Center(child:Text('No history recorded yet.')) : ListView.separated(
+        itemCount: rows.length, separatorBuilder:(_,__)=>const Divider(),
+        itemBuilder:(_,i) {
+          final e = rows[i] as Map<String,dynamic>;
+          final detail = [e['from_status'],e['to_status'],e['note']].where((v)=>v!=null && v.toString().isNotEmpty).join(' → ');
+          return ListTile(
+            dense:true, leading:const Icon(Icons.history),
+            title:Text((e['event_type']?.toString() ?? 'event').replaceAll('_',' ')),
+            subtitle:Text(detail),
+            trailing:Text((e['created_at']?.toString() ?? '').replaceFirst('T',' ').split('.').first),
+          );
+        },
+      )),
+      actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Close'))],
+    ));
+  }
+
+  Future<void> _save() async {
+    if (!_canEdit) return;
+    if (_title.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Headline / working title is required.'))); return;
+    }
+    if (_status == 'scheduled' && _scheduledAt == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Choose a publication date and time before scheduling.'))); return;
+    }
+    setState(() => _saving = true);
+    try {
+      final uid = SupabaseService.client.auth.currentUser?.id;
+      final payload = <String,dynamic>{
+        'title':_title.text.trim(),
+        'slug':_slug.text.trim().isEmpty ? null : _slug.text.trim(),
+        'content_type':_type,
+        'body':_body.text.trim(),
+        'caption':_caption.text.trim(),
+        'byline':_byline.text.trim(),
+        'source_note':_source.text.trim(),
+        'cover_media_path':_coverPath,
+        'tags':_tags.text.split(',').map((e)=>e.trim()).where((e)=>e.isNotEmpty).toList(),
+        'status':_status,
+        'updated_by':uid,
+        'scheduled_at':_scheduledAt?.toUtc().toIso8601String(),
+        'embargo_until':_embargoUntil?.toUtc().toIso8601String(),
+        'published_at':_status == 'published' ? DateTime.now().toUtc().toIso8601String() : null,
+        'review_note':_reviewNote.text.trim().isEmpty ? null : _reviewNote.text.trim(),
+      };
+      String id;
+      if (widget.item == null) {
+        payload['created_by'] = uid;
+        final created = await SupabaseService.client.from('publishing_items').insert(payload).select('id').single();
+        id = created['id'].toString();
+      } else {
+        id = widget.item!['id'].toString();
+        await SupabaseService.client.from('publishing_items').update(payload).eq('id',id);
+      }
+      await SupabaseService.client.from('publishing_targets').delete().eq('item_id',id);
+      if (_selectedChannels.isNotEmpty) {
+        final targetStatus = _status == 'scheduled' ? 'scheduled' : (_status == 'published' ? 'published' : 'ready');
+        await SupabaseService.client.from('publishing_targets').insert(_selectedChannels.map((c)=> {
+          'item_id':id,'channel':c,'headline':_title.text.trim(),
+          'copy':_channelCopies[c]!.text.trim().isEmpty ? _caption.text.trim() : _channelCopies[c]!.text.trim(),
+          'media_paths':_mediaPaths.toList(),'status':targetStatus,
+          'scheduled_at':_scheduledAt?.toUtc().toIso8601String(),
+          'published_at':_status == 'published' ? DateTime.now().toUtc().toIso8601String() : null,
+        }).toList());
+      }
+      if (mounted) Navigator.pop(context,true);
+    } catch (e) {
+      if (mounted) { setState(()=>_saving=false); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('Could not save: ' + e.toString()))); }
+    }
+  }
+
+  List<String> get _allowedStatuses => _canReview ? const ['draft','in_review','approved','scheduled','published','archived'] : const ['draft','in_review'];
+
+  @override Widget build(BuildContext context) {
+    if (_loading) {
+      return const AlertDialog(
+        content: SizedBox(
+          width: 560,
+          height: 180,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    final editorChildren = <Widget>[
+      TextField(
+        controller: _title,
+        decoration: const InputDecoration(labelText: 'Headline / working title'),
+      ),
       const SizedBox(height: 10),
+      TextField(
+        controller: _slug,
+        decoration: const InputDecoration(labelText: 'Slug'),
+      ),
       const SizedBox(height: 10),
       DropdownButtonFormField<String>(
-        value: _type, decoration: const InputDecoration(labelText: 'Content type'),
+        value: _type,
+        decoration: const InputDecoration(labelText: 'Content type'),
         items: const [
           DropdownMenuItem(value: 'social_post', child: Text('Social media post')),
           DropdownMenuItem(value: 'news_story', child: Text('News story')),
@@ -239,65 +375,289 @@ class _PublishingEditorState extends State<_PublishingEditor> {
           DropdownMenuItem(value: 'announcement', child: Text('Announcement')),
           DropdownMenuItem(value: 'photo_story', child: Text('Photo story')),
           DropdownMenuItem(value: 'video_story', child: Text('Video story')),
-        ], onChanged: (v) => setState(() => _type = v!),
+        ],
+        onChanged: _canEdit ? (v) => setState(() => _type = v!) : null,
       ),
       const SizedBox(height: 10),
-      TextField(controller: _byline, decoration: const InputDecoration(labelText: 'Byline / journalist')),
-      const SizedBox(height: 10), TextField(controller: _source, decoration: const InputDecoration(labelText: 'Source / attribution note')),
-      const SizedBox(height: 10), TextField(controller: _cover, decoration: const InputDecoration(labelText: 'Cover media path (CMS library)')),
+      TextField(
+        controller: _byline,
+        decoration: const InputDecoration(labelText: 'Byline / journalist'),
+      ),
       const SizedBox(height: 10),
-      TextField(controller: _caption, maxLines: 4, decoration: const InputDecoration(labelText: 'Social caption / standfirst')),
+      TextField(
+        controller: _source,
+        decoration: const InputDecoration(labelText: 'Source / attribution note'),
+      ),
       const SizedBox(height: 10),
-      TextField(controller: _body, minLines: 8, maxLines: 14, decoration: const InputDecoration(labelText: 'Story / editorial copy')),
+      Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _canEdit ? () => _pickMedia(cover: true) : null,
+              icon: const Icon(Icons.image_outlined),
+              label: Text(
+                _coverPath == null
+                    ? 'Choose cover media'
+                    : 'Cover: ' + _coverPath!.split('/').last,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _canEdit ? () => _pickMedia(cover: false) : null,
+              icon: const Icon(Icons.perm_media_outlined),
+              label: Text(
+                _mediaPaths.isEmpty
+                    ? 'Choose story media'
+                    : _mediaPaths.length.toString() + ' media selected',
+              ),
+            ),
+          ),
+        ],
+      ),
+    ];
+
+    if (_mediaPaths.isNotEmpty) {
+      editorChildren.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            _mediaPaths.map((p) => p.split('/').last).join(' · '),
+            style: NileTypography.bodySmall,
+          ),
+        ),
+      );
+    }
+
+    editorChildren.addAll([
       const SizedBox(height: 10),
-      TextField(controller: _tags, decoration: const InputDecoration(labelText: 'Tags', hintText: 'uganda, shea, community')),
+      TextField(
+        controller: _caption,
+        maxLines: 4,
+        decoration: const InputDecoration(labelText: 'Social caption / standfirst'),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _body,
+        minLines: 8,
+        maxLines: 16,
+        decoration: const InputDecoration(labelText: 'Story / editorial copy'),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _tags,
+        decoration: const InputDecoration(
+          labelText: 'Tags',
+          hintText: 'uganda, shea, community',
+        ),
+      ),
       const SizedBox(height: 14),
-      Align(alignment: Alignment.centerLeft, child: Text('Publishing channels', style: NileTypography.titleSmall)),
+      Text('Channel publishing plan', style: NileTypography.titleSmall),
       const SizedBox(height: 6),
       Wrap(
         spacing: 8,
         runSpacing: 6,
-        children: ['website','facebook','instagram','linkedin','x','youtube','whatsapp','newsletter','press'].map(
-          (channel) => FilterChip(
-            label: Text(channel),
-            selected: _channels.contains(channel),
-            onSelected: (selected) => setState(() => selected ? _channels.add(channel) : _channels.remove(channel)),
+        children: channels.map((c) {
+          return FilterChip(
+            label: Text(c),
+            selected: _selectedChannels.contains(c),
+            onSelected: _canEdit
+                ? (v) => setState(() {
+                      if (v) {
+                        _selectedChannels.add(c);
+                      } else {
+                        _selectedChannels.remove(c);
+                      }
+                    })
+                : null,
+          );
+        }).toList(),
+      ),
+      const SizedBox(height: 8),
+    ]);
+
+    for (final c in _selectedChannels) {
+      editorChildren.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: OutlinedButton.icon(
+            onPressed: _canEdit ? () => _editChannelCopy(c) : null,
+            icon: const Icon(Icons.tune_outlined),
+            label: Text(
+              c.toUpperCase() +
+                  ' copy' +
+                  (_channelCopies[c]!.text.trim().isEmpty ? '' : ' ✓'),
+            ),
           ),
-        ).toList(),
+        ),
+      );
+    }
+
+    editorChildren.addAll([
+      Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _canEdit ? () => _chooseDate(embargo: false) : null,
+              icon: const Icon(Icons.schedule_outlined),
+              label: Text(
+                _scheduledAt == null
+                    ? 'Set publication time'
+                    : 'Schedule: ' + _scheduledAt!.toLocal().toString(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _canEdit ? () => _chooseDate(embargo: true) : null,
+              icon: const Icon(Icons.lock_clock_outlined),
+              label: Text(
+                _embargoUntil == null
+                    ? 'Set embargo'
+                    : 'Embargo: ' + _embargoUntil!.toLocal().toString(),
+              ),
+            ),
+          ),
+        ],
       ),
       const SizedBox(height: 10),
-      OutlinedButton.icon(
-        onPressed: () async {
-          final date = await showDatePicker(
-            context: context,
-            firstDate: DateTime.now(),
-            lastDate: DateTime.now().add(const Duration(days: 365)),
-            initialDate: _scheduledAt ?? DateTime.now(),
-          );
-          if (date == null || !mounted) return;
-          final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(_scheduledAt ?? DateTime.now()));
-          if (time == null || !mounted) return;
-          setState(() => _scheduledAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
-        },
-        icon: const Icon(Icons.schedule_outlined),
-        label: Text(_scheduledAt == null ? 'Set publication date & time' : 'Schedule: ' + _scheduledAt!.toLocal().toString()),
+      TextField(
+        controller: _reviewNote,
+        maxLines: 3,
+        decoration: const InputDecoration(labelText: 'Editorial/review note'),
       ),
       const SizedBox(height: 10),
       DropdownButtonFormField<String>(
-        value: _status, decoration: const InputDecoration(labelText: 'Workflow status'),
-        items: const [
-          DropdownMenuItem(value: 'draft', child: Text('Draft')),
-          DropdownMenuItem(value: 'in_review', child: Text('In review')),
-          DropdownMenuItem(value: 'approved', child: Text('Approved')),
-          DropdownMenuItem(value: 'scheduled', child: Text('Scheduled')),
-          DropdownMenuItem(value: 'published', child: Text('Published')),
-          DropdownMenuItem(value: 'archived', child: Text('Archived')),
-        ], onChanged: (v) => setState(() => _status = v!),
+        value: _allowedStatuses.contains(_status) ? _status : 'draft',
+        decoration: const InputDecoration(labelText: 'Workflow status'),
+        items: _allowedStatuses.map((s) {
+          return DropdownMenuItem(
+            value: s,
+            child: Text(s.replaceAll('_', ' ')),
+          );
+        }).toList(),
+        onChanged: _canEdit ? (v) => setState(() => _status = v!) : null,
       ),
-    ]))),
-    actions: [
-      TextButton(onPressed: _saving ? null : () => Navigator.pop(context), child: const Text('Cancel')),
-      FilledButton.icon(onPressed: _saving ? null : _save, icon: const Icon(Icons.save_outlined), label: Text(_saving ? 'Saving…' : 'Save')),
-    ],
+      const SizedBox(height: 8),
+      Text(
+        _canReview
+            ? 'Manager/super admin review is enabled. External social connectors are not assumed; publication status records an editorial decision.'
+            : 'Journalists/content editors can draft and submit. Approval, scheduling and publication require a manager or super admin.',
+        style: NileTypography.bodySmall,
+      ),
+    ]);
+
+    if (_events.isNotEmpty) {
+      editorChildren.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            _events.length.toString() + ' audit events recorded',
+            style: NileTypography.bodySmall,
+          ),
+        ),
+      );
+    }
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              widget.item == null ? 'New publishing item' : 'Edit publishing item',
+            ),
+          ),
+          if (widget.item != null)
+            IconButton(
+              onPressed: _showAudit,
+              tooltip: 'Editorial history',
+              icon: const Icon(Icons.history),
+            ),
+        ],
+      ),
+      content: SizedBox(
+        width: 820,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: editorChildren,
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          onPressed: _saving || !_canEdit ? null : _save,
+          icon: const Icon(Icons.save_outlined),
+          label: Text(_saving ? 'Saving…' : 'Save'),
+        ),
+      ],
+    );
+  }}
+
+class _MediaPickerDialog extends StatefulWidget {
+  const _MediaPickerDialog({required this.initial, required this.single});
+  final Set<String> initial;
+  final bool single;
+  @override State<_MediaPickerDialog> createState()=>_MediaPickerDialogState();
+}
+
+class _MediaPickerDialogState extends State<_MediaPickerDialog> {
+  static const folders = ['website','banners','testimonials','videos'];
+  String _folder = 'website';
+  bool _loading = true;
+  final Set<String> _selected = {};
+  List<dynamic> _files = const [];
+
+  @override void initState(){super.initState();_selected.addAll(widget.initial);_load();}
+  Future<void> _load() async {
+    setState(()=>_loading=true);
+    try {
+      final files=await StorageService.list(bucket:StorageService.cms,path:_folder);
+      if(mounted)setState(()=>_files=files.where((f)=>f.name!='.emptyFolderPlaceholder').toList());
+    } finally { if(mounted)setState(()=>_loading=false); }
+  }
+  void _toggle(String path) {
+    setState(() {
+      if (widget.single) { _selected..clear()..add(path); }
+      else if (_selected.contains(path)) _selected.remove(path); else _selected.add(path);
+    });
+  }
+  @override Widget build(BuildContext context)=>AlertDialog(
+    title:Text(widget.single?'Choose cover media':'Choose story media'),
+    content:SizedBox(width:820,height:520,child:Column(children:[
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: folders.map((f) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(f),
+                selected: _folder == f,
+                onSelected: (_) {
+                  setState(() => _folder = f);
+                  _load();
+                },
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+      const SizedBox(height:10),if(_loading)const LinearProgressIndicator(),
+      Expanded(child:_files.isEmpty&&!_loading?const Center(child:Text('No media in this folder.')):GridView.builder(
+        gridDelegate:const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent:230,mainAxisExtent:92,crossAxisSpacing:8,mainAxisSpacing:8),
+        itemCount:_files.length,itemBuilder:(_,i){
+          final name=_files[i].name?.toString()??''; final path=_folder+'/'+name; final selected=_selected.contains(path);
+          return InkWell(onTap:()=>_toggle(path),child:Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(border:Border.all(color:selected?NileColors.primary:NileColors.border),borderRadius:BorderRadius.circular(10),color:selected?NileColors.primaryContainer:null),child:Row(children:[Icon(selected?Icons.check_circle:Icons.insert_drive_file_outlined,color:NileColors.primary),const SizedBox(width:8),Expanded(child:Text(name,maxLines:3,overflow:TextOverflow.ellipsis))])));
+        },
+      )),
+    ])),
+    actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Cancel')),FilledButton.icon(onPressed:()=>Navigator.pop(context,_selected.toList()),icon:const Icon(Icons.check),label:Text('Use '+_selected.length.toString()))],
   );
 }
