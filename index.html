@@ -275,9 +275,7 @@ document.querySelectorAll('img[src*="assets/website/"]').forEach(img=>{
     if(img.dataset.fallbackApplied)return;
     img.dataset.fallbackApplied='1';
     const src=img.getAttribute('src')||'';
-    if(src.includes('mozzie')){
-      img.src='https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&fm=jpg&q=82&w=1200';
-    }else if(src.includes('founder')){
+    if(src.includes('founder')){
       img.src='https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&fm=jpg&q=82&w=1200';
     }else{
       img.style.display='none';
