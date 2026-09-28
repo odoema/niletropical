@@ -37,7 +37,7 @@ footer{background:#002e54;color:#cbd9e3;margin-top:70px;padding:35px 0;font-size
  const date=v=>v?new Date(v).toLocaleDateString('en-UG',{year:'numeric',month:'long',day:'numeric'}):'';
  function cover(path,title){return path?'<img src="'+storage(path)+'" alt="'+esc(title)+'" loading="lazy">':'';}
  async function load(){
-   let url=base+'/rest/v1/published_articles?select=id,title,content_type,slug,body,caption,byline,cover_media_path,tags,scheduled_at,published_at,created_at&order=published_at.desc.nullslast,created_at.desc';
+   let url=base+'/rest/v1/published_articles?select=id,title,content_type,slug,body,caption,byline,cover_media_path,tags,published_at,created_at&content_type=eq.news_story&order=published_at.desc.nullslast,created_at.desc';
    if(slug) url+='&slug=eq.'+encodeURIComponent(slug);
    const r=await fetch(url,{cache:'no-store',headers}); if(!r.ok) throw new Error('newsroom unavailable'); return r.json();
  }
