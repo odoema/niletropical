@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nile Tropical Story</title>
+<meta name="description" content="Published story from Nile Tropical Industries (U) Ltd.">
+<meta name="robots" content="index, follow">
+<link id="canonical" rel="canonical" href="https://niletropicaluganda.com/stories/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nile Tropical Industries (U) Ltd">
+<meta id="ogTitle" property="og:title" content="Nile Tropical Story">
+<meta id="ogDesc" property="og:description" content="Published story from Nile Tropical Industries.">
+<meta id="ogUrl" property="og:url" content="https://niletropicaluganda.com/stories/">
+<meta id="ogImage" property="og:image" content="https://niletropicaluganda.com/favicon.png">
+<style>
+:root{--blue:#005090;--deep:#003d70;--green:#08783d;--ink:#17212b;--muted:#66717c;--line:#dfe5e9;--soft:#f4f7f8}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);font:17px/1.75 Georgia,'Times New Roman',serif;background:#fff}a{color:inherit}.wrap{width:min(900px,calc(100% - 32px));margin:auto}.top{background:var(--blue);color:#fff;font:12px Arial,sans-serif}.top .wrap{min-height:34px;display:flex;align-items:center;justify-content:space-between}.top a{color:#fff}.nav{font:13px Arial,sans-serif;min-height:76px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;color:var(--deep);font-weight:800;text-decoration:none}.brand img{width:48px;height:48px;object-fit:contain;border-radius:50%}.nav a{color:var(--blue);text-decoration:none}.article{padding:58px 0 90px}.meta{font:11px Arial,sans-serif;color:var(--green);font-weight:800;text-transform:uppercase;letter-spacing:.1em}.title{font:800 clamp(38px,6vw,64px)/1.06 Arial,Helvetica,sans-serif;color:var(--deep);letter-spacing:-.035em;margin:12px 0 14px}.dek{font:21px/1.55 Arial,Helvetica,sans-serif;color:var(--muted);margin:0 0 18px}.byline{font:13px Arial,sans-serif;color:var(--muted);margin-bottom:28px}.cover{width:100%;max-height:580px;object-fit:cover;border-radius:20px;background:var(--soft);margin:0 0 38px}.body{white-space:pre-wrap}.source{margin-top:35px;padding-top:20px;border-top:1px solid var(--line);font:12px/1.6 Arial,sans-serif;color:var(--muted)}.back{display:inline-block;margin-bottom:28px;color:var(--blue);font:13px Arial,sans-serif;font-weight:700;text-decoration:none}.error{text-align:center;padding:80px 0;color:var(--muted);font-family:Arial,sans-serif}.error h1{color:var(--deep)}footer{background:#002e54;color:#cbd9e3;padding:35px 0;font:12px Arial,sans-serif}footer a{color:#fff}
+</style>
+</head>
+<body>
+<div class="top"><div class="wrap"><span>Nebbi Municipality · West Nile · Uganda</span><a href="../../app/">Shop online →</a></div></div>
+<div class="wrap nav"><a class="brand" href="../"><img src="../../assets/images/logo.png" alt="Nile Tropical logo"><span>Nile Tropical Industries</span></a><a href="./">← All stories</a></div>
+<main class="article"><div class="wrap" id="content"><div class="error"><h1>Loading story…</h1><p>Please wait.</p></div></div></main>
+<footer><div class="wrap">© 2026 Nile Tropical Industries (U) Ltd · <a href="../../">Official website</a></div></footer>
+<script>
+const SUPABASE_URL='https://ououfhsswyqutcczdtnb.supabase.co';
+const SUPABASE_KEY='sb_publishable_sAO-3qit2yxwNa9MsMHLyw_UObEWQBl';
+const params=new URLSearchParams(location.search),id=params.get('id'),slug=params.get('slug')||'';
+const content=document.getElementById('content');
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function publicMedia(path){return path?SUPABASE_URL+'/storage/v1/object/public/cms/'+String(path).split('/').map(encodeURIComponent).join('/') : '';}
+function date(v){const d=new Date(v);return Number.isNaN(d.valueOf())?'':d.toLocaleDateString('en-UG',{year:'numeric',month:'long',day:'numeric'});}
+async function load(){
+ if(!id){content.innerHTML='<div class="error"><h1>Story not found</h1><p>The story link is incomplete.</p></div>';return;}
+ try{
+  const u=SUPABASE_URL+'/rest/v1/publishing_items?select=id,title,content_type,slug,body,caption,byline,source_note,cover_media_path,published_at,tags&id=eq.'+encodeURIComponent(id)+'&status=eq.published&limit=1';
+  const res=await fetch(u,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY},cache:'no-store'});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const rows=await res.json();
+  if(!rows.length){content.innerHTML='<div class="error"><h1>Story not found</h1><p>This story may not be published or may have been archived.</p></div>';return;}
+  const x=rows[0],title=x.title||'Nile Tropical Story',canonical='https://niletropicaluganda.com/stories/article.html?id='+encodeURIComponent(x.id)+'&slug='+encodeURIComponent(x.slug||slug);
+  document.title=title+' | Nile Tropical Industries';
+  document.getElementById('canonical').href=canonical;
+  document.getElementById('ogTitle').content=title;
+  document.getElementById('ogDesc').content=(x.caption||x.body||'Published story from Nile Tropical Industries.').slice(0,180);
+  document.getElementById('ogUrl').content=canonical;
+  const cover=publicMedia(x.cover_media_path);
+  content.innerHTML='<a class="back" href="./">← All stories</a><div class="meta">'+esc((x.content_type||'story').replaceAll('_',' '))+'</div><h1 class="title">'+esc(title)+'</h1>'+(x.caption?'<p class="dek">'+esc(x.caption)+'</p>':'')+'<div class="byline">'+esc(date(x.published_at))+(x.byline?' · '+esc(x.byline):'')+'</div>'+(cover?'<img class="cover" src="'+esc(cover)+'" alt="'+esc(title)+'">':'')+'<div class="body">'+esc(x.body||'')+'</div>'+(x.source_note?'<div class="source">Source / attribution: '+esc(x.source_note)+'</div>':'');
+  const schema={"@context":"https://schema.org","@type":"Article","headline":title,"datePublished":x.published_at,"author":{"@type":"Person","name":x.byline||"Nile Tropical Industries"},"publisher":{"@type":"Organization","name":"Nile Tropical Industries (U) Ltd","url":"https://niletropicaluganda.com/"},"mainEntityOfPage":canonical};
+  const script=document.createElement('script');script.type='application/ld+json';script.textContent=JSON.stringify(schema);document.head.appendChild(script);
+ }catch(e){content.innerHTML='<div class="error"><h1>Story unavailable</h1><p>Please try again shortly.</p></div>';}
+}
+load();
+</script>
+</body>
+</html>
