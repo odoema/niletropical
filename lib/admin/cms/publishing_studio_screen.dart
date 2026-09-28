@@ -143,7 +143,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
   late final TextEditingController _title, _body, _caption, _byline, _tags, _source, _slug, _reviewNote;
   String _type = 'social_post';
   String _status = 'draft';
-  final Set<String> _selectedChannels = {'facebook','instagram'};
+  final Set<String> _selectedChannels = {'website','facebook','instagram'};
   final Set<String> _mediaPaths = {};
   final Map<String, TextEditingController> _channelCopies = {};
   String? _coverPath;
