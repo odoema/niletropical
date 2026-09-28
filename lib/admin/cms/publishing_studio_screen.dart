@@ -344,62 +344,261 @@ class _PublishingEditorState extends State<_PublishingEditor> {
   List<String> get _allowedStatuses => _canReview ? const ['draft','in_review','approved','scheduled','published','archived'] : const ['draft','in_review'];
 
   @override Widget build(BuildContext context) {
-    if (_loading) return const AlertDialog(content:SizedBox(width:560,height:180,child:Center(child:CircularProgressIndicator())));
+    if (_loading) {
+      return const AlertDialog(
+        content: SizedBox(
+          width: 560,
+          height: 180,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    final editorChildren = <Widget>[
+      TextField(
+        controller: _title,
+        decoration: const InputDecoration(labelText: 'Headline / working title'),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _slug,
+        decoration: const InputDecoration(labelText: 'Slug'),
+      ),
+      const SizedBox(height: 10),
+      DropdownButtonFormField<String>(
+        value: _type,
+        decoration: const InputDecoration(labelText: 'Content type'),
+        items: const [
+          DropdownMenuItem(value: 'social_post', child: Text('Social media post')),
+          DropdownMenuItem(value: 'news_story', child: Text('News story')),
+          DropdownMenuItem(value: 'press_release', child: Text('Press release')),
+          DropdownMenuItem(value: 'announcement', child: Text('Announcement')),
+          DropdownMenuItem(value: 'photo_story', child: Text('Photo story')),
+          DropdownMenuItem(value: 'video_story', child: Text('Video story')),
+        ],
+        onChanged: _canEdit ? (v) => setState(() => _type = v!) : null,
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _byline,
+        decoration: const InputDecoration(labelText: 'Byline / journalist'),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _source,
+        decoration: const InputDecoration(labelText: 'Source / attribution note'),
+      ),
+      const SizedBox(height: 10),
+      Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _canEdit ? () => _pickMedia(cover: true) : null,
+              icon: const Icon(Icons.image_outlined),
+              label: Text(
+                _coverPath == null
+                    ? 'Choose cover media'
+                    : 'Cover: ' + _coverPath!.split('/').last,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _canEdit ? () => _pickMedia(cover: false) : null,
+              icon: const Icon(Icons.perm_media_outlined),
+              label: Text(
+                _mediaPaths.isEmpty
+                    ? 'Choose story media'
+                    : _mediaPaths.length.toString() + ' media selected',
+              ),
+            ),
+          ),
+        ],
+      ),
+    ];
+
+    if (_mediaPaths.isNotEmpty) {
+      editorChildren.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            _mediaPaths.map((p) => p.split('/').last).join(' · '),
+            style: NileTypography.bodySmall,
+          ),
+        ),
+      );
+    }
+
+    editorChildren.addAll([
+      const SizedBox(height: 10),
+      TextField(
+        controller: _caption,
+        maxLines: 4,
+        decoration: const InputDecoration(labelText: 'Social caption / standfirst'),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _body,
+        minLines: 8,
+        maxLines: 16,
+        decoration: const InputDecoration(labelText: 'Story / editorial copy'),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _tags,
+        decoration: const InputDecoration(
+          labelText: 'Tags',
+          hintText: 'uganda, shea, community',
+        ),
+      ),
+      const SizedBox(height: 14),
+      Text('Channel publishing plan', style: NileTypography.titleSmall),
+      const SizedBox(height: 6),
+      Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        children: channels.map((c) {
+          return FilterChip(
+            label: Text(c),
+            selected: _selectedChannels.contains(c),
+            onSelected: _canEdit
+                ? (v) => setState(() {
+                      if (v) {
+                        _selectedChannels.add(c);
+                      } else {
+                        _selectedChannels.remove(c);
+                      }
+                    })
+                : null,
+          );
+        }).toList(),
+      ),
+      const SizedBox(height: 8),
+    ]);
+
+    for (final c in _selectedChannels) {
+      editorChildren.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: OutlinedButton.icon(
+            onPressed: _canEdit ? () => _editChannelCopy(c) : null,
+            icon: const Icon(Icons.tune_outlined),
+            label: Text(
+              c.toUpperCase() +
+                  ' copy' +
+                  (_channelCopies[c]!.text.trim().isEmpty ? '' : ' ✓'),
+            ),
+          ),
+        ),
+      );
+    }
+
+    editorChildren.addAll([
+      Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _canEdit ? () => _chooseDate(embargo: false) : null,
+              icon: const Icon(Icons.schedule_outlined),
+              label: Text(
+                _scheduledAt == null
+                    ? 'Set publication time'
+                    : 'Schedule: ' + _scheduledAt!.toLocal().toString(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _canEdit ? () => _chooseDate(embargo: true) : null,
+              icon: const Icon(Icons.lock_clock_outlined),
+              label: Text(
+                _embargoUntil == null
+                    ? 'Set embargo'
+                    : 'Embargo: ' + _embargoUntil!.toLocal().toString(),
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _reviewNote,
+        maxLines: 3,
+        decoration: const InputDecoration(labelText: 'Editorial/review note'),
+      ),
+      const SizedBox(height: 10),
+      DropdownButtonFormField<String>(
+        value: _allowedStatuses.contains(_status) ? _status : 'draft',
+        decoration: const InputDecoration(labelText: 'Workflow status'),
+        items: _allowedStatuses.map((s) {
+          return DropdownMenuItem(
+            value: s,
+            child: Text(s.replaceAll('_', ' ')),
+          );
+        }).toList(),
+        onChanged: _canEdit ? (v) => setState(() => _status = v!) : null,
+      ),
+      const SizedBox(height: 8),
+      Text(
+        _canReview
+            ? 'Manager/super admin review is enabled. External social connectors are not assumed; publication status records an editorial decision.'
+            : 'Journalists/content editors can draft and submit. Approval, scheduling and publication require a manager or super admin.',
+        style: NileTypography.bodySmall,
+      ),
+    ]);
+
+    if (_events.isNotEmpty) {
+      editorChildren.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            _events.length.toString() + ' audit events recorded',
+            style: NileTypography.bodySmall,
+          ),
+        ),
+      );
+    }
+
     return AlertDialog(
-      title: Row(children:[Expanded(child:Text(widget.item == null ? 'New publishing item' : 'Edit publishing item')),if(widget.item!=null)IconButton(onPressed:_showAudit,tooltip:'Editorial history',icon:const Icon(Icons.history))]),
-      content:SizedBox(width:820,child:SingleChildScrollView(child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-        TextField(controller:_title,decoration:const InputDecoration(labelText:'Headline / working title')),
-        const SizedBox(height:10),TextField(controller:_slug,decoration:const InputDecoration(labelText:'Slug')),
-        const SizedBox(height:10),
-        DropdownButtonFormField<String>(value:_type,decoration:const InputDecoration(labelText:'Content type'),items:const [
-          DropdownMenuItem(value:'social_post',child:Text('Social media post')),
-          DropdownMenuItem(value:'news_story',child:Text('News story')),
-          DropdownMenuItem(value:'press_release',child:Text('Press release')),
-          DropdownMenuItem(value:'announcement',child:Text('Announcement')),
-          DropdownMenuItem(value:'photo_story',child:Text('Photo story')),
-          DropdownMenuItem(value:'video_story',child:Text('Video story')),
-        ],onChanged:_canEdit?(v)=>setState(()=>_type=v!):null),
-        const SizedBox(height:10),TextField(controller:_byline,decoration:const InputDecoration(labelText:'Byline / journalist')),
-        const SizedBox(height:10),TextField(controller:_source,decoration:const InputDecoration(labelText:'Source / attribution note')),
-        const SizedBox(height:10),
-        Row(children:[
-          Expanded(child:OutlinedButton.icon(onPressed:_canEdit?()=>_pickMedia(cover:true):null,icon:const Icon(Icons.image_outlined),label:Text(_coverPath==null?'Choose cover media':'Cover: '+_coverPath!.split('/').last))),
-          const SizedBox(width:8),
-          Expanded(child:OutlinedButton.icon(onPressed:_canEdit?()=>_pickMedia(cover:false):null,icon:const Icon(Icons.perm_media_outlined),label:Text(_mediaPaths.isEmpty?'Choose story media':_mediaPaths.length.toString()+' media selected'))),
-        ]),
-        if(_mediaPaths.isNotEmpty)Padding(padding:const EdgeInsets.only(top:6),child:Text(_mediaPaths.map((p)=>p.split('/').last).join(' · '),style:NileTypography.bodySmall)),
-        const SizedBox(height:10),TextField(controller:_caption,maxLines:4,decoration:const InputDecoration(labelText:'Social caption / standfirst')),
-        const SizedBox(height:10),TextField(controller:_body,minLines:8,maxLines:16,decoration:const InputDecoration(labelText:'Story / editorial copy')),
-        const SizedBox(height:10),TextField(controller:_tags,decoration:const InputDecoration(labelText:'Tags',hintText:'uganda, shea, community')),
-        const SizedBox(height:14),Text('Channel publishing plan',style:NileTypography.titleSmall),
-        const SizedBox(height:6),
-        Wrap(spacing:8,runSpacing:6,children:channels.map((c)=>FilterChip(label:Text(c),selected:_selectedChannels.contains(c),onSelected:_canEdit?(v)=>setState(()=>v?_selectedChannels.add(c):_selectedChannels.remove(c)):null)).toList()),
-        const SizedBox(height:8),
-        ..._selectedChannels.map((c)=>Padding(padding:const EdgeInsets.only(bottom:8),child:OutlinedButton.icon(onPressed:_canEdit?()=>_editChannelCopy(c):null,icon:const Icon(Icons.tune_outlined),label:Text(c.toUpperCase()+' copy'+(_channelCopies[c]!.text.trim().isEmpty?'':' ✓')))),
-        Row(children:[
-          Expanded(child:OutlinedButton.icon(onPressed:_canEdit?()=>_chooseDate(embargo:false):null,icon:const Icon(Icons.schedule_outlined),label:Text(_scheduledAt==null?'Set publication time':'Schedule: '+_scheduledAt!.toLocal().toString()))),
-          const SizedBox(width:8),
-          Expanded(child:OutlinedButton.icon(onPressed:_canEdit?()=>_chooseDate(embargo:true):null,icon:const Icon(Icons.lock_clock_outlined),label:Text(_embargoUntil==null?'Set embargo':'Embargo: '+_embargoUntil!.toLocal().toString()))),
-        ]),
-        const SizedBox(height:10),TextField(controller:_reviewNote,maxLines:3,decoration:const InputDecoration(labelText:'Editorial/review note')),
-        const SizedBox(height:10),
-        DropdownButtonFormField<String>(value:_allowedStatuses.contains(_status)?_status:'draft',decoration:const InputDecoration(labelText:'Workflow status'),items:_allowedStatuses.map((s)=>DropdownMenuItem(value:s,child:Text(s.replaceAll('_',' ')))).toList(),onChanged:_canEdit?(v)=>setState(()=>_status=v!):null),
-        const SizedBox(height:8),
-        Text(_canReview?'Manager/super admin review is enabled. External social connectors are not assumed; publication status records an editorial decision.':'Journalists/content editors can draft and submit. Approval, scheduling and publication require a manager or super admin.',style:NileTypography.bodySmall),
-        _events.isNotEmpty
-            ? Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  _events.length.toString() + ' audit events recorded',
-                  style: NileTypography.bodySmall,
-                ),
-              )
-            : const SizedBox.shrink(),
-      ]))),
-      actions:[TextButton(onPressed:_saving?null:()=>Navigator.pop(context),child:const Text('Cancel')),FilledButton.icon(onPressed:_saving||!_canEdit?null:_save,icon:const Icon(Icons.save_outlined),label:Text(_saving?'Saving…':'Save'))],
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              widget.item == null ? 'New publishing item' : 'Edit publishing item',
+            ),
+          ),
+          if (widget.item != null)
+            IconButton(
+              onPressed: _showAudit,
+              tooltip: 'Editorial history',
+              icon: const Icon(Icons.history),
+            ),
+        ],
+      ),
+      content: SizedBox(
+        width: 820,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: editorChildren,
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          onPressed: _saving || !_canEdit ? null : _save,
+          icon: const Icon(Icons.save_outlined),
+          label: Text(_saving ? 'Saving…' : 'Save'),
+        ),
+      ],
     );
-  }
-}
+  }}
 
 class _MediaPickerDialog extends StatefulWidget {
   const _MediaPickerDialog({required this.initial, required this.single});
