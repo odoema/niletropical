@@ -386,13 +386,15 @@ class _PublishingEditorState extends State<_PublishingEditor> {
         DropdownButtonFormField<String>(value:_allowedStatuses.contains(_status)?_status:'draft',decoration:const InputDecoration(labelText:'Workflow status'),items:_allowedStatuses.map((s)=>DropdownMenuItem(value:s,child:Text(s.replaceAll('_',' ')))).toList(),onChanged:_canEdit?(v)=>setState(()=>_status=v!):null),
         const SizedBox(height:8),
         Text(_canReview?'Manager/super admin review is enabled. External social connectors are not assumed; publication status records an editorial decision.':'Journalists/content editors can draft and submit. Approval, scheduling and publication require a manager or super admin.',style:NileTypography.bodySmall),
-        if (_events.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            _events.length.toString() + ' audit events recorded',
-            style: NileTypography.bodySmall,
-          ),
-        ],
+        _events.isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  _events.length.toString() + ' audit events recorded',
+                  style: NileTypography.bodySmall,
+                ),
+              )
+            : const SizedBox.shrink(),
       ]))),
       actions:[TextButton(onPressed:_saving?null:()=>Navigator.pop(context),child:const Text('Cancel')),FilledButton.icon(onPressed:_saving||!_canEdit?null:_save,icon:const Icon(Icons.save_outlined),label:Text(_saving?'Saving…':'Save'))],
     );
