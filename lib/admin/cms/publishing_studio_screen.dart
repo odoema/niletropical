@@ -671,7 +671,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
           ],
         ),
       ),
-);
+    ]);
 
     if (_events.isNotEmpty) {
       editorChildren.add(
@@ -726,7 +726,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
           icon: const Icon(Icons.save_outlined),
           label: Text(_saving ? 'Saving…' : 'Save changes'),
         ),
-,
+      ],
     );
   }}
 
