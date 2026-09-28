@@ -196,6 +196,20 @@ class _CmsDashboardScreenState extends State<CmsDashboardScreen> {
               ),
             ),
             const SizedBox(height: 8),
+            Text('Publishing & Media Desk', style: NileTypography.titleLarge),
+            const SizedBox(height: 8),
+            _section(
+              context,
+              const _CmsSection(
+                'Publishing Studio',
+                'publishing_items',
+                Icons.edit_calendar_outlined,
+                '/admin/cms/publishing',
+              ),
+              null,
+              subtitle: 'Newsroom workflow for social posts, stories, releases, media planning and publication records.',
+            ),
+            const SizedBox(height: 8),
             Text('Store App presentation', style: NileTypography.titleLarge),
             const SizedBox(height: 8),
             _section(
