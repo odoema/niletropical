@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
 import '../../shared/services/supabase_service.dart';
@@ -64,6 +65,8 @@ class _PublishingStudioScreenState extends State<PublishingStudioScreen> {
             Text('Newsroom & social publishing', style: NileTypography.headlineSmall),
             const SizedBox(height: 6),
             Text('Draft, edit, review, schedule and record publication across social and media channels.', style: NileTypography.bodyMedium),
+            const SizedBox(height: 8),
+            Align(alignment: Alignment.centerLeft, child: OutlinedButton.icon(onPressed: () => context.push('/admin/cms/publishing/calendar'), icon: const Icon(Icons.calendar_month_outlined), label: const Text('Editorial calendar'))),
             const SizedBox(height: NileSpacing.md),
             TextField(
               controller: _search,
