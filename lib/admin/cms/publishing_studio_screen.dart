@@ -363,7 +363,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
     final id = widget.item?['id']?.toString();
     if (id == null || id.isEmpty) return;
     final slug = _slug.text.trim();
-    final uri = Uri.https('niletropicaluganda.com', '/stories/article.html', {
+    final uri = Uri.https('niletropicaluganda.com', '/articles.html', {
       'id': id,
       if (slug.isNotEmpty) 'slug': slug,
     });
