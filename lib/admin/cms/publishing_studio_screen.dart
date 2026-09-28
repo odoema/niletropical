@@ -448,13 +448,32 @@ class _PublishingEditorState extends State<_PublishingEditor> {
     }
   }
 
-  Future<void> _publishToWebsite() async {
-    if (!_canReview) return;
+  Future<void> _changeWorkflowStatus(String next) async {
+    if (_saving || !_canEdit) return;
+    if (next == 'in_review' && !_canEdit) return;
+    if ((next == 'approved' || next == 'scheduled' || next == 'published' || next == 'archived') && !_canReview) return;
+    if (next == 'scheduled' && _scheduledAt == null) {
+      await _chooseDate(embargo: false);
+      if (_scheduledAt == null) return;
+    }
+    if (next == 'published' && _embargoUntil != null && _embargoUntil!.isAfter(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Embargo is still active. Choose a later publication time or clear the embargo.')));
+      return;
+    }
     setState(() {
-      _selectedChannels.add('website');
-      _status = 'published';
+      _status = next;
+      if (next == 'published') _selectedChannels.add('website');
     });
     await _save();
+  }
+
+  Future<void> _publishToWebsite() async {
+    if (!_canReview) return;
+    if (_status != 'approved' && _status != 'scheduled') {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Content must be approved or scheduled before publication.')));
+      return;
+    }
+    await _changeWorkflowStatus('published');
   }
 
   Future<void> _openPublishedWebsite() async {
@@ -722,7 +741,25 @@ class _PublishingEditorState extends State<_PublishingEditor> {
             icon: const Icon(Icons.public),
             label: const Text('Open website'),
           ),
-        if (widget.item != null && _canReview && _status != 'published')
+        if (widget.item != null && _status == 'draft' && _canEdit)
+          OutlinedButton.icon(
+            onPressed: _saving ? null : () => _changeWorkflowStatus('in_review'),
+            icon: const Icon(Icons.send_outlined),
+            label: const Text('Submit for review'),
+          ),
+        if (widget.item != null && _status == 'in_review' && _canReview)
+          FilledButton.icon(
+            onPressed: _saving ? null : () => _changeWorkflowStatus('approved'),
+            icon: const Icon(Icons.verified_outlined),
+            label: const Text('Approve'),
+          ),
+        if (widget.item != null && _status == 'approved' && _canReview)
+          OutlinedButton.icon(
+            onPressed: _saving ? null : () => _changeWorkflowStatus('scheduled'),
+            icon: const Icon(Icons.schedule_outlined),
+            label: const Text('Schedule'),
+          ),
+        if (widget.item != null && (_status == 'approved' || _status == 'scheduled') && _canReview)
           FilledButton.icon(
             onPressed: _saving ? null : _publishToWebsite,
             icon: const Icon(Icons.publish_outlined),
@@ -730,12 +767,12 @@ class _PublishingEditorState extends State<_PublishingEditor> {
           ),
         TextButton(
           onPressed: _saving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('Close'),
         ),
         FilledButton.icon(
           onPressed: _saving || !_canEdit ? null : _save,
           icon: const Icon(Icons.save_outlined),
-          label: Text(_saving ? 'Saving…' : 'Save'),
+          label: Text(_saving ? 'Saving…' : 'Save changes'),
         ),
       ],
     );
