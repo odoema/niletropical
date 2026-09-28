@@ -176,18 +176,19 @@ jobs:
             "status":"completed","conclusion":("failure" if os.environ["BUILD_RESULT"]=="failure" or os.environ["DEPLOY_RESULT"]=="failure" else "success"),
             "failed_job":failed_job,"failed_step":failed_step,
             "root_cause_category":category,
+            "run_url":f"https://github.com/{repo}/actions/runs/{run_id}",
             "evidence_url":f"https://github.com/{repo}/actions/runs/{run_id}",
             "evidence":{"build_result":os.environ["BUILD_RESULT"],"deploy_result":os.environ["DEPLOY_RESULT"],"failed_jobs":failed},
             "detection_stage":failed_step or ("deploy" if os.environ["DEPLOY_RESULT"]!="success" else "none"),
             "evidence_confidence":"confirmed" if failed else "unclassified",
             "recurrence_key":category
           }
-          url=os.environ["SUPABASE_URL"]+"/rest/v1/deployment_failure_records"
-          req=urllib.request.Request(url,data=json.dumps(payload).encode(),headers={
-            "Authorization":"Bearer "+os.environ["SUPABASE_SERVICE_ROLE_KEY"],
-            "apikey":os.environ["SUPABASE_SERVICE_ROLE_KEY"],
-            "Content-Type":"application/json",
-            "Prefer":"resolution=merge-duplicates"
-          },method="POST")
+          base=os.environ["SUPABASE_URL"]+"/rest/v1/"
+          headers={"Authorization":"Bearer "+os.environ["SUPABASE_SERVICE_ROLE_KEY"],"apikey":os.environ["SUPABASE_SERVICE_ROLE_KEY"],"Content-Type":"application/json","Prefer":"resolution=merge-duplicates"}
+          if failed:
+              req=urllib.request.Request(base+"deployment_failure_records",data=json.dumps(payload).encode(),headers=headers,method="POST")
+              urllib.request.urlopen(req,timeout=10).read()
+          run_payload={k:payload[k] for k in ["provider","repository","workflow_name","run_id","run_number","commit_sha","branch","event_name","attempt","status","conclusion","run_url"] if k in payload}
+          req=urllib.request.Request(base+"deployment_run_records",data=json.dumps(run_payload).encode(),headers=headers,method="POST")
           urllib.request.urlopen(req,timeout=10).read()
           PY
