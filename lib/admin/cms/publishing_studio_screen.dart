@@ -7,6 +7,7 @@ import '../../core/widgets/nile_widgets.dart';
 import '../../shared/services/auth_service.dart';
 import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
+import '../../shared/services/publishing_ai_service.dart';
 
 class PublishingStudioScreen extends StatefulWidget {
   const PublishingStudioScreen({super.key, this.initialItemId});
@@ -243,6 +244,88 @@ class _PublishingEditorState extends State<_PublishingEditor> {
     super.dispose();
   }
 
+  Future<void> _runAi(String action) async {
+    if (!_canEdit || _saving) return;
+    try {
+      final ai = await PublishingAiService.assist(
+        action: action,
+        channel: _selectedChannels.isEmpty ? 'website' : _selectedChannels.first,
+        itemId: widget.item?['id']?.toString(),
+        article: {
+          'title': _title.text.trim(), 'body': _body.text.trim(), 'caption': _caption.text.trim(),
+          'byline': _byline.text.trim(), 'source_note': _source.text.trim(), 'slug': _slug.text.trim(),
+          'tags': _tags.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+          'content_type': _type,
+        },
+        source: _source.text.trim(),
+      );
+      if (mounted) await _showAiResult(action, ai);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('AI assistance failed: ${e.toString()}')));
+    }
+  }
+
+  Future<void> _showAiResult(String action, PublishingAiResult ai) async {
+    final r = ai.result;
+    final flags = (r['fact_flags'] as List?)?.map((e) => e.toString()).toList() ?? const <String>[];
+    final preview = [
+      if ((r['title']?.toString() ?? '').isNotEmpty) 'Headline: ${r['title']}',
+      if ((r['body']?.toString() ?? '').isNotEmpty) 'Draft:\n${r['body']}',
+      if ((r['caption']?.toString() ?? '').isNotEmpty) 'Caption:\n${r['caption']}',
+      if ((r['meta_description']?.toString() ?? '').isNotEmpty) 'Meta description: ${r['meta_description']}',
+      if ((r['slug']?.toString() ?? '').isNotEmpty) 'Slug: ${r['slug']}',
+      if ((r['tags'] as List?)?.isNotEmpty ?? false) 'Tags: ${(r['tags'] as List).join(', ')}',
+      if ((r['social_copy']?.toString() ?? '').isNotEmpty) 'Social copy:\n${r['social_copy']}',
+    ].join('\n\n');
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('AI ${action.replaceAll('_', ' ')}'),
+        content: SizedBox(width: 760, child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Model: ${ai.model}', style: NileTypography.bodySmall),
+          const SizedBox(height: 12), SelectableText(preview),
+          if (flags.isNotEmpty) ...[
+            const SizedBox(height: 16), Text('Needs verification', style: NileTypography.titleSmall),
+            ...flags.map((x) => ListTile(contentPadding: EdgeInsets.zero, dense: true, leading: const Icon(Icons.warning_amber_outlined), title: Text(x))),
+          ],
+          const SizedBox(height: 12), Text('AI never publishes automatically. Review before accepting.', style: NileTypography.bodySmall),
+        ]))),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Discard')),
+          FilledButton.icon(onPressed: () => Navigator.pop(context, true), icon: const Icon(Icons.check), label: const Text('Accept into editor')),
+        ],
+      ),
+    );
+    if (accepted != true || !mounted) return;
+    setState(() {
+      if ((r['title']?.toString() ?? '').isNotEmpty) _title.text = r['title'].toString();
+      if (action != 'seo' && (r['body']?.toString() ?? '').isNotEmpty) _body.text = r['body'].toString();
+      if ((r['caption']?.toString() ?? '').isNotEmpty) _caption.text = r['caption'].toString();
+      if ((r['slug']?.toString() ?? '').isNotEmpty) _slug.text = r['slug'].toString();
+      final tags = r['tags']; if (tags is List && tags.isNotEmpty) _tags.text = tags.map((e) => e.toString()).join(', ');
+      final social = r['social_copy']?.toString() ?? '';
+      if (social.isNotEmpty) _channelCopies[_selectedChannels.isEmpty ? 'website' : _selectedChannels.first]?.text = social;
+    });
+  }
+
+  Future<void> _openAiMenu() async {
+    if (!_canEdit) return;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (_) => SafeArea(child: Wrap(children: [
+        const ListTile(title: Text('AI editorial assistant'), subtitle: Text('AI proposes text; you review and accept it.')),
+        ListTile(leading: const Icon(Icons.edit_note), title: const Text('Draft article'), onTap: () => Navigator.pop(context, 'draft')),
+        ListTile(leading: const Icon(Icons.auto_fix_high), title: const Text('Improve writing'), onTap: () => Navigator.pop(context, 'improve')),
+        ListTile(leading: const Icon(Icons.compress), title: const Text('Shorten'), onTap: () => Navigator.pop(context, 'shorten')),
+        ListTile(leading: const Icon(Icons.expand), title: const Text('Expand'), onTap: () => Navigator.pop(context, 'expand')),
+        ListTile(leading: const Icon(Icons.search), title: const Text('SEO suggestions'), onTap: () => Navigator.pop(context, 'seo')),
+        ListTile(leading: const Icon(Icons.share_outlined), title: const Text('Create social copy'), onTap: () => Navigator.pop(context, 'social')),
+        ListTile(leading: const Icon(Icons.fact_check_outlined), title: const Text('Check unsupported claims'), onTap: () => Navigator.pop(context, 'fact_check')),
+      ])),
+    );
+    if (action != null) await _runAi(action);
+  }
+
   Future<void> _pickMedia({required bool cover}) async {
     final picked = await showDialog<List<String>>(
       context: context,
@@ -403,6 +486,8 @@ class _PublishingEditorState extends State<_PublishingEditor> {
         controller: _title,
         decoration: const InputDecoration(labelText: 'Headline / working title'),
       ),
+      const SizedBox(height: 8),
+      Align(alignment: Alignment.centerLeft, child: OutlinedButton.icon(onPressed: _canEdit ? _openAiMenu : null, icon: const Icon(Icons.auto_awesome), label: const Text('AI writing assistant'))),
       const SizedBox(height: 10),
       TextField(
         controller: _slug,
