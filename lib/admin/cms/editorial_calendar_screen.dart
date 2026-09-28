@@ -13,6 +13,7 @@ class EditorialCalendarScreen extends StatefulWidget {
 
 class _EditorialCalendarScreenState extends State<EditorialCalendarScreen> {
   DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
+  DateTime _weekStart = _monday(DateTime.now());
   bool _loading = true;
   bool _saving = false;
   bool _weekView = false;
@@ -143,6 +144,8 @@ class _EditorialCalendarScreenState extends State<EditorialCalendarScreen> {
       if (mounted) setState(() => _saving = false);
     }
   }
+
+  Future<void> _assignItemToCampaign(Map<String,dynamic> item) async { if (!_canManage || _campaigns.isEmpty) return; String? selected; final ok = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(title: const Text('Add to campaign / theme'), content: DropdownButtonFormField<String>(value: selected, decoration: const InputDecoration(labelText: 'Campaign'), items: _campaigns.map((c) => DropdownMenuItem<String>(value: c['id'].toString(), child: Text(c['name']?.toString() ?? ''))).toList(), onChanged: (v) => setDialogState(() => selected = v)), actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')), FilledButton(onPressed: selected == null ? null : () => Navigator.pop(dialogContext, true), child: const Text('Add'))]))); if (ok == true && selected != null) { try { await SupabaseService.client.from('editorial_campaign_items').upsert({'campaign_id': selected, 'item_id': item['id']}); if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Content added to campaign.'))); } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not assign campaign: ' + e.toString()))); } } }
 
   Future<void> _createCampaign() async {
     if (!_canManage) return;
@@ -280,12 +283,12 @@ class _EditorialCalendarScreenState extends State<EditorialCalendarScreen> {
     padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
     child: Column(children: [
       Row(children: [
-        IconButton(onPressed: () => _moveMonth(-1), icon: const Icon(Icons.chevron_left)),
+        IconButton(onPressed: () => _weekView ? _moveWeek(-1) : _moveMonth(-1), icon: const Icon(Icons.chevron_left)),
         Expanded(child: Text(
-          MaterialLocalizations.of(context).formatMonthYear(_month),
+          _weekView ? _date(_weekStart) + ' → ' + _date(_weekStart.add(const Duration(days: 6))) : MaterialLocalizations.of(context).formatMonthYear(_month),
           textAlign: TextAlign.center, style: NileTypography.titleLarge,
         )),
-        IconButton(onPressed: () => _moveMonth(1), icon: const Icon(Icons.chevron_right)),
+        IconButton(onPressed: () => _weekView ? _moveWeek(1) : _moveMonth(1), icon: const Icon(Icons.chevron_right)),
         ToggleButtons(
           isSelected: [!_weekView, _weekView],
           onPressed: (i) => setState(() => _weekView = i == 1),
@@ -374,6 +377,7 @@ class _EditorialCalendarScreenState extends State<EditorialCalendarScreen> {
             style: NileTypography.bodySmall,
           ),
           if ((_channels[id] ?? []).isNotEmpty) Text((_channels[id] ?? []).join(', '), style: NileTypography.labelSmall),
+          if (_canManage && _campaigns.isNotEmpty) Align(alignment: Alignment.centerRight, child: TextButton.icon(onPressed: () => _assignItemToCampaign(item), icon: const Icon(Icons.campaign_outlined, size: 16), label: const Text('Campaign'))),
         ],
       )),
     );
@@ -412,9 +416,13 @@ class _EditorialCalendarScreenState extends State<EditorialCalendarScreen> {
     return result;
   }
 
-  List<DateTime> _weekDays() {
-    final monday = DateTime(_month.year, _month.month, 1).subtract(Duration(days: DateTime(_month.year, _month.month, 1).weekday - 1));
-    return List.generate(7, (i) => monday.add(Duration(days: i)));
+  List<DateTime> _weekDays() => List.generate(7, (i) => _weekStart.add(Duration(days: i)));
+
+  static DateTime _monday(DateTime d) => DateTime(d.year, d.month, d.day).subtract(Duration(days: d.weekday - 1));
+
+  void _moveWeek(int delta) {
+    setState(() => _weekStart = _weekStart.add(Duration(days: 7 * delta)));
+    _load();
   }
 
   Widget _dayCell(DateTime day) {
@@ -533,7 +541,7 @@ class _EditorialCalendarScreenState extends State<EditorialCalendarScreen> {
 
   void _goToday() {
     final now = DateTime.now();
-    setState(() => _month = DateTime(now.year, now.month));
+    setState(() { _month = DateTime(now.year, now.month); _weekStart = _monday(now); });
     _load();
   }
 
