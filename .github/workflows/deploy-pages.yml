@@ -109,8 +109,9 @@ jobs:
         run: |
           test -f build/site/index.html
           test -f build/site/app/index.html
+          test -f build/site/articles.html
           test -f build/site/CNAME
-          echo "Pages artifact verified: website + Flutter app present."
+          echo "Pages artifact verified: website + Flutter app + Publishing newsroom present."
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
