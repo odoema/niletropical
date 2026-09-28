@@ -131,6 +131,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final quote = await DeliveryService.quoteDelivery(
         deliveryZoneId: _zoneId!,
         distanceKm: route.distanceKm,
+        durationMinutes: route.durationMinutes,
       );
       if (!mounted) return;
       setState(() {
