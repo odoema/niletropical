@@ -516,25 +516,21 @@ class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
   static const _slides = [
     (
       slot: 'app_hero_1',
-      fallback: 'assets/products/eco-shea-butter-250g.svg',
       heading: 'Nile Tropical Industries',
       text: 'A Ugandan enterprise creating natural, practical products for everyday life.',
     ),
     (
       slot: 'app_hero_2',
-      fallback: 'assets/products/hibiscus-tea-150g.svg',
       heading: 'From Uganda, With Purpose',
       text: 'We bring together local inspiration, natural ingredients and thoughtful product development.',
     ),
     (
       slot: 'app_hero_3',
-      fallback: 'assets/products/nile-sheabutter-lotion-apple-200ml.svg',
       heading: 'Natural Care For Everyday Living',
       text: 'Our growing range spans personal care, hygiene, wellness and botanical products.',
     ),
     (
       slot: 'app_hero_4',
-      fallback: 'assets/products/shea-butter-mosquito-repellent-jelly-150g.svg',
       heading: 'Growing With Our Community',
       text: 'Nile Tropical Industries is building a modern Ugandan brand focused on quality, accessibility and value.',
     ),
@@ -596,21 +592,13 @@ class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  customUrl != null
-                      ? Image.network(
-                          customUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Image.asset(slide.fallback, fit: BoxFit.cover),
-                        )
-                      : Image.asset(
-                          slide.fallback,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: NileColors.primary,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.image_not_supported_outlined, color: Colors.white, size: 48),
-                          ),
-                        ),
+                  if (customUrl != null)
+                    Image.network(
+                      customUrl,
+                      fit: BoxFit.contain,
+                      alignment: Alignment.center,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -625,7 +613,7 @@ class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
+                    padding: const EdgeInsets.fromLTRB(32, 28, 32, 28),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: ConstrainedBox(
@@ -664,7 +652,7 @@ class _NileTropicalHeroCarouselState extends State<_NileTropicalHeroCarousel> {
                     ),
                   ),
                   Positioned(
-                    left: 24,
+                    left: 32,
                     bottom: 18,
                     child: Row(
                       children: List.generate(
