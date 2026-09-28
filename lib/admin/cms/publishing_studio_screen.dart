@@ -9,7 +9,9 @@ import '../../shared/services/storage_service.dart';
 import '../../shared/services/supabase_service.dart';
 
 class PublishingStudioScreen extends StatefulWidget {
-  const PublishingStudioScreen({super.key});
+  const PublishingStudioScreen({super.key, this.initialItemId});
+
+  final String? initialItemId;
   @override State<PublishingStudioScreen> createState() => _PublishingStudioScreenState();
 }
 
@@ -19,7 +21,20 @@ class _PublishingStudioScreenState extends State<PublishingStudioScreen> {
   bool _loading = true;
   List<Map<String, dynamic>> _items = [];
 
-  @override void initState() { super.initState(); _load(); }
+  @override void initState() {
+    super.initState();
+    _load();
+    if (widget.initialItemId != null && widget.initialItemId!.isNotEmpty) _openInitialItem();
+  }
+
+  Future<void> _openInitialItem() async {
+    try {
+      final row = await SupabaseService.client.from('publishing_items').select('id,title').eq('id', widget.initialItemId!).single();
+      if (mounted) await _openEditor(Map<String, dynamic>.from(row));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Publishing item could not be opened: ' + e.toString())));
+    }
+  }
   @override void dispose() { _search.dispose(); super.dispose(); }
 
   Future<void> _load() async {
