@@ -149,55 +149,113 @@ class _EditorialCalendarScreenState extends State<EditorialCalendarScreen> {
     final name = TextEditingController();
     final theme = TextEditingController();
     final description = TextEditingController();
-    DateTime start = DateTime(_month.year, _month.month, 1);
-    DateTime end = DateTime(_month.year, _month.month + 1, 0);
+    DateTime startDate = DateTime(_month.year, _month.month, 1);
+    DateTime endDate = DateTime(_month.year, _month.month + 1, 0);
+
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => StatefulBuilder(builder: (dialogContext, setDialogState) {
-        return AlertDialog(
-          title: const Text('New campaign / theme'),
-          content: SizedBox(width: 560, child: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(controller: name, decoration: const InputDecoration(labelText: 'Campaign name')),
-            TextField(controller: theme, decoration: const InputDecoration(labelText: 'Theme')),
-            TextField(controller: description, decoration: const InputDecoration(labelText: 'Description')),
-            Row(children: [
-              Expanded(child: TextButton(
-                onPressed: () async {
-                  final d = await showDatePicker(context: dialogContext, firstDate: DateTime(2025), lastDate: DateTime(2035), initialDate: start);
-                  if (d != null) setDialogState(() => start = d);
-                },
-                child: Text('Start: ' + _date(start)),
-              )),
-              Expanded(child: TextButton(
-                onPressed: () async {
-                  final d = await showDatePicker(context: dialogContext, firstDate: start, lastDate: DateTime(2035), initialDate: end);
-                  if (d != null) setDialogState(() => end = d);
-                },
-                child: Text('End: ' + _date(end)),
-              )),
-            ]),
-          ]),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Create')),
-          ],
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('New campaign / theme'),
+              content: SizedBox(
+                width: 560,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: name,
+                      decoration: const InputDecoration(labelText: 'Campaign name'),
+                    ),
+                    TextField(
+                      controller: theme,
+                      decoration: const InputDecoration(labelText: 'Theme'),
+                    ),
+                    TextField(
+                      controller: description,
+                      decoration: const InputDecoration(labelText: 'Description'),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(2025),
+                                lastDate: DateTime(2035),
+                                initialDate: startDate,
+                              );
+                              if (picked != null) {
+                                setDialogState(() => startDate = picked);
+                              }
+                            },
+                            child: Text('Start: ' + _date(startDate)),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                firstDate: startDate,
+                                lastDate: DateTime(2035),
+                                initialDate: endDate,
+                              );
+                              if (picked != null) {
+                                setDialogState(() => endDate = picked);
+                              }
+                            },
+                            child: Text('End: ' + _date(endDate)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Create'),
+                ),
+              ],
+            );
+          },
         );
-      }),
+      },
     );
+
     if (ok == true && name.text.trim().isNotEmpty) {
-      final uid = SupabaseService.client.auth.currentUser?.id;
-      await SupabaseService.client.from('editorial_campaigns').insert({
-        'name': name.text.trim(),
-        'theme': theme.text.trim(),
-        'description': description.text.trim(),
-        'starts_on': _date(start),
-        'ends_on': _date(end),
-        'created_by': uid,
-        'updated_by': uid,
-      });
-      await _load();
+      try {
+        final uid = SupabaseService.client.auth.currentUser?.id;
+        await SupabaseService.client.from('editorial_campaigns').insert({
+          'name': name.text.trim(),
+          'theme': theme.text.trim(),
+          'description': description.text.trim(),
+          'starts_on': _date(startDate),
+          'ends_on': _date(endDate),
+          'created_by': uid,
+          'updated_by': uid,
+        });
+        await _load();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not create campaign: ' + e.toString())),
+          );
+        }
+      }
     }
-    name.dispose(); theme.dispose(); description.dispose();
+
+    name.dispose();
+    theme.dispose();
+    description.dispose();
   }
 
   @override Widget build(BuildContext context) {
