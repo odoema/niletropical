@@ -258,7 +258,7 @@ class _PublishingEditorState extends State<_PublishingEditor> {
       content: SizedBox(width:620,child:TextField(controller:copy,minLines:8,maxLines:14,decoration:const InputDecoration(labelText:'Channel-specific copy'))),
       actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Save version'))],
     ));
-    if (ok == true && mounted) setState(() {});
+    if (ok == true && mounted) { _channelCopies[channel]!.text = copy.text; setState(() {}); }
     copy.dispose();
   }
 
