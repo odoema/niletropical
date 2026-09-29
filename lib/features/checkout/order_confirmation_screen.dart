@@ -11,12 +11,26 @@ class OrderConfirmationScreen extends StatelessWidget {
     required this.total,
     required this.paymentMethod,
     this.phone,
+    this.subtotal,
+    this.deliveryFee,
+    this.distanceKm,
+    this.durationMinutes,
+    this.pickupLabel,
+    this.dropoffLabel,
+    this.deliveryZone,
   });
 
   final String orderNumber;
   final double total;
   final String paymentMethod;
   final String? phone;
+  final double? subtotal;
+  final double? deliveryFee;
+  final double? distanceKm;
+  final double? durationMinutes;
+  final String? pickupLabel;
+  final String? dropoffLabel;
+  final String? deliveryZone;
 
   @override
   Widget build(BuildContext context) {
@@ -47,10 +61,28 @@ class OrderConfirmationScreen extends StatelessWidget {
               const SizedBox(height: NileSpacing.xl),
               NileCard(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Text('Order receipt', style: NileTypography.titleMedium),
+                    const SizedBox(height: NileSpacing.sm),
                     _line('Order number', orderNumber),
-                    _line('Total', null, amount: total),
-                    _line('Payment', paymentMethod.replaceAll('_', ' ')),
+                    if (deliveryZone != null) _line('Delivery area', deliveryZone!),
+                    if (pickupLabel != null) _line('From', pickupLabel!),
+                    if (dropoffLabel != null) _line('To', dropoffLabel!),
+                    if (distanceKm != null || durationMinutes != null)
+                      _line(
+                        'Route',
+                        [
+                          if (distanceKm != null) distanceKm!.toStringAsFixed(1) + ' km',
+                          if (durationMinutes != null) durationMinutes!.ceil().toString() + ' min',
+                        ].join(' • '),
+                      ),
+                    const Divider(height: 20),
+                    if (subtotal != null) _line('Products', null, amount: subtotal!),
+                    if (deliveryFee != null) _line('Delivery', null, amount: deliveryFee!),
+                    if (subtotal != null || deliveryFee != null) const Divider(height: 20),
+                    _line('Total paid', null, amount: total),
+                    _line('Paid via', paymentMethod.replaceAll('_', ' ')),
                   ],
                 ),
               ),
