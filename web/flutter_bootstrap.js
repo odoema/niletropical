@@ -25,3 +25,10 @@ _flutter.loader.load({
     }
   }
 });
+
+(function(){
+  var s=document.createElement('script');
+  s.src='install-app.js';
+  s.defer=true;
+  document.head.appendChild(s);
+})();
