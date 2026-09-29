@@ -145,6 +145,13 @@ final appRouter = GoRouter(
               total: (extra['total'] as num?)?.toDouble() ?? 0,
               paymentMethod: extra['paymentMethod'] as String? ?? 'mtn_momo',
               phone: extra['phone'] as String?,
+              subtotal: (extra['subtotal'] as num?)?.toDouble(),
+              deliveryFee: (extra['deliveryFee'] as num?)?.toDouble(),
+              distanceKm: (extra['distanceKm'] as num?)?.toDouble(),
+              durationMinutes: (extra['durationMinutes'] as num?)?.toDouble(),
+              pickupLabel: extra['pickupLabel'] as String?,
+              dropoffLabel: extra['dropoffLabel'] as String?,
+              deliveryZone: extra['deliveryZone'] as String?,
             );
           },
         ),
