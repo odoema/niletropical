@@ -2,17 +2,43 @@
   "name": "Nile Tropical",
   "short_name": "Nile Tropical",
   "start_url": ".",
+  "scope": ".",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#002958",
-  "description": "Nile Tropical Industries — quality products and convenient online shopping.",
+  "background_color": "#005090",
+  "theme_color": "#005090",
+  "description": "Nile Tropical Industries — shop from your phone like an app.",
   "orientation": "portrait-primary",
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "favicon.png?v=5",
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/Icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/Icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "favicon.png",
       "sizes": "any",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
