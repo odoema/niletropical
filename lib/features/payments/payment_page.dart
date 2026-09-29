@@ -151,22 +151,32 @@ class _PaymentPageState extends State<PaymentPage> {
             if (_phase == 'ready') ...[
               Text('Payment method', style: NileTypography.titleMedium),
               const SizedBox(height: NileSpacing.sm),
-              ...PaymentMethods.all
-                  .where((m) => !PaymentMethods.isCod(m))
-                  .map(
-                    (m) => RadioListTile<String>(
-                      value: m,
-                      groupValue: _method,
-                      onChanged: (v) =>
-                          setState(() => _method = PaymentMethods.normalize(v)),
-                      title: Text(
-                        PaymentMethods.labels[m]!,
-                        style: NileTypography.bodyLarge,
+              NileCard(
+                child: Row(
+                  children: [
+                    const Icon(Icons.lock_outline, color: NileColors.primary),
+                    const SizedBox(width: NileSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            PaymentMethods.labels[_method] ?? _method,
+                            style: NileTypography.bodyLarge.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'Payment method is fixed to the method selected at checkout.',
+                            style: NileTypography.bodySmall,
+                          ),
+                        ],
                       ),
-                      activeColor: NileColors.primary,
-                      contentPadding: EdgeInsets.zero,
                     ),
-                  ),
+                  ],
+                ),
+              ),
               const Spacer(),
               NileButton(
                 label: 'Pay now',
