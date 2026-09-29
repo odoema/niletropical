@@ -1,5 +1,10 @@
 // payment-initiate — server-side payment initiation; client is never authority.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import {
+  parsePesapalEnvironment,
+  requestPesapalToken,
+  submitPesapalOrder,
+} from "../_shared/pesapal.ts";
 
 // The MTN MoMo Developer sandbox accepts EUR only. The Oracle gateway should
 // translate this provider-facing currency according to its configured MTN
@@ -334,6 +339,202 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (method === "card") {
+      // Card / international payments go through Pesapal (hosted checkout).
+      // Kill switch: nothing reaches Pesapal until this is explicitly "true".
+      if (Deno.env.get("PESAPAL_ENABLED") !== "true") {
+        return json({
+          error: "PAYMENT_PROVIDER_NOT_CONFIGURED",
+          message: "Card payments are not enabled yet. No payment was recorded as successful.",
+          method,
+        }, 503);
+      }
+      if (order.payment_method !== "card") {
+        return json({
+          error: "PAYMENT_METHOD_MISMATCH",
+          message: "Order payment method is not card",
+        }, 409);
+      }
+      if (order.payment_status === "paid") {
+        return json({ error: "ORDER_ALREADY_PAID", message: "This order is already paid." }, 409);
+      }
+      if (order.status === "new_order") {
+        const { data: transitioned } = await supabase
+          .from("orders")
+          .update({ status: "payment_pending", payment_status: "pending" })
+          .eq("id", order.id)
+          .eq("status", "new_order")
+          .select("id, order_number, total, payment_status, status, payment_method, customer_phone_snapshot")
+          .maybeSingle();
+        if (transitioned) order = transitioned;
+      }
+      if (order.status !== "payment_pending") {
+        return json({
+          error: "ORDER_NOT_PAYABLE",
+          message: "Order must be in payment_pending state",
+          status: order.status,
+        }, 409);
+      }
+
+      // Reuse a recent unfinished payment link instead of creating a second
+      // live transaction for the same order (retry / resend button).
+      const recent = await supabase
+        .from("payment_transactions")
+        .select("provider_reference, raw_response, created_at")
+        .eq("order_id", order.id)
+        .eq("provider", "pesapal")
+        .eq("status", "pending")
+        .gte("created_at", new Date(Date.now() - 15 * 60 * 1000).toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const reusable = (recent.data?.raw_response as Record<string, unknown> | null)
+        ?.redirect_url;
+      if (recent.data?.provider_reference && typeof reusable === "string") {
+        return json({
+          reference: recent.data.provider_reference,
+          status: "pending",
+          order_id: order.id,
+          order_number: order.order_number,
+          method: "card",
+          redirect_url: reusable,
+          instructions: "Complete your payment in the secure payment window.",
+        });
+      }
+
+      let environment;
+      try {
+        environment = parsePesapalEnvironment(Deno.env.get("PESAPAL_ENVIRONMENT"));
+      } catch (error) {
+        return json({ error: "PESAPAL_NOT_CONFIGURED", message: String(error) }, 500);
+      }
+      const consumerKey = Deno.env.get("PESAPAL_CONSUMER_KEY") ?? "";
+      const consumerSecret = Deno.env.get("PESAPAL_CONSUMER_SECRET") ?? "";
+      const ipnId = Deno.env.get("PESAPAL_IPN_ID") ?? "";
+      const callbackUrl = Deno.env.get("PESAPAL_CALLBACK_URL") ??
+        "https://niletropicaluganda.com/app/";
+      if (!consumerKey || !consumerSecret || !ipnId) {
+        return json({
+          error: "PESAPAL_NOT_CONFIGURED",
+          message: "Pesapal credentials or IPN id are missing.",
+        }, 500);
+      }
+
+      const { data: extra } = await supabase
+        .from("orders")
+        .select("customer_name_snapshot, customer_email_snapshot, delivery_address_snapshot")
+        .eq("id", order.id)
+        .maybeSingle();
+      const fullName = String(extra?.customer_name_snapshot ?? "").trim();
+      const [firstName, ...rest] = fullName.split(/\s+/);
+      const address = (extra?.delivery_address_snapshot ?? {}) as Record<string, unknown>;
+      const payerPhone = String(order.customer_phone_snapshot ?? clientPhone ?? "").trim();
+      const payerEmail = String(extra?.customer_email_snapshot ?? "").trim();
+      if (!payerEmail && !payerPhone) {
+        return json({
+          error: "MISSING_PAYER_CONTACT",
+          message: "The order needs an email or phone number for card payment.",
+        }, 422);
+      }
+
+      const reference = crypto.randomUUID();
+      const pesapalOrder = {
+        id: reference,
+        currency: "UGX",
+        amount: Number(order.total),
+        description: `Nile Tropical order ${order.order_number}`.slice(0, 100),
+        callback_url: callbackUrl,
+        notification_id: ipnId,
+        billing_address: {
+          email_address: payerEmail,
+          phone_number: payerPhone,
+          country_code: "UG",
+          first_name: firstName || "Customer",
+          last_name: rest.join(" "),
+          line_1: String(address.address_line ?? address.line_1 ?? ""),
+          city: String(address.city ?? ""),
+        },
+      };
+
+      const { data: paymentTx, error: paymentTxError } = await supabase
+        .from("payment_transactions")
+        .insert({
+          order_id: order.id,
+          provider: "pesapal",
+          method: "card",
+          provider_reference: reference,
+          idempotency_key: reference,
+          amount: order.total,
+          currency: "UGX",
+          status: "initiated",
+          raw_response: { payment_environment: environment, request: pesapalOrder },
+        })
+        .select("id")
+        .single();
+      if (paymentTxError) {
+        return json({
+          error: "PAYMENT_TRANSACTION_CREATE_FAILED",
+          message: paymentTxError.message,
+        }, 500);
+      }
+
+      try {
+        const accessToken = await requestPesapalToken({
+          environment,
+          consumerKey,
+          consumerSecret,
+        });
+        const submitted = await submitPesapalOrder({
+          environment,
+          accessToken,
+          order: pesapalOrder,
+        });
+        await supabase
+          .from("payment_transactions")
+          .update({
+            status: "pending",
+            provider_transaction_id: submitted.trackingId,
+            raw_response: {
+              payment_environment: environment,
+              request: pesapalOrder,
+              order_tracking_id: submitted.trackingId,
+              redirect_url: submitted.redirectUrl,
+            },
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", paymentTx.id);
+
+        return json({
+          reference,
+          status: "pending",
+          order_id: order.id,
+          order_number: order.order_number,
+          method: "card",
+          redirect_url: submitted.redirectUrl,
+          instructions: "Complete your payment in the secure payment window.",
+        });
+      } catch (error) {
+        await supabase
+          .from("payment_transactions")
+          .update({
+            status: "failed",
+            raw_response: {
+              payment_environment: environment,
+              request: pesapalOrder,
+              error: String(error),
+            },
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", paymentTx.id);
+        return json({
+          error: "PESAPAL_ORDER_SUBMIT_FAILED",
+          message: "Could not start the card payment. Please try again.",
+          reference,
+        }, 502);
+      }
+    }
+
     if (method === "cash_on_delivery") {
       return json({
         error: "COD_PAYMENT_INITIATION_NOT_ALLOWED",
@@ -341,10 +542,10 @@ Deno.serve(async (req) => {
       }, 409);
     }
 
-    if (method === "airtel_money" || method === "card") {
+    if (method === "airtel_money") {
       return json({
         error: "PAYMENT_PROVIDER_NOT_CONFIGURED",
-        message: `The ${method === "airtel_money" ? "Airtel Money" : "card"} payment provider is not configured yet. No payment was recorded as successful.`,
+        message: "The Airtel Money payment provider is not configured yet. No payment was recorded as successful.",
         method,
       }, 503);
     }

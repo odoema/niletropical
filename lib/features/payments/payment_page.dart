@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/nile_widgets.dart';
 import '../../core/constants/payment_methods.dart';
@@ -33,6 +34,7 @@ class _PaymentPageState extends State<PaymentPage> {
   String _phase = 'ready'; // ready | pending | checking | failed
   String? _reference;
   String? _instructions;
+  String? _redirectUrl; // hosted card page (Pesapal)
   String? _error;
   Timer? _poll;
 
@@ -74,7 +76,13 @@ class _PaymentPageState extends State<PaymentPage> {
         _phase = 'pending';
         _reference = res['reference']?.toString();
         _instructions = res['instructions']?.toString();
+        _redirectUrl = res['redirect_url']?.toString();
       });
+      // Best effort: browsers may block a pop-up opened after a network call,
+      // so the pending screen also shows an explicit "Open payment page" button.
+      if (_redirectUrl != null && _redirectUrl!.isNotEmpty) {
+        await _openPaymentPage();
+      }
       _startPoll();
     } catch (e) {
       if (!mounted) return;
@@ -84,6 +92,15 @@ class _PaymentPageState extends State<PaymentPage> {
         _error = e.toString();
       });
     }
+  }
+
+  Future<void> _openPaymentPage() async {
+    final url = _redirectUrl;
+    if (url == null || url.isEmpty) return;
+    final uri = Uri.tryParse(url);
+    // Only ever open the https payment page returned by our own server.
+    if (uri == null || uri.scheme != 'https') return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   void _startPoll() {
@@ -188,7 +205,9 @@ class _PaymentPageState extends State<PaymentPage> {
               Text(
                 _phase == 'checking'
                     ? 'Checking payment'
-                    : 'Approve on your phone',
+                    : (_redirectUrl != null
+                        ? 'Complete your payment'
+                        : 'Approve on your phone'),
                 style: NileTypography.headlineSmall,
               ),
               const SizedBox(height: NileSpacing.sm),
@@ -202,6 +221,14 @@ class _PaymentPageState extends State<PaymentPage> {
                 Text('Ref $_reference', style: NileTypography.bodySmall),
               ],
               const Spacer(),
+              if (_redirectUrl != null) ...[
+                NileButton(
+                  label: 'Open payment page',
+                  icon: Icons.lock_outline,
+                  onPressed: _openPaymentPage,
+                ),
+                const SizedBox(height: NileSpacing.sm),
+              ],
               NileButton(
                 label: 'Check payment status',
                 loading: _phase == 'checking',
