@@ -474,10 +474,18 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             const SizedBox(height: NileSpacing.sm),
             _paymentOption(
               method: PaymentMethods.mtnMomo,
-              title: 'Mobile Money',
-              subtitle: 'Pay directly from your mobile phone.',
+              title: 'MTN Mobile Money',
+              subtitle: 'Pay directly with MTN Mobile Money.',
               icon: Icons.phone_android_rounded,
-              brands: const ['MTN', 'Airtel'],
+              brands: const ['MTN'],
+            ),
+            const SizedBox(height: NileSpacing.sm),
+            _paymentOption(
+              method: PaymentMethods.airtelMoney,
+              title: 'Airtel Money',
+              subtitle: 'Pay directly with Airtel Money.',
+              icon: Icons.phone_android_rounded,
+              brands: const ['Airtel'],
             ),
             const SizedBox(height: NileSpacing.sm),
             _paymentOption(
