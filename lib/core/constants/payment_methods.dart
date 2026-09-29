@@ -11,6 +11,11 @@ abstract final class PaymentMethods {
 
   static const all = [mtnMomo, airtelMoney, card, cashOnDelivery];
 
+  /// Card / international payments via Pesapal. OFF unless the app is built
+  /// with --dart-define=PESAPAL_CARD_ENABLED=true (after sandbox verification).
+  static const pesapalCardEnabled =
+      bool.fromEnvironment('PESAPAL_CARD_ENABLED', defaultValue: false);
+
   static const labels = {
     mtnMomo: 'MTN Mobile Money',
     airtelMoney: 'Airtel Money',

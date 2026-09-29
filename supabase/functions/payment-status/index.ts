@@ -1,5 +1,6 @@
 // payment-status — server-side MTN verification and order reconciliation.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { settlePesapalTransaction } from "../_shared/pesapal_settle.ts";
 
 const MTN_GATEWAY_CURRENCY = (Deno.env.get("MTN_GATEWAY_CURRENCY") ?? "EUR").toUpperCase();
 
@@ -114,6 +115,35 @@ Deno.serve(async (req) => {
         error: "PAYMENT_TRANSACTION_MISMATCH",
         message: "The local payment transaction does not match the MTN payment contract.",
       }, 409);
+    }
+
+    if (order.payment_method === "card") {
+      if (!txLookup.data?.id || txLookup.data.provider !== "pesapal") {
+        return json({
+          error: "PAYMENT_TRANSACTION_NOT_FOUND",
+          message: "No local card payment transaction matches this reference and order.",
+        }, 409);
+      }
+      const settled = await settlePesapalTransaction(supabase, txLookup.data.id);
+      if (!settled.ok) {
+        return json({
+          error: settled.reason,
+          reference,
+          order_id: order.id,
+          order_number: order.order_number,
+          status: order.payment_status,
+        }, 409);
+      }
+      return json({
+        reference,
+        status: settled.status,
+        order_id: settled.orderId,
+        order_number: settled.orderNumber,
+        total: settled.total,
+        currency: "UGX",
+        method: "card",
+        reconciled: settled.status === "paid",
+      });
     }
 
     if (order.payment_method !== "mtn_momo") {

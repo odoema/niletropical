@@ -500,7 +500,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             _paymentOption(
               method: PaymentMethods.card,
               title: 'Card & international payment',
-              subtitle: 'Card provider is not enabled yet.',
+              subtitle: PaymentMethods.pesapalCardEnabled
+                  ? 'Pay securely by card or mobile money on the Pesapal page.'
+                  : 'Card provider is not enabled yet.',
               icon: Icons.credit_card_rounded,
               brands: const [
                 'VISA',
@@ -510,12 +512,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 'PayPal',
                 'Skrill',
               ],
-              enabled: false,
-              note: 'Coming soon — no card payment provider is enabled for live checkout yet.',
+              enabled: PaymentMethods.pesapalCardEnabled,
+              note: PaymentMethods.pesapalCardEnabled
+                  ? null
+                  : 'Coming soon — no card payment provider is enabled for live checkout yet.',
             ),
             const SizedBox(height: NileSpacing.sm),
             Text(
-              'Live payment methods: MTN Mobile Money and Cash on delivery. Airtel Money and card payments will appear when their providers are enabled.',
+              PaymentMethods.pesapalCardEnabled
+                  ? 'Live payment methods: MTN Mobile Money, card and Cash on delivery. Airtel Money will appear when its provider is enabled.'
+                  : 'Live payment methods: MTN Mobile Money and Cash on delivery. Airtel Money and card payments will appear when their providers are enabled.',
               style: NileTypography.bodySmall,
             ),
             const SizedBox(height: NileSpacing.sm),
