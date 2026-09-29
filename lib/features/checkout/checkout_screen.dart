@@ -213,6 +213,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             'orderNumber': orderNumber,
             'total': total,
             'paymentMethod': _paymentMethod,
+            'subtotal': cart.subtotal,
+            'deliveryFee': _deliveryFee,
+            'distanceKm': _route!.distanceKm,
+            'durationMinutes': _route!.durationMinutes,
+            'pickupLabel': _origin!.name,
+            'dropoffLabel': _destination!.name,
+            'deliveryZone': _zones.firstWhere((z) => z.id == _zoneId).name,
           },
         );
       } else {
