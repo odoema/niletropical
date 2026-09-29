@@ -483,16 +483,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             _paymentOption(
               method: PaymentMethods.airtelMoney,
               title: 'Airtel Money',
-              subtitle: 'Pay directly with Airtel Money.',
+              subtitle: 'Payment provider is not enabled yet.',
               icon: Icons.phone_android_rounded,
               brands: const ['Airtel'],
+              enabled: false,
+              note: 'Coming soon — this option is not available for live checkout yet.',
             ),
             const SizedBox(height: NileSpacing.sm),
             _paymentOption(
               method: PaymentMethods.card,
               title: 'Card & international payment',
-              subtitle:
-                  'One payment option for cards and supported international wallets.',
+              subtitle: 'Card provider is not enabled yet.',
               icon: Icons.credit_card_rounded,
               brands: const [
                 'VISA',
@@ -502,7 +503,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 'PayPal',
                 'Skrill',
               ],
-              note: 'Available methods depend on the configured payment provider.',
+              enabled: false,
+              note: 'Coming soon — no card payment provider is enabled for live checkout yet.',
+            ),
+            const SizedBox(height: NileSpacing.sm),
+            Text(
+              'Live payment methods: MTN Mobile Money and Cash on delivery. Airtel Money and card payments will appear when their providers are enabled.',
+              style: NileTypography.bodySmall,
             ),
             const SizedBox(height: NileSpacing.sm),
             _paymentOption(
@@ -575,6 +582,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     required IconData icon,
     List<String> brands = const [],
     String? note,
+    bool enabled = true,
   }) {
     final selected = _paymentMethod == method;
 
@@ -583,10 +591,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       child: RadioListTile<String>(
         value: method,
         groupValue: _paymentMethod,
-        onChanged: (value) {
-          if (value == null) return;
-          setState(() => _paymentMethod = value);
-        },
+        onChanged: enabled
+            ? (value) {
+                if (value == null) return;
+                setState(() => _paymentMethod = value);
+              }
+            : null,
         activeColor: NileColors.primary,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: NileSpacing.sm,
