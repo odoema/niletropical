@@ -466,35 +466,43 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               'Payment',
               style: NileTypography.titleLarge,
             ),
-            const SizedBox(
-              height: NileSpacing.sm,
+            const SizedBox(height: NileSpacing.xs),
+            Text(
+              'Choose how you would like to pay. Your order will keep the same secure payment flow.',
+              style: NileTypography.bodySmall,
             ),
-            ...PaymentMethods.all
-                .map(
-                  (m) => (
-                    m,
-                    PaymentMethods.labels[m]!,
-                  ),
-                )
-                .map(
-                  (m) => RadioListTile<String>(
-                    value: m.$1,
-                    groupValue: _paymentMethod,
-                    onChanged: (v) {
-                      if (v == null) return;
-
-                      setState(
-                        () => _paymentMethod = v,
-                      );
-                    },
-                    title: Text(
-                      m.$2,
-                      style: NileTypography.bodyLarge,
-                    ),
-                    activeColor: NileColors.primary,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
+            const SizedBox(height: NileSpacing.sm),
+            _paymentOption(
+              method: PaymentMethods.mtnMomo,
+              title: 'Mobile Money',
+              subtitle: 'Pay directly from your mobile phone.',
+              icon: Icons.phone_android_rounded,
+              brands: const ['MTN', 'Airtel'],
+            ),
+            const SizedBox(height: NileSpacing.sm),
+            _paymentOption(
+              method: PaymentMethods.card,
+              title: 'Card & international payment',
+              subtitle:
+                  'One payment option for cards and supported international wallets.',
+              icon: Icons.credit_card_rounded,
+              brands: const [
+                'VISA',
+                'Mastercard',
+                'Maestro',
+                'Visa Electron',
+                'PayPal',
+                'Skrill',
+              ],
+              note: 'Available methods depend on the configured payment provider.',
+            ),
+            const SizedBox(height: NileSpacing.sm),
+            _paymentOption(
+              method: PaymentMethods.cashOnDelivery,
+              title: 'Cash on delivery',
+              subtitle: 'Pay when your order is delivered.',
+              icon: Icons.payments_outlined,
+            ),
             const SizedBox(
               height: NileSpacing.lg,
             ),
@@ -547,6 +555,83 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               height: NileSpacing.xl,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _paymentOption({
+    required String method,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    List<String> brands = const [],
+    String? note,
+  }) {
+    final selected = _paymentMethod == method;
+
+    return NileCard(
+      padding: EdgeInsets.zero,
+      child: RadioListTile<String>(
+        value: method,
+        groupValue: _paymentMethod,
+        onChanged: (value) {
+          if (value == null) return;
+          setState(() => _paymentMethod = value);
+        },
+        activeColor: NileColors.primary,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: NileSpacing.sm,
+          vertical: NileSpacing.xs,
+        ),
+        secondary: Icon(
+          icon,
+          color: selected ? NileColors.primary : NileColors.textSecondary,
+        ),
+        title: Text(
+          title,
+          style: NileTypography.bodyLarge,
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(subtitle, style: NileTypography.bodySmall),
+              if (brands.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: brands
+                      .map(
+                        (brand) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: NileColors.surface,
+                            borderRadius: NileRadius.borderSm,
+                            border: Border.all(color: NileColors.border),
+                          ),
+                          child: Text(
+                            brand,
+                            style: NileTypography.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
+              if (note != null) ...[
+                const SizedBox(height: 6),
+                Text(note, style: NileTypography.caption),
+              ],
+            ],
+          ),
         ),
       ),
     );
