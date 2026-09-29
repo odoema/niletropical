@@ -3,22 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nile Tropical Industries (U) Ltd</title>
+<title>Nile Tropical Industries (U) Ltd | Nebbi, West Nile, Uganda</title>
 <meta name="theme-color" content="#005090">
 </head>
 <body>
 <script>
 fetch('https://cdn.jsdelivr.net/gh/odoema/niletropical@127aa179995c288bccea2585e663fd8761c5579c/index.html')
-  .then(function(r){return r.text()})
-  .then(function(html){
-    html = html.replace(
-      '<meta name="theme-color" content="#005090">',
-      '<meta name="theme-color" content="#005090">\n<link rel="stylesheet" href="assets/website/hero-art.css">'
-    );
-    document.open();
-    document.write(html);
-    document.close();
-  });
+  .then(function(r){ if(!r.ok) throw new Error('restore failed'); return r.text(); })
+  .then(function(html){ document.open(); document.write(html); document.close(); });
 </script>
+<noscript><p>Enable JavaScript to view the Nile Tropical website.</p></noscript>
 </body>
 </html>
