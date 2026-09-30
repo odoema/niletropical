@@ -1,5 +1,6 @@
 /// Nile Tropical — App Theme
 /// Rebuilt around #233E85 deep Nile blue + Poppins per master contract §1–3.
+/// UI refresh 2026-09-30: component polish only — brand colour tokens unchanged.
 /// Copyright © Hon. Dr. Betty Udongo Pacutho
 
 import 'package:flutter/material.dart';
@@ -53,13 +54,23 @@ class AppTheme {
       scaffoldBackgroundColor: NileColors.background,
       primaryColor: NileColors.primary,
       textTheme: NileTypography.textTheme,
-      fontFamily: NileTypography.bodyLarge.fontFamily,
+      primaryTextTheme: NileTypography.textTheme.apply(
+        bodyColor: NileColors.onPrimary,
+        displayColor: NileColors.onPrimary,
+      ),
+      visualDensity: VisualDensity.standard,
+      splashFactory: InkRipple.splashFactory,
+      hoverColor: NileColors.primary.withValues(alpha: 0.04),
+      focusColor: NileColors.primary.withValues(alpha: 0.12),
+      highlightColor: NileColors.primary.withValues(alpha: 0.06),
 
       appBarTheme: AppBarTheme(
         backgroundColor: NileColors.surface,
         foregroundColor: NileColors.textPrimary,
         elevation: 0,
-        scrolledUnderElevation: 1,
+        scrolledUnderElevation: 0.5,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: NileColors.border,
         centerTitle: false,
         titleTextStyle: NileTypography.titleLarge,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
@@ -76,7 +87,21 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: NileRadius.borderMd),
           elevation: 0,
+          shadowColor: NileColors.primary.withValues(alpha: 0.35),
           textStyle: NileTypography.button,
+        ).copyWith(
+          elevation: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.hovered) ? 3.0 : 0.0,
+          ),
+          overlayColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.pressed)) {
+              return NileColors.onPrimary.withValues(alpha: 0.14);
+            }
+            if (states.contains(WidgetState.hovered)) {
+              return NileColors.onPrimary.withValues(alpha: 0.08);
+            }
+            return null;
+          }),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -87,6 +112,12 @@ class AppTheme {
           side: const BorderSide(color: NileColors.primary, width: 1.5),
           shape: RoundedRectangleBorder(borderRadius: NileRadius.borderMd),
           textStyle: NileTypography.button,
+        ).copyWith(
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.hovered)
+                ? NileColors.primaryContainer
+                : null,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -94,15 +125,25 @@ class AppTheme {
           foregroundColor: NileColors.primary,
           textStyle: NileTypography.buttonSmall,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: NileRadius.borderSm),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: NileColors.primary,
           foregroundColor: NileColors.onPrimary,
+          disabledBackgroundColor: NileColors.border,
+          disabledForegroundColor: NileColors.textDisabled,
           minimumSize: const Size(double.infinity, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: NileRadius.borderMd),
           textStyle: NileTypography.button,
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: NileColors.textPrimary,
+          highlightColor: NileColors.primary.withValues(alpha: 0.08),
         ),
       ),
 
@@ -131,7 +172,14 @@ class AppTheme {
           borderRadius: NileRadius.borderMd,
           borderSide: const BorderSide(color: NileColors.error, width: 2),
         ),
+        hoverColor: NileColors.primaryContainer.withValues(alpha: 0.35),
         labelStyle: NileTypography.bodyMedium,
+        floatingLabelStyle: NileTypography.bodyMedium.copyWith(
+          color: NileColors.primary,
+          fontWeight: FontWeight.w500,
+        ),
+        prefixIconColor: NileColors.textTertiary,
+        suffixIconColor: NileColors.textTertiary,
         hintStyle: NileTypography.bodyMedium.copyWith(
           color: NileColors.textTertiary,
         ),
@@ -143,8 +191,10 @@ class AppTheme {
         color: NileColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: NileRadius.borderLg,
-          side: const BorderSide(color: NileColors.border),
+          side: BorderSide(color: NileColors.border.withValues(alpha: 0.7)),
         ),
+        surfaceTintColor: Colors.transparent,
+        shadowColor: NileColors.primary.withValues(alpha: 0.12),
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
       ),
@@ -152,10 +202,17 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: NileColors.surfaceVariant,
         selectedColor: NileColors.primaryContainer,
-        labelStyle: NileTypography.labelMedium,
+        checkmarkColor: NileColors.primary,
+        labelStyle: NileTypography.labelMedium.copyWith(
+          color: NileColors.textPrimary,
+        ),
+        secondaryLabelStyle: NileTypography.labelMedium.copyWith(
+          color: NileColors.primary,
+          fontWeight: FontWeight.w600,
+        ),
         side: const BorderSide(color: NileColors.border),
-        shape: RoundedRectangleBorder(borderRadius: NileRadius.borderSm),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        shape: RoundedRectangleBorder(borderRadius: NileRadius.borderFull),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       ),
 
       dividerTheme: const DividerThemeData(
@@ -166,33 +223,43 @@ class AppTheme {
 
       dialogTheme: DialogThemeData(
         backgroundColor: NileColors.surface,
+        surfaceTintColor: Colors.transparent,
         elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: NileRadius.borderLg),
+        shape: RoundedRectangleBorder(borderRadius: NileRadius.borderXl),
         titleTextStyle: NileTypography.headlineSmall,
         contentTextStyle: NileTypography.bodyMedium,
       ),
 
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: NileColors.surface,
+        surfaceTintColor: Colors.transparent,
         elevation: 8,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         showDragHandle: true,
+        dragHandleColor: NileColors.borderStrong,
       ),
 
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: NileColors.textPrimary,
+        backgroundColor: NileColors.primaryDark,
         contentTextStyle: NileTypography.bodyMedium.copyWith(
-          color: NileColors.surface,
+          color: NileColors.onPrimary,
         ),
+        actionTextColor: NileColors.onPrimary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: NileRadius.borderSm),
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: NileRadius.borderMd),
       ),
 
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: NileColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: NileColors.border,
         indicatorColor: NileColors.primaryContainer,
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: NileRadius.borderFull,
+        ),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return NileTypography.labelSmall.copyWith(
@@ -208,20 +275,187 @@ class AppTheme {
           }
           return const IconThemeData(color: NileColors.textSecondary, size: 24);
         }),
-        height: 64,
-        elevation: 0,
+        height: 66,
+        elevation: 1,
       ),
 
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: NileColors.primary,
         linearTrackColor: NileColors.primaryContainer,
+        circularTrackColor: NileColors.primaryContainer,
       ),
 
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: NileColors.primary,
         foregroundColor: NileColors.onPrimary,
         elevation: 2,
+        hoverElevation: 4,
+        focusElevation: 4,
+        highlightElevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: NileRadius.borderLg),
+      ),
+
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: NileColors.surface,
+        indicatorColor: NileColors.primaryContainer,
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: NileRadius.borderFull,
+        ),
+        selectedIconTheme:
+            const IconThemeData(color: NileColors.primary, size: 24),
+        unselectedIconTheme:
+            const IconThemeData(color: NileColors.textSecondary, size: 24),
+        selectedLabelTextStyle: NileTypography.labelMedium.copyWith(
+          color: NileColors.primary,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelTextStyle: NileTypography.labelMedium.copyWith(
+          color: NileColors.textSecondary,
+        ),
+      ),
+
+      drawerTheme: DrawerThemeData(
+        backgroundColor: NileColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.horizontal(right: Radius.circular(24)),
+        ),
+      ),
+
+      tabBarTheme: TabBarThemeData(
+        labelColor: NileColors.primary,
+        unselectedLabelColor: NileColors.textSecondary,
+        labelStyle: NileTypography.labelLarge.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: NileTypography.labelLarge,
+        indicatorColor: NileColors.primary,
+        indicatorSize: TabBarIndicatorSize.label,
+        dividerColor: NileColors.divider,
+        overlayColor: WidgetStatePropertyAll(
+          NileColors.primary.withValues(alpha: 0.06),
+        ),
+      ),
+
+      listTileTheme: ListTileThemeData(
+        iconColor: NileColors.textSecondary,
+        textColor: NileColors.textPrimary,
+        titleTextStyle: NileTypography.titleSmall,
+        subtitleTextStyle: NileTypography.bodySmall,
+        selectedColor: NileColors.primary,
+        selectedTileColor: NileColors.primaryContainer,
         shape: RoundedRectangleBorder(borderRadius: NileRadius.borderMd),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      ),
+
+      popupMenuTheme: PopupMenuThemeData(
+        color: NileColors.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 6,
+        shadowColor: NileColors.primary.withValues(alpha: 0.18),
+        textStyle: NileTypography.bodyMedium.copyWith(
+          color: NileColors.textPrimary,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: NileRadius.borderMd,
+          side: const BorderSide(color: NileColors.divider),
+        ),
+      ),
+
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: NileColors.primaryDark,
+          borderRadius: NileRadius.borderSm,
+        ),
+        textStyle: NileTypography.labelMedium.copyWith(
+          color: NileColors.onPrimary,
+        ),
+        waitDuration: const Duration(milliseconds: 400),
+      ),
+
+      badgeTheme: BadgeThemeData(
+        backgroundColor: NileColors.error,
+        textColor: NileColors.onError,
+        textStyle: NileTypography.labelSmall.copyWith(
+          color: NileColors.onError,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? NileColors.primary
+              : null,
+        ),
+        checkColor: const WidgetStatePropertyAll(NileColors.onPrimary),
+        side: const BorderSide(color: NileColors.borderStrong, width: 1.5),
+        shape: RoundedRectangleBorder(borderRadius: NileRadius.borderXs),
+      ),
+
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? NileColors.primary
+              : NileColors.borderStrong,
+        ),
+      ),
+
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? NileColors.onPrimary
+              : NileColors.borderStrong,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? NileColors.primary
+              : NileColors.surfaceVariant,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? NileColors.primary
+              : NileColors.border,
+        ),
+      ),
+
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: SegmentedButton.styleFrom(
+          foregroundColor: NileColors.textSecondary,
+          selectedForegroundColor: NileColors.primary,
+          selectedBackgroundColor: NileColors.primaryContainer,
+          side: const BorderSide(color: NileColors.border),
+          textStyle: NileTypography.labelLarge,
+        ),
+      ),
+
+      searchBarTheme: SearchBarThemeData(
+        elevation: const WidgetStatePropertyAll(0.0),
+        backgroundColor: const WidgetStatePropertyAll(NileColors.surface),
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+        side: const WidgetStatePropertyAll(
+          BorderSide(color: NileColors.border),
+        ),
+        shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: NileRadius.borderFull),
+        ),
+        textStyle: WidgetStatePropertyAll(
+          NileTypography.bodyLarge,
+        ),
+        hintStyle: WidgetStatePropertyAll(
+          NileTypography.bodyMedium.copyWith(color: NileColors.textTertiary),
+        ),
+      ),
+
+      scrollbarTheme: ScrollbarThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.hovered) ||
+                  states.contains(WidgetState.dragged)
+              ? NileColors.primary.withValues(alpha: 0.55)
+              : NileColors.primary.withValues(alpha: 0.25),
+        ),
+        radius: const Radius.circular(8),
+        thickness: const WidgetStatePropertyAll(6.0),
       ),
     );
   }
