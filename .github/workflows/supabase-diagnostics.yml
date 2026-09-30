@@ -221,6 +221,16 @@ jobs:
           print("Report built:", len(lines), "lines (contents not printed to the public log).")
           PY
 
+      - name: Checkout diagnostics scripts
+        uses: actions/checkout@v4
+        with:
+          path: src
+          persist-credentials: false
+
+      - name: Diagnostics #2 — payment lifecycle
+        shell: bash
+        run: python3 src/scripts/diagnostics/payment_lifecycle.py
+
       - name: Publish report (append-only, no force-push)
         shell: bash
         env:
