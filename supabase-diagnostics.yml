@@ -76,12 +76,59 @@ jobs:
                   return None
 
           import re
+          # Route patterns declared in lib/core/router/app_router.dart. A logged
+          # route is reported as its matching pattern, so useful structure is
+          # kept (/product/:slug/...) while every dynamic value is masked.
+          ROUTES = """/ /account /account/addresses /account/orders /admin
+            /admin/analytics /admin/audit /admin/cms /admin/cms/app-hero
+            /admin/cms/banners /admin/cms/faqs /admin/cms/media /admin/cms/pages
+            /admin/cms/promotions /admin/cms/publishing
+            /admin/cms/publishing/calendar /admin/cms/testimonials
+            /admin/cms/videos /admin/cms/website-slots /admin/customers
+            /admin/delivery /admin/errors /admin/finance/cod /admin/inventory
+            /admin/inventory/adjust /admin/login /admin/management
+            /admin/notifications /admin/orders /admin/orders/:id
+            /admin/orders/:id/pod /admin/pricing /admin/products
+            /admin/products/:id /admin/products/images /admin/products/new
+            /admin/reports /admin/reset-password /admin/settings /articles
+            /articles/:slug /cart /category/:slug /checkout /confirmation
+            /courier /courier/history /courier/shipment/:id /design-system /faq
+            /notifications /onboarding /pages/:slug /pay/:orderId /product/:slug
+            /shop /track /track/:orderNumber""".split()
+          ROUTE_RX = [(r, re.compile("^" + re.sub(r":[A-Za-z]+", "[^/]+", re.escape(r).replace(r"\:", ":")) + "$"))
+                      for r in ROUTES]
+
           def clean_route(route):
-              # keep the first path segment, mask the rest: /track/NT-123 -> /track/:param
               if not route:
                   return "-"
-              parts = [x for x in route.split("?")[0].split("/") if x]
-              return "/" + "/".join(parts[:1] + [":param"] * len(parts[1:])) if parts else "/"
+              path = str(route)
+              if "#/" in path:                                     # Flutter hash routing
+                  path = path.split("#", 1)[1]
+              path = re.sub(r"^[a-z]+://[^/]+", "", path)          # drop scheme/host
+              path = re.sub(r"^/app(?=/|$)", "", path)             # site serves the app at /app/
+              path = path.split("?")[0].split("#")[0].rstrip("/") or "/"
+              if not path.startswith("/"):
+                  path = "/" + path
+              for pattern, rx in ROUTE_RX:
+                  if rx.match(path):
+                      return pattern
+              # Unknown route: keep the first segment only if the app itself
+              # declares it, so nothing user-typed is ever echoed.
+              first = next((x for x in path.split("/") if x), "")
+              known = {r.split("/")[1] for r in ROUTES if r != "/"}
+              return f"(unmatched) /{first}/…" if first in known else "(unmatched)"
+
+          def scrub(value, limit=48):
+              # error_code / action / source are free text written by app code;
+              # mask anything that could be customer-derived before publishing.
+              if value in (None, ""):
+                  return "-"
+              v = str(value)
+              v = re.sub(r"[\w.+-]+@[\w-]+\.[\w.-]+", "<email>", v)
+              v = re.sub(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b", "<id>", v)
+              v = re.sub(r"\+?\d[\d\s-]{2,}\d", "<n>", v)      # phones, order numbers, amounts
+              v = re.sub(r"[^A-Za-z0-9_.:/<>\- ]", "", v)         # only plain code-like characters
+              return (v[:limit] + "…") if len(v) > limit else v
 
           def table(title, counter):
               lines.append(f"**{title}**"); lines.append("")
@@ -130,7 +177,7 @@ jobs:
           else:
               lines.append(f"Total: **{len(data)}**"); lines.append("")
               table("By severity", collections.Counter(r.get("severity") for r in data))
-              top = collections.Counter(f'{r.get("source")} · {r.get("error_code") or "-"} · {clean_route(r.get("route"))} · {r.get("action") or "-"}' for r in data)
+              top = collections.Counter(f'{scrub(r.get("source"))} · {scrub(r.get("error_code"))} · {clean_route(r.get("route"))} · {scrub(r.get("action"))}' for r in data)
               table("Top 15 (source · code · route · action)", collections.Counter(dict(top.most_common(15))))
 
           # ── Deployments ───────────────────────────────────────────
