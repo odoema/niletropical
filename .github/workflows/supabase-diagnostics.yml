@@ -1,0 +1,249 @@
+# Nile Tropical — read-only Supabase diagnostics
+#
+# Runs on GitHub's servers using the Supabase secrets already stored in this
+# repo, and commits an AGGREGATE report (counts, statuses, advisor findings,
+# function versions) to the branch `diagnostics/supabase-report`.
+#
+# Safety:
+# - Read-only toward Supabase: GET requests only; nothing in Supabase changes.
+#   It DOES write to GitHub: it appends the report to its own branch
+#   (never master, never force-pushed; earlier reports are kept).
+# - This repo is public, so Actions logs and the report branch are public.
+#   The report therefore contains NO customer data: no names, phones,
+#   addresses, messages or ids — only counts and system metadata.
+# - Runs only when started manually (Actions tab → Run workflow).
+
+name: Supabase diagnostics (read-only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # only to commit the report to its own branch
+
+concurrency:
+  group: supabase-diagnostics
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_REF: ououfhsswyqutcczdtnb
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - name: Build aggregate report
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          python3 - <<'PY'
+          import collections, datetime as dt, json, os, urllib.error, urllib.request
+
+          ref = os.environ["PROJECT_REF"]
+          rest = os.environ["SUPABASE_URL"].rstrip("/") + "/rest/v1/"
+          srk = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+          pat = os.environ.get("SUPABASE_ACCESS_TOKEN", "")
+          now = dt.datetime.now(dt.timezone.utc)
+          lines = [f"# Supabase diagnostics — {now:%Y-%m-%d %H:%M} UTC", "",
+                   f"Project `{ref}`. Aggregate only; no customer data.", ""]
+
+          def get(url, headers):
+              req = urllib.request.Request(url, headers={**headers, "Accept": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return r.status, json.load(r)
+              except urllib.error.HTTPError as e:
+                  return e.code, None
+              except Exception as e:  # network/timeout
+                  return type(e).__name__, None
+
+          def rows(path):
+              return get(rest + path, {"apikey": srk, "Authorization": "Bearer " + srk})
+
+          def mgmt(path):
+              if not pat:
+                  return "no token", None
+              return get("https://api.supabase.com" + path, {"Authorization": "Bearer " + pat})
+
+          def age_h(ts):
+              try:
+                  t = dt.datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                  return (now - t).total_seconds() / 3600
+              except Exception:
+                  return None
+
+          import re
+          # Route patterns declared in lib/core/router/app_router.dart. A logged
+          # route is reported as its matching pattern, so useful structure is
+          # kept (/product/:slug/...) while every dynamic value is masked.
+          ROUTES = """/ /account /account/addresses /account/orders /admin
+            /admin/analytics /admin/audit /admin/cms /admin/cms/app-hero
+            /admin/cms/banners /admin/cms/faqs /admin/cms/media /admin/cms/pages
+            /admin/cms/promotions /admin/cms/publishing
+            /admin/cms/publishing/calendar /admin/cms/testimonials
+            /admin/cms/videos /admin/cms/website-slots /admin/customers
+            /admin/delivery /admin/errors /admin/finance/cod /admin/inventory
+            /admin/inventory/adjust /admin/login /admin/management
+            /admin/notifications /admin/orders /admin/orders/:id
+            /admin/orders/:id/pod /admin/pricing /admin/products
+            /admin/products/:id /admin/products/images /admin/products/new
+            /admin/reports /admin/reset-password /admin/settings /articles
+            /articles/:slug /cart /category/:slug /checkout /confirmation
+            /courier /courier/history /courier/shipment/:id /design-system /faq
+            /notifications /onboarding /pages/:slug /pay/:orderId /product/:slug
+            /shop /track /track/:orderNumber""".split()
+          ROUTE_RX = [(r, re.compile("^" + re.sub(r":[A-Za-z]+", "[^/]+", re.escape(r).replace(r"\:", ":")) + "$"))
+                      for r in ROUTES]
+
+          def clean_route(route):
+              if not route:
+                  return "-"
+              path = str(route)
+              if "#/" in path:                                     # Flutter hash routing
+                  path = path.split("#", 1)[1]
+              path = re.sub(r"^[a-z]+://[^/]+", "", path)          # drop scheme/host
+              path = re.sub(r"^/app(?=/|$)", "", path)             # site serves the app at /app/
+              path = path.split("?")[0].split("#")[0].rstrip("/") or "/"
+              if not path.startswith("/"):
+                  path = "/" + path
+              for pattern, rx in ROUTE_RX:
+                  if rx.match(path):
+                      return pattern
+              # Unknown route: keep the first segment only if the app itself
+              # declares it, so nothing user-typed is ever echoed.
+              first = next((x for x in path.split("/") if x), "")
+              known = {r.split("/")[1] for r in ROUTES if r != "/"}
+              return f"(unmatched) /{first}/…" if first in known else "(unmatched)"
+
+          def scrub(value, limit=48):
+              # error_code / action / source are free text written by app code;
+              # mask anything that could be customer-derived before publishing.
+              if value in (None, ""):
+                  return "-"
+              v = str(value)
+              v = re.sub(r"[\w.+-]+@[\w-]+\.[\w.-]+", "<email>", v)
+              v = re.sub(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b", "<id>", v)
+              v = re.sub(r"\+?\d[\d\s-]{2,}\d", "<n>", v)      # phones, order numbers, amounts
+              v = re.sub(r"[^A-Za-z0-9_.:/<>\- ]", "", v)         # only plain code-like characters
+              return (v[:limit] + "…") if len(v) > limit else v
+
+          def table(title, counter):
+              lines.append(f"**{title}**"); lines.append("")
+              if not counter:
+                  lines.append("_none_"); lines.append(""); return
+              lines.append("| value | count |"); lines.append("|---|---|")
+              for k, v in counter.most_common():
+                  lines.append(f"| {k} | {v} |")
+              lines.append("")
+
+          # ── Orders ────────────────────────────────────────────────
+          lines.append("## Orders")
+          code, data = rows("orders?select=status,payment_status,created_at&limit=20000")
+          if data is None:
+              lines.append(f"Could not read orders (HTTP {code}).")
+          else:
+              lines.append(f"Total orders: **{len(data)}**"); lines.append("")
+              table("By order status", collections.Counter(r.get("status") for r in data))
+              table("By payment status", collections.Counter(r.get("payment_status") for r in data))
+              stuck = collections.Counter()
+              for r in data:
+                  a = age_h(r.get("created_at") or "")
+                  if a and a > 24 and r.get("payment_status") in ("unpaid", "pending", "failed"):
+                      stuck[f'{r.get("status")} / {r.get("payment_status")}'] += 1
+              table("Older than 24h and not paid (order status / payment status)", stuck)
+              recent = sum(1 for r in data if (age_h(r.get("created_at") or "") or 1e9) <= 24 * 7)
+              lines.append(f"Orders in the last 7 days: **{recent}**"); lines.append("")
+
+          # ── Payments ─────────────────────────────────────────────
+          lines.append("## Payments")
+          code, data = rows("payments?select=method,status,created_at&limit=20000")
+          if data is None:
+              lines.append(f"Could not read payments (HTTP {code}).")
+          else:
+              table("By method / status", collections.Counter(f'{r.get("method")} / {r.get("status")}' for r in data))
+              old_pending = sum(1 for r in data if r.get("status") == "pending"
+                                and (age_h(r.get("created_at") or "") or 0) > 1)
+              lines.append(f"Pending for more than 1 hour: **{old_pending}**"); lines.append("")
+
+          # ── App errors (last 7 days) ──────────────────────────────
+          lines.append("## App errors — last 7 days")
+          since = (now - dt.timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
+          code, data = rows(f"app_error_logs?select=severity,source,error_code,route,action&created_at=gte.{since}&limit=20000")
+          if data is None:
+              lines.append(f"Could not read app_error_logs (HTTP {code}).")
+          else:
+              lines.append(f"Total: **{len(data)}**"); lines.append("")
+              table("By severity", collections.Counter(r.get("severity") for r in data))
+              top = collections.Counter(f'{scrub(r.get("source"))} · {scrub(r.get("error_code"))} · {clean_route(r.get("route"))} · {scrub(r.get("action"))}' for r in data)
+              table("Top 15 (source · code · route · action)", collections.Counter(dict(top.most_common(15))))
+
+          # ── Deployments ───────────────────────────────────────────
+          lines.append("## Recorded deployment failures")
+          code, data = rows("deployment_failure_records?select=created_at&order=created_at.desc&limit=200")
+          lines.append(f"Could not read (HTTP {code})." if data is None
+                       else f"Records: **{len(data)}**; most recent: {data[0]['created_at'] if data else 'none'}")
+          lines.append("")
+
+          # ── Edge Functions (live versions) ────────────────────────
+          lines.append("## Edge Functions (live)")
+          code, data = mgmt(f"/v1/projects/{ref}/functions")
+          if data is None:
+              lines.append(f"Could not list functions (HTTP {code}) — the deploy token may lack read scope.")
+          else:
+              lines.append("| function | version | status | updated |"); lines.append("|---|---|---|---|")
+              for f in sorted(data, key=lambda x: x.get("slug", "")):
+                  upd = f.get("updated_at")
+                  if isinstance(upd, (int, float)):
+                      upd = dt.datetime.fromtimestamp(upd / 1000, dt.timezone.utc).strftime("%Y-%m-%d %H:%M")
+                  lines.append(f'| {f.get("slug")} | {f.get("version")} | {f.get("status")} | {upd} |')
+          lines.append("")
+
+          # ── Advisors ──────────────────────────────────────────────
+          for kind in ("security", "performance"):
+              lines.append(f"## {kind.title()} advisor")
+              code, data = mgmt(f"/v1/projects/{ref}/advisors/{kind}")
+              lints = (data or {}).get("lints") if isinstance(data, dict) else None
+              if lints is None:
+                  lines.append(f"Could not fetch (HTTP {code})."); lines.append(""); continue
+              if not lints:
+                  lines.append("No findings."); lines.append(""); continue
+              lines.append("| level | issue | object |"); lines.append("|---|---|---|")
+              for l in sorted(lints, key=lambda x: {"ERROR": 0, "WARN": 1}.get(x.get("level"), 2)):
+                  md = l.get("metadata") or {}
+                  obj = ".".join(str(md[k]) for k in ("schema", "name") if md.get(k)) or "-"
+                  lines.append(f'| {l.get("level")} | {l.get("title") or l.get("name")} | {obj} |')
+              lines.append("")
+
+          open("out/REPORT.md", "w").write("\n".join(lines) + "\n")
+          print("Report built:", len(lines), "lines (contents not printed to the public log).")
+          PY
+
+      - name: Publish report (append-only, no force-push)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          BRANCH="diagnostics/supabase-report"
+          mkdir pub && cd pub && git init -q
+          git config user.name "supabase-diagnostics"
+          git config user.email "actions@users.noreply.github.com"
+          if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
+            git fetch -q "$REMOTE" "$BRANCH"
+            git checkout -q -b "$BRANCH" FETCH_HEAD   # keep existing history
+          else
+            git checkout -q --orphan "$BRANCH"        # first run: new, empty branch
+          fi
+          STAMP="$(date -u +%Y-%m-%dT%H%MZ)"
+          mkdir -p reports
+          cp ../out/REPORT.md "reports/${STAMP}.md"   # dated copy, never overwritten
+          cp ../out/REPORT.md REPORT.md               # latest report
+          git add REPORT.md reports
+          git commit -qm "Supabase diagnostics ${STAMP}"
+          git push -q "$REMOTE" "HEAD:${BRANCH}"      # normal push: fails rather than overwrite
+          echo "Report appended to ${BRANCH} (reports/${STAMP}.md)."
