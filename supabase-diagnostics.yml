@@ -5,7 +5,9 @@
 # function versions) to the branch `diagnostics/supabase-report`.
 #
 # Safety:
-# - Read-only: GET requests only. Nothing in Supabase is changed.
+# - Read-only toward Supabase: GET requests only; nothing in Supabase changes.
+#   It DOES write to GitHub: it appends the report to its own branch
+#   (never master, never force-pushed; earlier reports are kept).
 # - This repo is public, so Actions logs and the report branch are public.
 #   The report therefore contains NO customer data: no names, phones,
 #   addresses, messages or ids — only counts and system metadata.
@@ -73,6 +75,14 @@ jobs:
               except Exception:
                   return None
 
+          import re
+          def clean_route(route):
+              # keep the first path segment, mask the rest: /track/NT-123 -> /track/:param
+              if not route:
+                  return "-"
+              parts = [x for x in route.split("?")[0].split("/") if x]
+              return "/" + "/".join(parts[:1] + [":param"] * len(parts[1:])) if parts else "/"
+
           def table(title, counter):
               lines.append(f"**{title}**"); lines.append("")
               if not counter:
@@ -120,7 +130,7 @@ jobs:
           else:
               lines.append(f"Total: **{len(data)}**"); lines.append("")
               table("By severity", collections.Counter(r.get("severity") for r in data))
-              top = collections.Counter(f'{r.get("source")} · {r.get("error_code") or "-"} · {r.get("route") or "-"} · {r.get("action") or "-"}' for r in data)
+              top = collections.Counter(f'{r.get("source")} · {r.get("error_code") or "-"} · {clean_route(r.get("route"))} · {r.get("action") or "-"}' for r in data)
               table("Top 15 (source · code · route · action)", collections.Counter(dict(top.most_common(15))))
 
           # ── Deployments ───────────────────────────────────────────
@@ -164,15 +174,29 @@ jobs:
           print("Report built:", len(lines), "lines (contents not printed to the public log).")
           PY
 
-      - name: Commit report to diagnostics branch
+      - name: Publish report (append-only, no force-push)
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          cd out
-          git init -q -b diagnostics/supabase-report
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          BRANCH="diagnostics/supabase-report"
+          mkdir pub && cd pub && git init -q
           git config user.name "supabase-diagnostics"
           git config user.email "actions@users.noreply.github.com"
-          git add REPORT.md
-          git commit -qm "Supabase diagnostics $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:diagnostics/supabase-report
-          echo "Report committed to branch diagnostics/supabase-report."
+          if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
+            git fetch -q "$REMOTE" "$BRANCH"
+            git checkout -q -b "$BRANCH" FETCH_HEAD   # keep existing history
+          else
+            git checkout -q --orphan "$BRANCH"        # first run: new, empty branch
+          fi
+          STAMP="$(date -u +%Y-%m-%dT%H%MZ)"
+          mkdir -p reports
+          cp ../out/REPORT.md "reports/${STAMP}.md"   # dated copy, never overwritten
+          cp ../out/REPORT.md REPORT.md               # latest report
+          git add REPORT.md reports
+          git commit -qm "Supabase diagnostics ${STAMP}"
+          git push -q "$REMOTE" "HEAD:${BRANCH}"      # normal push: fails rather than overwrite
+          echo "Report appended to ${BRANCH} (reports/${STAMP}.md)."
