@@ -3,11 +3,21 @@
 /// Copyright © Hon. Dr. Betty Udongo Pacutho
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'nile_colors.dart';
 
 /// Text styles built on Poppins. Use via Theme.of(context).textTheme or
 /// NileTypography directly. Falls back to system sans if offline.
 abstract final class NileTypography {
+  /// System fonts used while Poppins downloads, or if it cannot load.
+  static const List<String> _fallback = [
+    'Segoe UI',
+    'Roboto',
+    'Helvetica Neue',
+    'Arial',
+    'sans-serif',
+  ];
+
   static TextStyle _base({
     required double size,
     required FontWeight weight,
@@ -15,14 +25,22 @@ abstract final class NileTypography {
     double? height,
     double? letterSpacing,
   }) {
-    return TextStyle(
-      fontFamily: 'Poppins',
+    final style = TextStyle(
       fontSize: size,
       fontWeight: weight,
       color: color ?? NileColors.textPrimary,
       height: height,
       letterSpacing: letterSpacing,
+      fontFamilyFallback: _fallback,
     );
+    // Poppins is not bundled as an asset, so a bare fontFamily: 'Poppins'
+    // silently fell back to the system font. GoogleFonts actually loads it.
+    // Tests disable runtime fetching (test/flutter_test_config.dart), so keep
+    // the plain family name there to avoid network access.
+    if (GoogleFonts.config.allowRuntimeFetching) {
+      return GoogleFonts.poppins(textStyle: style);
+    }
+    return style.copyWith(fontFamily: 'Poppins');
   }
 
   // Display
@@ -30,16 +48,19 @@ abstract final class NileTypography {
         size: 36,
         weight: FontWeight.w700,
         height: 1.2,
+        letterSpacing: -0.8,
       );
   static TextStyle get displayMedium => _base(
         size: 32,
         weight: FontWeight.w700,
         height: 1.2,
+        letterSpacing: -0.6,
       );
   static TextStyle get displaySmall => _base(
         size: 28,
         weight: FontWeight.w700,
         height: 1.25,
+        letterSpacing: -0.4,
       );
 
   // Headline
@@ -47,16 +68,19 @@ abstract final class NileTypography {
         size: 24,
         weight: FontWeight.w600,
         height: 1.3,
+        letterSpacing: -0.3,
       );
   static TextStyle get headlineMedium => _base(
         size: 22,
         weight: FontWeight.w600,
         height: 1.3,
+        letterSpacing: -0.2,
       );
   static TextStyle get headlineSmall => _base(
         size: 20,
         weight: FontWeight.w600,
         height: 1.3,
+        letterSpacing: -0.1,
       );
 
   // Title

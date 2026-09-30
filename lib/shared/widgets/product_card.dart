@@ -13,85 +13,180 @@ import '../services/storage_service.dart';
 /// - image fills the allocated area with BoxFit.cover
 /// - image loading/failure states never change the card geometry
 /// - product name and price use a fixed content rhythm
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
   /// Single grid contract used by home, shop and category screens.
   static const double gridMaxCrossAxisExtent = 240;
   static const double gridChildAspectRatio = 0.68;
+
+  /// At or below this many units the card shows an "Only N left" nudge.
+  static const int lowStockThreshold = 5;
 
   const ProductCard({super.key, required this.product});
 
   final Product product;
 
   @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  static const Duration _motion = Duration(milliseconds: 200);
+
+  bool _hovered = false;
+
+  void _setHovered(bool value) {
+    if (_hovered != value) setState(() => _hovered = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final product = widget.product;
     final rawImageUrl = product.mainImageUrl;
     final imageUrl = StorageService.resolvePublicUrl(rawImageUrl);
     final price = product.variants.isNotEmpty ? product.variants.first.price : 0;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      margin: EdgeInsets.zero,
-      elevation: 1.5,
-      shape: RoundedRectangleBorder(
-        borderRadius: NileRadius.borderLg,
-        side: BorderSide(color: NileColors.border.withValues(alpha: 0.55)),
-      ),
-      child: InkWell(
-        onTap: () => context.push('/product/${product.slug}'),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // The grid gives the card a finite height. Expanded makes the
-            // image consume all remaining space, so every card has the same
-            // image footprint regardless of screen width.
-            Expanded(
-              child: _ProductImageFrame(
-                imageUrl: imageUrl,
-                product: product,
+    // Hover lift is a transform + shadow only, so the grid geometry never
+    // changes (card contract above).
+    return MouseRegion(
+      onEnter: (_) => _setHovered(true),
+      onExit: (_) => _setHovered(false),
+      child: AnimatedContainer(
+        duration: _motion,
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.translationValues(0, _hovered ? -3 : 0, 0),
+        decoration: BoxDecoration(
+          borderRadius: NileRadius.borderLg,
+          boxShadow: [
+            BoxShadow(
+              color: NileColors.primary.withValues(
+                alpha: _hovered ? 0.16 : 0.06,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
-              child: SizedBox(
-                height: 58,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.name,
-                      style: NileTypography.titleSmall.copyWith(
-                        fontWeight: FontWeight.w700,
-                        height: 1.15,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        if (product.variants.isNotEmpty)
-                          Text(
-                            product.variants.first.stockQuantity > 0
-                                ? '${product.variants.first.stockQuantity} available'
-                                : 'Out of stock',
-                            style: NileTypography.labelSmall.copyWith(
-                              color: product.variants.first.stockQuantity > 0
-                                  ? NileColors.success
-                                  : NileColors.error,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        NilePrice(amount: price),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              blurRadius: _hovered ? 24 : 12,
+              offset: Offset(0, _hovered ? 10 : 4),
             ),
           ],
         ),
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: NileRadius.borderLg,
+            side: BorderSide(
+              color: _hovered
+                  ? NileColors.primary.withValues(alpha: 0.28)
+                  : NileColors.border.withValues(alpha: 0.55),
+            ),
+          ),
+          child: InkWell(
+            onTap: () => context.push('/product/${product.slug}'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // The grid gives the card a finite height. Expanded makes the
+                // image consume all remaining space, so every card has the
+                // same image footprint regardless of screen width.
+                Expanded(
+                  child: ClipRect(
+                    child: AnimatedScale(
+                      scale: _hovered ? 1.04 : 1.0,
+                      duration: _motion,
+                      curve: Curves.easeOutCubic,
+                      child: _ProductImageFrame(
+                        imageUrl: imageUrl,
+                        product: product,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  child: SizedBox(
+                    height: 58,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.name,
+                          style: NileTypography.titleSmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                            color: _hovered
+                                ? NileColors.primary
+                                : NileColors.textPrimary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Spacer(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (product.variants.isNotEmpty)
+                              Flexible(
+                                child: _StockLabel(
+                                  quantity:
+                                      product.variants.first.stockQuantity,
+                                ),
+                              ),
+                            NilePrice(amount: price),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
+    );
+  }
+}
+
+/// Stock status with a dot indicator: out of stock, low stock, or in stock.
+class _StockLabel extends StatelessWidget {
+  const _StockLabel({required this.quantity});
+
+  final int quantity;
+
+  @override
+  Widget build(BuildContext context) {
+    final String text;
+    final Color color;
+    if (quantity <= 0) {
+      text = 'Out of stock';
+      color = NileColors.error;
+    } else if (quantity <= ProductCard.lowStockThreshold) {
+      text = 'Only $quantity left';
+      color = NileColors.warning;
+    } else {
+      text = 'In stock';
+      color = NileColors.success;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: NileTypography.labelSmall.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
