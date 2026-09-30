@@ -5,7 +5,9 @@
 # function versions) to the branch `diagnostics/supabase-report`.
 #
 # Safety:
-# - Read-only: GET requests only. Nothing in Supabase is changed.
+# - Read-only toward Supabase: GET requests only; nothing in Supabase changes.
+#   It DOES write to GitHub: it appends the report to its own branch
+#   (never master, never force-pushed; earlier reports are kept).
 # - This repo is public, so Actions logs and the report branch are public.
 #   The report therefore contains NO customer data: no names, phones,
 #   addresses, messages or ids — only counts and system metadata.
@@ -73,6 +75,61 @@ jobs:
               except Exception:
                   return None
 
+          import re
+          # Route patterns declared in lib/core/router/app_router.dart. A logged
+          # route is reported as its matching pattern, so useful structure is
+          # kept (/product/:slug/...) while every dynamic value is masked.
+          ROUTES = """/ /account /account/addresses /account/orders /admin
+            /admin/analytics /admin/audit /admin/cms /admin/cms/app-hero
+            /admin/cms/banners /admin/cms/faqs /admin/cms/media /admin/cms/pages
+            /admin/cms/promotions /admin/cms/publishing
+            /admin/cms/publishing/calendar /admin/cms/testimonials
+            /admin/cms/videos /admin/cms/website-slots /admin/customers
+            /admin/delivery /admin/errors /admin/finance/cod /admin/inventory
+            /admin/inventory/adjust /admin/login /admin/management
+            /admin/notifications /admin/orders /admin/orders/:id
+            /admin/orders/:id/pod /admin/pricing /admin/products
+            /admin/products/:id /admin/products/images /admin/products/new
+            /admin/reports /admin/reset-password /admin/settings /articles
+            /articles/:slug /cart /category/:slug /checkout /confirmation
+            /courier /courier/history /courier/shipment/:id /design-system /faq
+            /notifications /onboarding /pages/:slug /pay/:orderId /product/:slug
+            /shop /track /track/:orderNumber""".split()
+          ROUTE_RX = [(r, re.compile("^" + re.sub(r":[A-Za-z]+", "[^/]+", re.escape(r).replace(r"\:", ":")) + "$"))
+                      for r in ROUTES]
+
+          def clean_route(route):
+              if not route:
+                  return "-"
+              path = str(route)
+              if "#/" in path:                                     # Flutter hash routing
+                  path = path.split("#", 1)[1]
+              path = re.sub(r"^[a-z]+://[^/]+", "", path)          # drop scheme/host
+              path = re.sub(r"^/app(?=/|$)", "", path)             # site serves the app at /app/
+              path = path.split("?")[0].split("#")[0].rstrip("/") or "/"
+              if not path.startswith("/"):
+                  path = "/" + path
+              for pattern, rx in ROUTE_RX:
+                  if rx.match(path):
+                      return pattern
+              # Unknown route: keep the first segment only if the app itself
+              # declares it, so nothing user-typed is ever echoed.
+              first = next((x for x in path.split("/") if x), "")
+              known = {r.split("/")[1] for r in ROUTES if r != "/"}
+              return f"(unmatched) /{first}/…" if first in known else "(unmatched)"
+
+          def scrub(value, limit=48):
+              # error_code / action / source are free text written by app code;
+              # mask anything that could be customer-derived before publishing.
+              if value in (None, ""):
+                  return "-"
+              v = str(value)
+              v = re.sub(r"[\w.+-]+@[\w-]+\.[\w.-]+", "<email>", v)
+              v = re.sub(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b", "<id>", v)
+              v = re.sub(r"\+?\d[\d\s-]{2,}\d", "<n>", v)      # phones, order numbers, amounts
+              v = re.sub(r"[^A-Za-z0-9_.:/<>\- ]", "", v)         # only plain code-like characters
+              return (v[:limit] + "…") if len(v) > limit else v
+
           def table(title, counter):
               lines.append(f"**{title}**"); lines.append("")
               if not counter:
@@ -120,7 +177,7 @@ jobs:
           else:
               lines.append(f"Total: **{len(data)}**"); lines.append("")
               table("By severity", collections.Counter(r.get("severity") for r in data))
-              top = collections.Counter(f'{r.get("source")} · {r.get("error_code") or "-"} · {r.get("route") or "-"} · {r.get("action") or "-"}' for r in data)
+              top = collections.Counter(f'{scrub(r.get("source"))} · {scrub(r.get("error_code"))} · {clean_route(r.get("route"))} · {scrub(r.get("action"))}' for r in data)
               table("Top 15 (source · code · route · action)", collections.Counter(dict(top.most_common(15))))
 
           # ── Deployments ───────────────────────────────────────────
@@ -164,15 +221,29 @@ jobs:
           print("Report built:", len(lines), "lines (contents not printed to the public log).")
           PY
 
-      - name: Commit report to diagnostics branch
+      - name: Publish report (append-only, no force-push)
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          cd out
-          git init -q -b diagnostics/supabase-report
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          BRANCH="diagnostics/supabase-report"
+          mkdir pub && cd pub && git init -q
           git config user.name "supabase-diagnostics"
           git config user.email "actions@users.noreply.github.com"
-          git add REPORT.md
-          git commit -qm "Supabase diagnostics $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:diagnostics/supabase-report
-          echo "Report committed to branch diagnostics/supabase-report."
+          if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
+            git fetch -q "$REMOTE" "$BRANCH"
+            git checkout -q -b "$BRANCH" FETCH_HEAD   # keep existing history
+          else
+            git checkout -q --orphan "$BRANCH"        # first run: new, empty branch
+          fi
+          STAMP="$(date -u +%Y-%m-%dT%H%MZ)"
+          mkdir -p reports
+          cp ../out/REPORT.md "reports/${STAMP}.md"   # dated copy, never overwritten
+          cp ../out/REPORT.md REPORT.md               # latest report
+          git add REPORT.md reports
+          git commit -qm "Supabase diagnostics ${STAMP}"
+          git push -q "$REMOTE" "HEAD:${BRANCH}"      # normal push: fails rather than overwrite
+          echo "Report appended to ${BRANCH} (reports/${STAMP}.md)."
