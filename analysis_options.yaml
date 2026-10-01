@@ -18,6 +18,10 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    - project_audit/**
+    - .project_cleanup_backup_*/**
+    - node_modules/**
+    - web-store/**
 
 linter:
   # The lint rules applied to this project can be customized in the
