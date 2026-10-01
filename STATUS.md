@@ -1,6 +1,6 @@
 # Current status (latest zip)
 
-This file supersedes the older P3–P10 checkboxes in README/CHANGES_FULL.
+This file supersedes the older P3–P10 checkboxes in README/docs/archive/CHANGES_FULL.
 
 | Area | State |
 |---|---|

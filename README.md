@@ -67,7 +67,7 @@ lib/
 - `/admin/delivery` Delivery Dashboard
 - `/admin/reports` Reports
 
-## Phases (status as of the codebase audit — see AUDIT.md)
+## Phases (status as of the codebase audit — see docs/archive/AUDIT.md)
 - [x] P0 — Repo cleanup: env config, .gitignore, mock data separated into `supabase/seed/dev_seed.sql`, test scaffold started
 - [x] P1 — Supabase schema: 14 migrations covering catalog, inventory, orders, payments, delivery, content, promotions, notifications, audit + RLS (see `supabase/migrations/`)
 - [ ] P2 — Real product catalogue wired end-to-end (query code exists in `supabase_service.dart`, untested against a live project)

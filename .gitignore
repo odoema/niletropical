@@ -21,3 +21,6 @@ supabase/.temp/
 
 # OS
 .DS_Store
+
+# Node (reinstall with: npm install)
+node_modules/

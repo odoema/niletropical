@@ -203,9 +203,9 @@ super_admin | manager | sales_staff | inventory_officer | finance | content_mana
 | `GAPS_TRACKER.md` | Living list of remaining frontend gaps |
 | `STATUS.md` | High-level current status |
 | `README.md` | Overview + run instructions |
-| `AUDIT.md` | Historical correctness audit (important background) |
-| `RELEASE_BASELINE.md` | What is considered stable |
-| `MERGE.md` | Rules about not mixing old migration sets |
+| `docs/archive/AUDIT.md` | Historical correctness audit (important background) |
+| `docs/archive/RELEASE_BASELINE.md` | What is considered stable |
+| `docs/archive/MERGE.md` | Rules about not mixing old migration sets |
 | `lib/core/config/env.dart` | Environment / dart-define handling |
 | `lib/shared/services/` | Canonical services (order, delivery, etc.) |
 
