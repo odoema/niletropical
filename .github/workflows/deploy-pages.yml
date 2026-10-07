@@ -161,6 +161,17 @@ jobs:
           };
           EOF
 
+      - name: Keep the Flutter shop out of the Google index
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          index = Path("build/web/index.html")
+          text = index.read_text(encoding="utf-8")
+          if "noindex" not in text:
+              text = text.replace("<head>", "<head>\n<meta name=\"robots\" content=\"noindex,follow\">", 1)
+              index.write_text(text, encoding="utf-8")
+          PY
+
       - name: Assemble public website and Flutter app
         run: |
           rm -rf build/site
@@ -169,18 +180,27 @@ jobs:
           cp articles.html build/site/articles.html
           cp privacy.html build/site/privacy.html
           cp terms.html build/site/terms.html
+          cp robots.txt build/site/robots.txt
+          cp sitemap.xml build/site/sitemap.xml
+          cp 404.html build/site/404.html
           cp CNAME build/site/CNAME
           mkdir -p build/site/assets/website
           cp -R assets/website/. build/site/assets/website/
+          cp -R about contact services stories build/site/
           cp -R build/web/. build/site/app/
 
       - name: Verify Pages artifact
         run: |
           test -f build/site/index.html
+          test -f build/site/robots.txt
+          test -f build/site/sitemap.xml
+          test -f build/site/404.html
+          test -f build/site/about/index.html
+          test -f build/site/stories/index.html
           test -f build/site/app/index.html
           test -f build/site/articles.html
           test -f build/site/CNAME
-          echo "Pages artifact verified: website + Flutter app + Publishing newsroom present."
+          echo "Pages artifact verified: website + Flutter app + SEO files present."
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

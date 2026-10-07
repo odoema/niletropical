@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /app/admin
+Disallow: /app/cart
+Disallow: /app/checkout
+Disallow: /app/confirmation
+Disallow: /app/track
+
+Sitemap: https://niletropicaluganda.com/sitemap.xml
